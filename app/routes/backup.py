@@ -1,7 +1,5 @@
 
-@app.route('/')
-def index():
-    return render_template('certificate.html')
+
 
 @app.route('/certificate')
 def certificate_page():

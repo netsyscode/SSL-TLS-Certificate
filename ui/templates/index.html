@@ -28,12 +28,21 @@
             }
         </style>
     </head>
+
     <body>
         <h1 align = "center">全球互联网证书监控系统</h1>
 
         <div style = "text-align:center;">
             <br><br><a href="/crawl" class = "button">爬取数据</a> <br> <br> <br>
         </div>
+
+        <div style="text-align:center;">
+            <br><br>
+            <button onclick="startScanning()" class="button" id="scanButton">开始扫描</button>
+            <br><br><br>
+        </div>
+        <script src="/static/script/scan.js"></script>
+
         <div style = "text-align:center;">
             <a  href="/cert/0" class = "button">证书态势分析</a> <br> <br> <br>
         </div>

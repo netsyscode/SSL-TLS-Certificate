@@ -1,8 +1,11 @@
 
-# 
-# 2023/09/21
-# Created Ver. 1.0
-#
+'''
+    2023/09/21
+    Created Ver. 1.0
+    
+    01/24/24
+    Remove representative logger API
+'''
 
 import datetime
 import os
@@ -49,7 +52,7 @@ class Logger:
     # so the return value must be an instance of the class
     def  __new__(self,
                   log_file_extension_name:str = ".log",
-                  log_file_dir_path:str = r"E:\CertificateArchive\webPKIScanner\data\log",
+                  log_file_dir_path:str = os.path.join(os.path.dirname(__file__), r"data\log"),
                   log_file_level_no:int = logging.INFO,
                   log_console_level_no:int = logging.DEBUG):
         
@@ -81,6 +84,8 @@ class Logger:
         self.logger.addHandler(console_handler)
         return instance
 
+    # @deprecated
+    # use logging.debug(msg) directly
     def dumpLog(self, level:int, msg:str):
         
         match level:
@@ -100,4 +105,5 @@ class Logger:
 
 # The project has only one logger
 # If you want to change its field, do it here
-my_logger = Logger(log_file_level_no=INFO, log_console_level_no=INFO)
+my_logger = Logger(log_file_level_no=INFO, log_console_level_no=INFO).logger
+
