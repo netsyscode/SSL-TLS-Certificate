@@ -19,9 +19,9 @@ def page_not_found(e):
 def before():
     print("请求地址：" + str(request.path))
     print("请求方法：" + str(request.method))
-    print("---请求headers--start--")
-    print(str(request.headers).rstrip())
-    print("---请求headers--end----")
+    # print("---请求headers--start--")
+    # print(str(request.headers).rstrip())
+    # print("---请求headers--end----")
     print("GET参数：" + str(request.args))
     print("POST参数：" + str(request.form))
 
@@ -29,8 +29,8 @@ def before():
     passUrl = ["/login"]
     if url in passUrl:
         pass
-    else:
-        return jsonify({'msg': '当前操作没有权限', 'code': 403})
+    # else:
+    #     return jsonify({'msg': '当前操作没有权限', 'code': 403})
     #     _id = session.get("_id", None)
     #     if not _id:
     #         return jsonify(401, {"msg": "认证失败，无法访问系统资源"})

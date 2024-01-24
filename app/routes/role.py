@@ -1,5 +1,5 @@
 # coding:utf-8
-import imp
+import importlib
 from operator import or_
 
 from app.models.Organization import Organization
