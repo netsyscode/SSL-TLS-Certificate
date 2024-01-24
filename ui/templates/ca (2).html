@@ -1,0 +1,65 @@
+<html>
+    <head>
+        <title>CA态势分析</title>
+        <style>
+            .button {
+                display: inline-block;
+                padding: 10px 20px;
+                font-size: 18px;
+                cursor: pointer;
+                text-align: center;
+                text-decoration: none;
+                outline: none;
+                color: #fff;
+                background-color: #3067e8;
+                border: none;
+                border-radius: 15px;
+                box-shadow: 0 9px #c1c1c3;
+                }
+                
+            .button:hover {
+                background-color: #3067e8
+            }
+            
+            .button:active {
+                background-color: #34549f;
+                box-shadow: 0 5px #666;
+                transform: translateY(4px);
+            }
+        </style>
+    </head>
+    <body>
+        <h1 align = "center">CA态势分析</h1>
+
+        <div style = "text-align:center;">
+            <br><a href="/crawl" class = "button">爬取数据</a> <a href="/cert/0" class = "button">证书态势分析</a> <a href="/cert_fail/0" class = "button">问题证书</a> <a href="/index" class = "button">返回首页</a><br>
+        </div>
+
+        <div style = "text-align: center;">
+        <br><br><h2>CA机构数量：{{ datasize }}</h2><br>
+
+        {% if data %}
+        <h2>CA详情</h2><br>
+            {% for elem in data %}
+            <div>
+
+                <h3>{{ elem.organization }}</h3>
+
+                <div>通用名称(之一):{{ elem.name }}</div>
+
+                <div>国家:{{ elem.country }}&emsp;州/省:{{ elem.state }}&emsp;地理位置:{{ elem.location }}</div>
+
+                <div>发布证书数量:{{ elem.number }}&emsp;证书有效比例:{{ elem.valid }}</div>
+
+                <div>最常用加密手段:{{ elem.alg }}</div>
+
+                <div>是否是根CA:{{ elem.root }}</div>
+
+            </div><br><br>
+            {% endfor %}
+
+            <a href="/ca/0">首页</a> <a href="/ca/{{ prevPage }}">上一页</a> <a href="/ca/{{ nextPage }}">下一页</a> <a href="/ca/{{ lastPage }}">尾页</a>
+        {% endif %}
+        </div>
+    </body>
+</html>
