@@ -5,6 +5,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>爬取状态</title>
+    <style>
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            outline: none;
+            color: #fff;
+            background-color: #3067e8;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 9px #c1c1c3;
+            }
+            
+        .button:hover {
+            background-color: #3067e8
+        }
+        
+        .button:active {
+            background-color: #34549f;
+            box-shadow: 0 5px #666;
+            transform: translateY(4px);
+        }
+    </style>
+
 </head>
 <body>
 
@@ -15,7 +42,22 @@
     <br><br><br>
 </div>
 
-<script src="/static/script/scan_status.js"></script>
+
+<script src="/static/scripts/scan_status.js"></script>
+
+<div style = "text-align:center;">
+    <a  href="/cert" class = "button">证书态势分析</a> <br> <br> <br>
+</div>
+<div style = "text-align:center;">
+    <a href="/cert_fail" class = "button">问题证书</a> <br> <br> <br> 
+</div>
+<div style = "text-align:center;">
+    <a href="/ca" class = "button">CA态势分析</a> <br> <br> <br> 
+</div>
+<div style = "text-align:center;">
+    <a href="/" class = "button">回到主页</a> <br> <br> <br> 
+</div>
+
 
 </body>
 </html>

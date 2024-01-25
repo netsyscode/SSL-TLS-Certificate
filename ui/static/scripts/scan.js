@@ -1,10 +1,14 @@
 
+// import logger from './logger.js';
+
 function startScanning() {
     // 禁用按钮
     document.getElementById('scanButton').disabled = true;
 
     // 向后端发送开始扫描的请求
-    fetch('/scan', {
+    console.log('Before fetch request');
+    // logger.info('Sending scan request to backend...')
+    fetch('/system/scan', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -18,9 +22,12 @@ function startScanning() {
     })
     .then(data => {
         // 跳转到新页面，并将任务ID传递给新页面
-        window.location.href = '/scan_status/' + data.taskId;
+
+        window.location.href = '/system/scan_status';
+        
     })
     .catch(error => {
+        // logger.error('Error starting scan:', error);
         console.error('Error starting scan:', error);
         
         // 发生错误时启用按钮

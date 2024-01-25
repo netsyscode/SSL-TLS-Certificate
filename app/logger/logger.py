@@ -52,7 +52,7 @@ class Logger:
     # so the return value must be an instance of the class
     def  __new__(self,
                   log_file_extension_name:str = ".log",
-                  log_file_dir_path:str = os.path.join(os.path.dirname(__file__), r"data\log"),
+                  log_file_dir_path:str = os.path.join(os.path.dirname(__file__), r"..\data\log"),
                   log_file_level_no:int = logging.INFO,
                   log_console_level_no:int = logging.DEBUG):
         

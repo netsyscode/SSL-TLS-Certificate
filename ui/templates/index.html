@@ -27,30 +27,30 @@
                 transform: translateY(4px);
             }
         </style>
+        <!-- <script type="module" src="/static/scripts/scan.js"></script> -->
+
     </head>
 
     <body>
         <h1 align = "center">全球互联网证书监控系统</h1>
-
-        <div style = "text-align:center;">
-            <br><br><a href="/crawl" class = "button">爬取数据</a> <br> <br> <br>
-        </div>
         <div style="text-align:center;">
             <br><br>
-            <button onclick="startScanning()" class="button" id="scanButton">开始扫描</button>
+            <button onclick=startScanning() class="button" id="scanButton">开始扫描（10W域名）</button>
             <br><br><br>
         </div>
         <div style = "text-align:center;">
-            <a  href="/cert/0" class = "button">证书态势分析</a> <br> <br> <br>
+            <a  href="/cert" class = "button">证书态势分析</a> <br> <br> <br>
         </div>
         <div style = "text-align:center;">
-            <a href="/cert_fail/0" class = "button">问题证书</a> <br> <br> <br> 
+            <a href="/cert_fail" class = "button">问题证书</a> <br> <br> <br> 
         </div>
         <div style = "text-align:center;">
-            <a href="/ca/0" class = "button">CA态势分析</a> <br> <br> <br> 
+            <a href="/ca" class = "button">CA态势分析</a> <br> <br> <br> 
         </div>
-        
-        <script src="/static/script/scan.js"></script>
+        <!-- <script type="module" src="../dist/bundle.js"></script> -->
+        <!-- <script type="module" src="/static/scripts/scan.js"></script> -->
+
+        <script src="/static/scripts/scan.js"></script>
     </body>
 
 

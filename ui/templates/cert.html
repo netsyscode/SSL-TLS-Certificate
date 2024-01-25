@@ -27,29 +27,33 @@
                 transform: translateY(4px);
             }
         </style>
+    <!-- <link rel="stylesheet" href="/static/style.css"> -->
     </head>
+
+
     <body>
         <h1 align = "center">证书态势分析</h1>
-
+        
         <div style = "text-align:center;">
-            <br><a href="/crawl" class = "button">爬取数据</a> <a href="/cert_fail/0" class = "button">问题证书</a> <a href="/ca/0" class = "button">CA态势分析</a> <a href="/index" class = "button">返回首页</a><br>
+            <br><a href="/system/scan_status" class = "button">爬取状态</a> <a href="/cert_fail/0" class = "button">问题证书</a> <a href="/ca/0" class = "button">CA态势分析</a> <a href="/" class = "button">返回首页</a><br>
         </div>
- 
+        
         <div style = "text-align:center;">
-        <br><h2 >证书数据量：{{ datasize }}</h2><br>
-        
-        <h2 >过期证书比例：{{ expired }}</h2><br>
+            <br><h2 >叶证书数据量：</h2><br>
+            <div id="certnum"></div>
+            
+            <h2 >过期证书比例：</h2><br>
+            <div id="expired"></div>
+            
+            <h2>加密算法比例:</h2>
+            <div id="algo"></div>
 
-        <h2>加密算法比例:</h2>
-            {% for alg in algs %}
-            <div>
-                <div>{{ alg.name }}&emsp;{{ alg.num }}</div>
-            </div><br>
-            {% endfor %}
-        
-        <h2>密钥平均长度: {{ avgKeyLen }}</h2><br>
+            <h2>密钥平均长度: </h2><br>
+            <div id="avg_length"></div>
 
-        {% if data %}
+            <!-- <input type="text" id="domainInput" placeholder="Enter Domain" onkeypress="handleKeyPressCertificate(event)"> -->
+            
+        <!-- {% if data %}
         <h2>证书详情</h2>
             {% for elem in data %}
             <div>
@@ -73,10 +77,12 @@
 
                 <div>有效期内&emsp;{{ elem.timeValid }}</div>
             </div><br>
-            {% endfor %}
+            {% endfor %} -->
 
-            <a href="/cert/0">首页</a> <a href="/cert/{{ prevPage }}">上一页</a> <a href="/cert/{{ nextPage }}">下一页</a> <a href="/cert/{{ lastPage }}">尾页</a>
-        {% endif %}
+            <!-- <a href="/cert/0">首页</a> <a href="/cert/{{ prevPage }}">上一页</a> <a href="/cert/{{ nextPage }}">下一页</a> <a href="/cert/{{ lastPage }}">尾页</a>
+        {% endif %} -->
+        <script src="/static/scripts/cert.js"></script>
+
         </div>
     </body>
 </html>

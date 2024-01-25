@@ -4,6 +4,7 @@ from flask_login import login_user, logout_user, login_required, \
     current_user
 from flask import g, jsonify
 from ..models import Resource, Organization, ResourceType
+from ..logger.logger import my_logger
 
 @base.route('/getRouters')
 @login_required
@@ -17,5 +18,6 @@ def getRouters():
 
 @base.route('/')
 def index():
+    my_logger.info("hello")
     return render_template('index.html')
 
