@@ -2,7 +2,7 @@ import os
 import time
 import ssl
 import socket
-import socks
+#import socks
 import csv
 import jsonlines
 import http.client

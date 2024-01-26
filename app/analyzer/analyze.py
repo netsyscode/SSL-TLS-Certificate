@@ -1,7 +1,7 @@
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.backends.openssl import dsa, rsa, ec, dh
+#from cryptography.hazmat.backends.openssl import dsa, rsa, ec, dh
 from cryptography.hazmat.primitives.asymmetric import dsa as primitive_dsa, rsa as primitive_rsa, ec as primitive_ec, dh as primitive_dh
 from cryptography.hazmat.primitives.asymmetric import types, padding
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat

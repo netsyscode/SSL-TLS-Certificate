@@ -1,3 +1,7 @@
 /.idea
 /*.pyc
 *.pyc
+/venv
+.config.*
+flaskweb.log
+
