@@ -1,7 +1,7 @@
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.backends.openssl import dsa, rsa, ec, dh
+from cryptography.hazmat.backends.openssl import rsa, ec
 from cryptography.hazmat.primitives.asymmetric import dsa as primitive_dsa, rsa as primitive_rsa, ec as primitive_ec, dh as primitive_dh
 from cryptography.hazmat.primitives.asymmetric import types, padding
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
@@ -81,7 +81,7 @@ class X509SingleCertResult():
 
     # crypto checking
     pub_key : str
-    subject_pub_key_type : types.CERTIFICATE_PUBLIC_KEY_TYPES
+    subject_pub_key_type : types.CertificatePublicKeyTypes
     subject_pub_key_size : int
     cert_signature_hash_algorithm : str
     # cert_signature_algorithm : Union[None, padding.PKCS1v15, padding.PSS, ec.ECDSA]

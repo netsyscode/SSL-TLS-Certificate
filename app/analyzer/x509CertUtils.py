@@ -19,7 +19,7 @@ from datetime import datetime
 from urllib.parse import urlparse
 from typing import Dict
 
-from webPKIScanner.logger.logger import DEBUG, INFO, WARNING, ERROR, my_logger
+from ..logger.logger import my_logger
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.hazmat.primitives.hashes import SHA256, SHA1
@@ -107,7 +107,7 @@ def requestOCSPResponse(
 
     try:
         try:
-            my_logger.dumpLog(DEBUG, f"Requesting OCSP response from {server_url}...")
+            my_logger.debug(f"Requesting OCSP response from {server_url}...")
             raw_response = requests.post(
                 server_url,
                 data=request.public_bytes(serialization.Encoding.DER),
@@ -120,7 +120,7 @@ def requestOCSPResponse(
                 To avoid OCSP server not responding, we retry serveral times
             '''
             if retry_times <= 0:
-                my_logger.dumpLog(ERROR, f"OCSP server {server_url} does not respond after retrying several times...")
+                my_logger.error(f"OCSP server {server_url} does not respond after retrying several times...")
                 return None
             else:
                 return requestOCSPResponse(cert, issuer, server_url, hash, retry_times - 1)
@@ -133,10 +133,10 @@ def requestOCSPResponse(
 
     # Sometimes, the response may not complete...
     except ValueError as e:
-        my_logger.dumpLog(WARNING, f"OCSP response from {server_url} is not complete, retrying...")
+        my_logger.warn(f"OCSP response from {server_url} is not complete, retrying...")
         return requestOCSPResponse(cert, issuer, server_url, hash, retry_times - 1)
     except Exception as e:
-        my_logger.dumpLog(ERROR, f"Error when getting OCSP response: {e}")
+        my_logger.error(f"Error when getting OCSP response: {e}")
         return None
 
 
@@ -153,13 +153,13 @@ def requestCRLResponse(
         return crl_cache[crl_url]
     
     try:
-        my_logger.dumpLog(DEBUG, f"Requesting CRL from {crl_url}...")
+        my_logger.debug(f"Requesting CRL from {crl_url}...")
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
         }
         crl_response = requests.get(crl_url, headers=headers)
         if not crl_response.status_code == 200:
-            my_logger.dumpLog(WARNING, f"Server {crl_url} rejected CRL reqeust")
+            my_logger.warn(f"Server {crl_url} rejected CRL reqeust")
             return None
         crl = load_pem_x509_crl(crl_response.content, default_backend())
         crl_cache[crl_url] = crl
@@ -167,13 +167,13 @@ def requestCRLResponse(
 
     except requests.exceptions.RequestException:
         if retry_times <= 0:
-            my_logger.dumpLog(ERROR, f"Can not retrieve CRL after retrying several times...")
+            my_logger.error(f"Can not retrieve CRL after retrying several times...")
             return None
         else:
             return requestCRLResponse(crl_url, retry_times - 1)
 
     except ValueError:
-        my_logger.dumpLog(DEBUG, "CRL response is encoded with DER")
+        my_logger.debug("CRL response is encoded with DER")
         return load_der_x509_crl(crl_response.content, default_backend())
 
 
@@ -200,7 +200,7 @@ def getNameAttribute(
         return (attributes[0].value, len(attributes) > 1)
 
     except (AttributeNotFound, IndexError):
-        # my_logger.dumpLog(WARNING, f"Name attribute {oid} in {name} not found")
+        # my_logger.warn(f"Name attribute {oid} in {name} not found")
         return (value_if_exception, False)
 
 
@@ -221,7 +221,7 @@ def isDomainMatch(source_domain : str, dest_domain : str):
     pattern = f"^{pattern}$"
 
     if bool(re.match(pattern, source_domain)) == False:
-        my_logger.dumpLog(WARNING, f"{pattern} and {source_domain} does not match...")
+        my_logger.warn(f"{pattern} and {source_domain} does not match...")
         return False
     return True
 
@@ -289,23 +289,23 @@ def get_dns_caa_records(domain : str, timeout=5) -> (list[str], list[str]):
         return (issue_ca, issue_wildcard_ca)
 
     except dns.resolver.NoAnswer:
-        my_logger.dumpLog(DEBUG, f"No DNS records found for {domain}")
+        my_logger.debug(f"No DNS records found for {domain}")
         return [], []
 
     except dns.resolver.NXDOMAIN:
-        my_logger.dumpLog(DEBUG, f"Domain {domain} does not exist")
+        my_logger.debug(f"Domain {domain} does not exist")
         return [], []
 
     except dns.resolver.NoNameservers:
-        my_logger.dumpLog(DEBUG, f"No nameservers found for {domain}")
+        my_logger.debug(f"No nameservers found for {domain}")
         return [], []
 
     except dns.resolver.Timeout:
-        my_logger.dumpLog(WARNING, f"DNS query for {domain} timed out")
+        my_logger.warn(f"DNS query for {domain} timed out")
         return [], []
 
     except Exception as e:
-        my_logger.dumpLog(WARNING, f"Error: {e}")
+        my_logger.warn(f"Error: {e}")
         return [], []
 
 

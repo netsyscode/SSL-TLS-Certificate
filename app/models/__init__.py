@@ -8,3 +8,4 @@ from .OnLine import OnLine
 from .DictData import DictData
 from .DictType import DictType
 from .Config import Config
+from .ScanProcess import ScanProcess

@@ -141,7 +141,10 @@ INSERT INTO `SYRESOURCE` (`ID`, `CREATEDATETIME`, `DESCRIPTION`, `ICONCLS`, `NAM
 	('zygl', '2015-08-25 10:34:53', '管理系统的资源', 'tree-table', '资源管理', 3, '', '2022-05-25 00:48:32', 'menu', 'system/menu/index', 'system:menu:list', 'xtgl', '0', '0'),
 	('zylb', '2015-08-25 10:34:53', '查询资源', 'ext-icon-bullet_wrench', '资源列表', 0, '', '2015-08-25 10:34:53', NULL, '/base/syresource!treeGrid', 'system:menu:query', 'zygl', '1', '0'),
 	('zysc', '2015-08-25 10:34:53', '删除资源', 'ext-icon-bullet_wrench', '删除资源', 3, '', '2015-08-25 10:34:53', NULL, '/base/syresource!delete', 'system:menu:remove', 'zygl', '1', '0'),
-	('zytj', '2015-08-25 10:34:53', '添加资源', 'ext-icon-bullet_wrench', '添加资源', 1, '', '2015-08-25 10:34:53', NULL, '/base/syresource!save', 'system:menu:add', 'zygl', '1', '0');
+	('zytj', '2015-08-25 10:34:53', '添加资源', 'ext-icon-bullet_wrench', '添加资源', 1, '', '2015-08-25 10:34:53', NULL, '/base/syresource!save', 'system:menu:add', 'zygl', '1', '0'),
+	-- 这里添加想要新增的可访问的路由(左侧菜单栏的项目)
+	('smjcgl', '2015-08-25 10:34:53', '管理证书扫描进程', 'tree-table', '扫描进程管理', 2, '', '2022-05-25 00:48:32', 'scan-process', 'system/scan-process/index', 'system:menu:list', 'xtgl', '0', '0');
+
 
 -- 导出  表 authbase.SYRESOURCETYPE 结构
 CREATE TABLE IF NOT EXISTS `SYRESOURCETYPE` (
@@ -436,3 +439,51 @@ INSERT INTO `SYUSER_SYROLE` (`SYUSER_ID`, `SYROLE_ID`) VALUES
 /*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;
+
+-- DROP TABLE `SCAN_PROCESS`;
+CREATE TABLE IF NOT EXISTS `SCAN_PROCESS` (
+  `ID` varchar(36) CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
+  `CREATEDATETIME` datetime DEFAULT NULL,
+  `TYPE` varchar(20) CHARACTER SET gbk COLLATE gbk_chinese_ci DEFAULT NULL,
+  `NAME` varchar(20) CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
+  `START_TIME` datetime DEFAULT NULL,
+  `END_TIME` datetime DEFAULT NULL,
+  `SCAN_DATA_TABLE` char(32),
+  `CERT_STORE_TABLE` char(32),
+  `STATUS` varchar(10) DEFAULT "Pending",
+  `SCAN_TIME` INT DEFAULT 0,
+  `SCANNED_DOMIANS` INT DEFAULT 0,
+  `SUCCESSES` INT DEFAULT 0,
+  `ERRORS` INT DEFAULT 0,
+  `SCANNED_CERTS` INT DEFAULT 0,
+  PRIMARY KEY (`ID`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
+
+
+INSERT INTO `SCAN_PROCESS` (`ID`, `CREATEDATETIME`, `TYPE`, `NAME`, `START_TIME`, `END_TIME`, `SCAN_DATA_TABLE`, `CERT_STORE_TABLE`, `STATUS`, `SCAN_TIME`, `SCANNED_DOMIANS`, `SUCCESSES`, `ERRORS`, `SCANNED_CERTS`) VALUES
+	('a1c392c2-7f1a-4a50-bc76-1c6495b0e04d', '2022-01-27 12:30:00', 'TypeA', 'ProcessA', '2022-01-27 13:00:00', '2022-01-27 14:30:00', 'ScanTableA', 'CertTableA', '0', 0, 0, 0, 0, 0),
+	('b4e10c5f-5862-4a88-b3dd-03627e13e12c', '2022-01-27 14:45:00', 'TypeB', 'ProcessB', '2022-01-27 15:30:00', '2022-01-27 16:45:00', 'ScanTableB', 'CertTableB', '0', 0, 0, 0, 0, 0),
+	('c7f83d1a-9dc0-4f3f-8cd2-6aa22f8c03ae', '2022-01-27 09:00:00', 'TypeC', 'ProcessC', '2022-01-27 10:15:00', '2022-01-27 11:45:00', 'ScanTableC', 'CertTableC', '0', 0, 0, 0, 0, 0);
+
+
+-- CREATE TABLE IF NOT EXISTS `SCAN_DATA` (
+--   `RANK` INT NOT NULL,
+--   `DOMAIN` TEXT CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
+--   `CERT_CHAIN` JSON,
+--   PRIMARY KEY (`RANK`,`DOMAIN`) USING BTREE,
+-- --   KEY `FK_j7iwtgslc2esrjx0ptieleoko` (`SYROLE_ID`) USING BTREE,
+-- --   KEY `FK_1pi4p5h4y5ghbs5f4gdlgn620` (`SYUSER_ID`) USING BTREE,
+-- --   CONSTRAINT `FK_1pi4p5h4y5ghbs5f4gdlgn620` FOREIGN KEY (`SYUSER_ID`) REFERENCES `SYUSER` (`ID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+-- --   CONSTRAINT `FK_j7iwtgslc2esrjx0ptieleoko` FOREIGN KEY (`SYROLE_ID`) REFERENCES `SYROLE` (`ID`) ON DELETE RESTRICT ON UPDATE RESTRICT
+-- ) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
+
+
+-- CREATE TABLE IF NOT EXISTS `CERT_STORE` (
+--   `CERT_ID` varchar(36) NOT NULL,
+--   `CERT_RAW` TEXT NOT NULL,
+--   PRIMARY KEY (`CERT_ID`,`CERT_RAW`) USING BTREE,
+-- --   KEY `FK_j7iwtgslc2esrjx0ptieleoko` (`SYROLE_ID`) USING BTREE,
+-- --   KEY `FK_1pi4p5h4y5ghbs5f4gdlgn620` (`SYUSER_ID`) USING BTREE,
+-- --   CONSTRAINT `FK_1pi4p5h4y5ghbs5f4gdlgn620` FOREIGN KEY (`SYUSER_ID`) REFERENCES `SYUSER` (`ID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+-- --   CONSTRAINT `FK_j7iwtgslc2esrjx0ptieleoko` FOREIGN KEY (`SYROLE_ID`) REFERENCES `SYROLE` (`ID`) ON DELETE RESTRICT ON UPDATE RESTRICT
+-- ) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
