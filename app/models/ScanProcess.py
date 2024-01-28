@@ -15,7 +15,7 @@ class ScanProcess(db.Model):
     TYPE = db.Column(db.String(20, collation='gbk_chinese_ci'))
     NAME = db.Column(db.String(20, collation='gbk_chinese_ci'), nullable=False)
     START_TIME = db.Column(db.DateTime, index=True, default=datetime.now)
-    END_TIME = db.Column(db.DateTime)
+    END_TIME = db.Column(db.DateTime, default=None)
     SCAN_DATA_TABLE = db.Column(db.String(32, collation='gbk_chinese_ci'))
     CERT_STORE_TABLE = db.Column(db.String(32, collation='gbk_chinese_ci'))
     STATUS = db.Column(db.String(10, collation='gbk_chinese_ci'))

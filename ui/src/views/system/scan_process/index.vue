@@ -57,32 +57,32 @@
       :default-expand-all="isExpandAll"
       :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
     > -->
-      <el-table-column prop="name" label="扫描名称" width="200"></el-table-column>
+      <el-table-column prop="name" label="扫描名称" width="100"></el-table-column>
 
-      <el-table-column label="开始时间" align="center" prop="startTime" width="200">
-        <template slot-scope="scope">
+      <el-table-column label="开始时间" align="center" prop="startTime" width="230">
+        <!-- <template slot-scope="scope">
           <span>{{ parseTime(scope.row.startTime) }}</span>
-        </template>
+        </template> -->
       </el-table-column>
 
-      <el-table-column prop="scan_time" label="运行时间(秒)" width="200"></el-table-column>
+      <el-table-column prop="scan_time" label="运行时间(秒)" width="80"></el-table-column>
 
-      <el-table-column label="结束时间" align="center" prop="endTime" width="200">
-        <template slot-scope="scope">
+      <el-table-column label="结束时间" align="center" prop="endTime" width="230">
+        <!-- <template slot-scope="scope">
           <span>{{ parseTime(scope.row.endTime) }}</span>
-        </template>
+        </template> -->
       </el-table-column>
 
-      <el-table-column prop="status" label="扫描状态" width="200">
-        <template slot-scope="scope">
+      <el-table-column prop="status" label="扫描状态" width="100">
+        <!-- <template slot-scope="scope">
           <dict-tag :options="dict.type.sys_normal_disable" :value="scope.row.status"/>
-        </template>
+        </template> -->
       </el-table-column>
 
-      <el-table-column prop="scanned_domains" label="扫描域名数" width="200"></el-table-column>
-      <el-table-column prop="successes" label="获取成功" width="200"></el-table-column>
-      <el-table-column prop="errors" label="获取失败" width="200"></el-table-column>
-      <el-table-column prop="scanned_certs" label="获取证书数量" width="200"></el-table-column>
+      <el-table-column prop="scanned_domains" label="扫描域名数" width="100"></el-table-column>
+      <el-table-column prop="successes" label="获取成功" width="100"></el-table-column>
+      <el-table-column prop="errors" label="获取失败" width="100"></el-table-column>
+      <el-table-column prop="scanned_certs" label="获取证书数量" width="100"></el-table-column>
 
     </el-table>
 
@@ -153,6 +153,7 @@ export default {
   },
   created() {
     this.getList();
+    this.startAutoRefresh();
   },
   methods: {
     /** 查询部门列表 */
@@ -176,6 +177,12 @@ export default {
         // this.deptOptions = this.handleTree(response.data, "scanId");
         this.getList();
       });
+    },
+    /** 定时刷新表格数据 */
+    startAutoRefresh() {
+      setInterval(() => {
+        this.getList();
+      }, 5000);
     }
   }
 };

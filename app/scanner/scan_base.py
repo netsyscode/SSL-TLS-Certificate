@@ -1,13 +1,9 @@
 import os
 import time
-import ssl
-import socket
-import socks
 import csv
 import jsonlines
 import http.client
 import select
-
 from enum import Enum
 from threading import Lock
 from queue import PriorityQueue
@@ -21,9 +17,12 @@ from OpenSSL import SSL
 from OpenSSL.crypto import dump_certificate, FILETYPE_PEM
 from ..logger.logger import my_logger
 from dataclasses import dataclass
-
+from ..models import ScanProcess, ScanData, CertData
+import asyncio
+import threading
 from flask import jsonify
-from app import db
+from . import db_backend, app_backend
+
 
 class ScanType(Enum):
     SCAN_BY_DOMAIN = 0
@@ -62,11 +61,13 @@ class Scanner:
 
     def __init__(
             self,
+            scan_id : str,
             scan_config : ScanConfig,
             begin_num=0,
             end_num=20
         ) -> None:
 
+        self.existing_scan_process : ScanProcess = ScanProcess.query.filter_by(ID=scan_id).first()
         self.input_csv_file = scan_config.input_csv_file
         self.out_put_dir = scan_config.output_dir
         self.max_threads = scan_config.max_threads
@@ -234,6 +235,18 @@ class Scanner:
         ) as self.progress:
             self.progress_task = self.progress.add_task("[Waiting]", total=self.end_num - self.begin_num)
 
+            # if self.existing_scan_process:
+            with app_backend.app_context():
+                self.existing_scan_process.START_TIME = self.scan_data.start_time
+                db_backend.session.add(self.existing_scan_process)
+                db_backend.session.commit()
+
+            # asyncio.create_task(self.async_update_scan_process_info())
+            timer_thread = threading.Thread(target=self.async_update_scan_process_info)
+            timer_thread.daemon = True  # 设置为守护线程，以便主线程退出时自动退出定时器线程
+            timer_thread.start()
+
+            my_logger.info(f"Scanning...")
             with ThreadPoolExecutor(max_workers=self.max_threads) as executor:
                 futures : list[Future] = []
                 while not self.task_queue.empty():
@@ -253,7 +266,41 @@ class Scanner:
         with self.scan_data_lock:
             self.scan_data.end_time = datetime.now()
             self.scan_data.status = "Completed"
+        self.sync_update_scan_process_info()
 
 
-    def stop(self):
+    def async_update_scan_process_info(self):
+
+        while not self.progress.finished:
+            # await asyncio.get_event_loop().run_in_executor(None, self.sync_update_scan_process_info)
+            # await asyncio.sleep(5)
+            self.sync_update_scan_process_info()
+            time.sleep(5)
+
+
+    def sync_update_scan_process_info(self):
+
+        my_logger.info(f"Updating...")
+        if self.scan_data.status == "Running":
+            scan_time = (datetime.now() - self.scan_data.start_time).seconds
+        elif self.scan_data.status == "Completed":
+            scan_time = (self.scan_data.end_time - self.scan_data.start_time).seconds
+        elif self.scan_data.status == "Killed":
+            scan_time = (self.scan_data.end_time - self.scan_data.start_time).seconds
+        else:
+            scan_time = -1
+        
+        with app_backend.app_context():
+            self.existing_scan_process.SCAN_TIME = scan_time
+            self.existing_scan_process.END_TIME = self.scan_data.end_time
+            self.existing_scan_process.STATUS = self.scan_data.status
+            self.existing_scan_process.SCANNED_DOMIANS = self.scan_data.scanned_domains
+            self.existing_scan_process.SCANNED_CERTS = self.scan_data.scanned_certs
+            self.existing_scan_process.SUCCESSES = self.scan_data.success_count
+            self.existing_scan_process.ERRORS = self.scan_data.error_count
+            db_backend.session.add(self.existing_scan_process)
+            db_backend.session.commit()
+
+
+    async def stop(self):
         pass

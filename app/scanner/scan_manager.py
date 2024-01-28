@@ -11,6 +11,10 @@ from datetime import datetime
 import time
 from .scan_base import Scanner, ScanConfig
 from ..logger.logger import my_logger
+from ..models import ScanProcess
+from .. import db
+import uuid
+import asyncio
 
 
 class ScanManager():
@@ -19,12 +23,28 @@ class ScanManager():
         self.registry : Dict[str, Union[Scanner, None]] = {}
 
     def register(self, scan_config : ScanConfig):
-        task_id = str(time.time())
-        self.registry[task_id] = Scanner(scan_config, begin_num=0, end_num=100000)
-        return task_id
 
-    def run(self, task_id : str):
+        scan_process = ScanProcess()
+        scan_process.ID = str(uuid.uuid4())
+        scan_process.CREATEDATETIME = datetime.now()
+        time_to_str = scan_process.CREATEDATETIME.strftime("%Y%m%d%H%M%S")
+        scan_process.TYPE = "Scan By Domain"
+        scan_process.NAME = "test_scan"
+        scan_process.SCAN_DATA_TABLE = f"scan_data_{time_to_str}"
+        scan_process.CERT_STORE_TABLE = f"cert_store_{time_to_str}"
+        scan_process.STATUS = "Pending"
+
+        db.session.add(scan_process)
+        db.session.commit()
+        my_logger.info(f"New scan process registered")
+
+        self.registry[scan_process.ID] = Scanner(scan_process.ID, scan_config, begin_num=0, end_num=100)
+        return scan_process.ID
+
+    def start(self, task_id : str):
+        my_logger.info(f"Starting new scan...")
         self.registry[task_id].start()
+        # asyncio.run(self.registry[task_id].start())
 
     def kill(self, task_id : str):
         self.registry[task_id].stop()
