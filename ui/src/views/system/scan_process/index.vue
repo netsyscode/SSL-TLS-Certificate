@@ -33,8 +33,8 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-          v-hasPermi="['system:dept:add']"
-        >新增</el-button>
+          v-hasPermi="['system:scan_process:add']"
+        >新增进程</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -166,14 +166,15 @@ export default {
     },
     /** 新增按钮操作 */
     handleAdd(row) {
-      this.reset();
-      if (row != undefined) {
-        this.form.parentId = row.scanId;
-      }
-      this.open = true;
-      this.title = "新增进程";
+      // this.reset();
+      // if (row != undefined) {
+      //   this.form.parentId = row.scanId;
+      // }
+      // this.open = true;
+      // this.title = "新增";
       addScanProcess().then(response => {
-        this.deptOptions = this.handleTree(response.data, "scanId");
+        // this.deptOptions = this.handleTree(response.data, "scanId");
+        this.getList();
       });
     }
   }

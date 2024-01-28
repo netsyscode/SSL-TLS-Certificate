@@ -143,7 +143,8 @@ INSERT INTO `SYRESOURCE` (`ID`, `CREATEDATETIME`, `DESCRIPTION`, `ICONCLS`, `NAM
 	('zysc', '2015-08-25 10:34:53', '删除资源', 'ext-icon-bullet_wrench', '删除资源', 3, '', '2015-08-25 10:34:53', NULL, '/base/syresource!delete', 'system:menu:remove', 'zygl', '1', '0'),
 	('zytj', '2015-08-25 10:34:53', '添加资源', 'ext-icon-bullet_wrench', '添加资源', 1, '', '2015-08-25 10:34:53', NULL, '/base/syresource!save', 'system:menu:add', 'zygl', '1', '0'),
 	-- 这里添加想要新增的可访问的路由(左侧菜单栏的项目)
-	('smjcgl', '2015-08-25 10:34:53', '管理证书扫描进程', 'tree-table', '扫描进程管理', 2, '', '2022-05-25 00:48:32', 'scan-process', 'system/scan-process/index', 'system:menu:list', 'xtgl', '0', '0');
+	('smjcgl', '2015-08-25 10:34:53', '管理证书扫描进程', 'tree-table', '扫描进程管理', 2, '', '2022-05-25 00:48:32', 'scan_process', 'system/scan_process/index', 'system:menu:list', 'xtgl', '0', '0'),
+	('tjjc', '2015-08-25 10:34:53', '添加进程', 'ext-icon-bullet_wrench', '添加进程', 1, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!start', 'system:scan_process:add', 'smjcgl', '1', '0');
 
 
 -- 导出  表 authbase.SYRESOURCETYPE 结构
@@ -267,7 +268,12 @@ INSERT INTO `SYROLE_SYRESOURCE` (`SYROLE_ID`, `SYRESOURCE_ID`) VALUES
 	('0', 'zylb'),
 	('f4e1b151-a171-4705-9154-503a046cb72a', 'zylb'),
 	('0', 'zysc'),
-	('0', 'zytj');
+	('0', 'zytj'),
+	
+	('0', 'smjcgl'),
+	('f4e1b151-a171-4705-9154-503a046cb72a', 'smjcgl'),
+	('0', 'tjjc');
+
 
 -- 导出  表 authbase.SYS_CONFIG 结构
 CREATE TABLE IF NOT EXISTS `SYS_CONFIG` (

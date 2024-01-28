@@ -15,7 +15,7 @@ from datetime import datetime
 import uuid
 
 
-@base.route('/system/scan-process/list', methods=['GET'])
+@base.route('/system/scan_process/list', methods=['GET'])
 @login_required
 def scan_process_list():
     my_logger.info(f"{request.args}")
@@ -31,16 +31,20 @@ def scan_process_list():
 
 
 
-@base.route('/system/scan-process', methods=['POST'])
+@base.route('/system/scan_process', methods=['POST'])
 @login_required
-def start_scan_process():
+def scan_process_start():
+
+    my_logger.info(f"Registering scan with type SCAN_BY_DOMAIN...")
     scan_process = ScanProcess()
     scan_process.ID = str(uuid.uuid4())
 
-    if 'name' in request.json:
-        scan_process.NAME = request.json['name']
-    if 'type' in request.json:
-        scan_process.TYPE = request.json['type']
+    # if 'name' in request.data:
+    #     scan_process.NAME = request.data['name']
+    # if 'type' in request.data:
+    #     scan_process.TYPE = request.data['type']
+
+
     db.session.add(scan_process)
 
     my_logger.info(f"Registering scan with type SCAN_BY_DOMAIN...")

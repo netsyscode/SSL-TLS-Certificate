@@ -1,7 +1,7 @@
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.backends.openssl import rsa, ec
+# from cryptography.hazmat.backends.openssl import rsa, ec
 from cryptography.hazmat.primitives.asymmetric import dsa as primitive_dsa, rsa as primitive_rsa, ec as primitive_ec, dh as primitive_dh
 from cryptography.hazmat.primitives.asymmetric import types, padding
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
@@ -196,7 +196,7 @@ class X509SingleCertAnalyzer():
         if self.issuer_cert is not None:
             issuer_pub_key = self.issuer_cert.public_key()
             try:
-                if issuer_pub_key.__class__ == rsa._RSAPublicKey:
+                if issuer_pub_key.__class__ == primitive_rsa.RSAPublicKey:
                     issuer_pub_key.verify(
                         self.cert.signature,
                         self.cert.tbs_certificate_bytes,
@@ -204,13 +204,13 @@ class X509SingleCertAnalyzer():
                         padding.PKCS1v15(),
                         self.cert.signature_hash_algorithm
                     )
-                elif issuer_pub_key.__class__ == ec._EllipticCurvePublicKey:
+                elif issuer_pub_key.__class__ == primitive_ec.EllipticCurvePublicKey:
                     issuer_pub_key.verify(
                         self.cert.signature,
                         self.cert.tbs_certificate_bytes,
                         primitive_ec.ECDSA(hashes.SHA256())
                     )
-                elif issuer_pub_key.__class__ == dsa._DSAPublicKey:
+                elif issuer_pub_key.__class__ == primitive_dsa.DSAPublicKey:
                     issuer_pub_key.verify(
                         self.cert.signature,
                         self.cert.tbs_certificate_bytes,
