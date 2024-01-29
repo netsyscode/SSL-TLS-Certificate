@@ -17,12 +17,14 @@ from OpenSSL import SSL
 from OpenSSL.crypto import dump_certificate, FILETYPE_PEM
 from ..logger.logger import my_logger
 from dataclasses import dataclass
-from ..models import ScanProcess, ScanData, CertData
+from ..models import ScanProcess, ScanData, CertData, generate_cert_data_table, generate_scan_data_table
 import asyncio
 import threading
 from flask import jsonify
 from . import db_backend, app_backend
-
+import hashlib
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy import insert
 
 class ScanType(Enum):
     SCAN_BY_DOMAIN = 0
@@ -63,6 +65,8 @@ class Scanner:
             self,
             scan_id : str,
             scan_config : ScanConfig,
+            scan_data_table_name : str,
+            cert_data_table_name : str,
             begin_num=0,
             end_num=20
         ) -> None:
@@ -93,6 +97,10 @@ class Scanner:
         # Console
         self.progress = Progress()
         self.console = Console()
+
+        # Create Tables
+        self.scan_data_table = generate_scan_data_table(scan_data_table_name)
+        self.cert_data_table = generate_cert_data_table(cert_data_table_name)
 
 
     def load_tasks_into_queue(self):
@@ -134,14 +142,44 @@ class Scanner:
 
 
     def save_results(self):
-        timestamp = datetime.now().strftime("%Y%m%d")
-        output_file = os.path.join(self.out_put_dir, f'{timestamp}_results.jsonl')
 
-        with jsonlines.open(output_file, mode='a') as writer:
+        with app_backend.app_context():
             my_logger.info(f"Saving {len(self.cached_results)} results...")
+
+            insert_scan_data_statement = insert(self.scan_data_table)
+            insert_cert_data_statement = insert(self.cert_data_table)
+            scan_data_to_insert = []
+            cert_data_to_insert = {}
+
             for result in self.cached_results:
-                writer.write(result)
-            self.cached_results = []
+                scan_data_to_insert.append({
+                    'RANK': result['rank'],
+                    'DOMAIN': result['host'],
+                    'ERROR_MSG': result['error'],
+                    'RECEIVED_CERTS': result['sha256']
+                })
+
+                for i in range(len(result['sha256'])):
+                    cert_data_to_insert[result['sha256'][i]] = result['certificate'][i]
+
+            cert_data_to_insert = [{'SHA256_ID' : key, 'RAW_PEM' : value} for key, value in cert_data_to_insert.items()]
+
+            with db_backend.session.begin():
+                db_backend.session.execute(insert_scan_data_statement.values(scan_data_to_insert))
+
+                for cert_data in cert_data_to_insert:
+                    try:
+                        db_backend.session.execute(insert_cert_data_statement.values(cert_data))
+                    except IntegrityError as e:
+                        db_backend.session.rollback()  # 回滚当前事务，保证数据一致性
+                        continue
+
+        # timestamp = datetime.now().strftime("%Y%m%d")
+        # output_file = os.path.join(self.out_put_dir, f'{timestamp}_results.jsonl')
+
+        # with jsonlines.open(output_file, mode='a') as writer:
+        #         writer.write(result)
+        self.cached_results = []
 
 
     def fetch_raw_cert_chain(self, hostname : str, port=443):
@@ -191,6 +229,7 @@ class Scanner:
             # Retrieve the peer certificate
             certs = sock_ssl.get_peer_cert_chain()
             cert_pem = [dump_certificate(FILETYPE_PEM, cert).decode('utf-8') for cert in certs]
+            my_logger.info(f"Success fetching certificate for {hostname} : {len(certs)}")
             proxy_socket.close()
             return cert_pem, None
 
@@ -203,14 +242,15 @@ class Scanner:
     def scan_thread(self, rank : int, host : str):
             
         cert_chain, e = self.fetch_raw_cert_chain(host)
-        result = {'rank': rank, 'host': host, 'error': e, 'certificate': cert_chain}
+        cert_chain_sha256_hex = [hashlib.sha256(cert.encode()).hexdigest() for cert in cert_chain]
+        result = {'rank': rank, 'host': host, 'error': e, 'certificate': cert_chain, 'sha256' : cert_chain_sha256_hex}
 
         with self.scan_data_lock:
             self.scan_data.scanned_domains += 1
             self.scan_data.scanned_certs += len(cert_chain)
             self.scan_data.scanned_unique_certs += len(cert_chain)
 
-            if e:
+            if e is not None:
                 self.scan_data.error_count += 1
             else:
                 self.scan_data.success_count += 1

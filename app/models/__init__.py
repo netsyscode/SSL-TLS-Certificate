@@ -9,3 +9,5 @@ from .DictData import DictData
 from .DictType import DictType
 from .Config import Config
 from .ScanProcess import ScanProcess
+from .ScanData import generate_scan_data_table
+from .CertData import generate_cert_data_table

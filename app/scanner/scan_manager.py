@@ -38,7 +38,7 @@ class ScanManager():
         db.session.commit()
         my_logger.info(f"New scan process registered")
 
-        self.registry[scan_process.ID] = Scanner(scan_process.ID, scan_config, begin_num=0, end_num=100)
+        self.registry[scan_process.ID] = Scanner(scan_process.ID, scan_config, scan_process.SCAN_DATA_TABLE, scan_process.CERT_STORE_TABLE, begin_num=0, end_num=100)
         return scan_process.ID
 
     def start(self, task_id : str):
