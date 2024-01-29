@@ -24,6 +24,6 @@ def cert_analysis_list():
         filters.append(CertAnalysisStore.SCAN_ID.like('%' + request.args['name'] + '%'))
     cert_analysises = CertAnalysisStore.query.filter(*filters)
 
-    my_logger.info(f"{[cert_analysis.to_json() for cert_analysis in cert_analysises]}")
+    # my_logger.info(f"{[cert_analysis.to_json() for cert_analysis in cert_analysises]}")
     return jsonify({'msg': '操作成功', 'code': 200, "data": [cert_analysis.to_json() for cert_analysis in cert_analysises]})
 
