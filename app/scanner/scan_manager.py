@@ -11,7 +11,7 @@ from datetime import datetime
 import time
 from .scan_base import Scanner, ScanConfig
 from ..logger.logger import my_logger
-from ..models import ScanProcess
+from ..models import ScanProcess, CertAnalysisStore
 from .. import db
 import uuid
 import asyncio
@@ -36,6 +36,22 @@ class ScanManager():
 
         db.session.add(scan_process)
         db.session.commit()
+
+        '''
+        '''
+        cert_analysis_store = CertAnalysisStore()
+        cert_analysis_store.SCAN_ID = scan_process.ID
+        cert_analysis_store.SCANNED_CERT_NUM = 0
+        cert_analysis_store.ISSUER_COUNT = {}
+        cert_analysis_store.KEY_SIZE_COUNT = {}
+        cert_analysis_store.KEY_TYPE_COUNT = {}
+        cert_analysis_store.VALIDATION_PERIOD_COUNT = {}
+        cert_analysis_store.EXPIRED_PERCENT = 0
+        db.session.add(cert_analysis_store)
+        db.session.commit()
+        '''
+        '''
+
         my_logger.info(f"New scan process registered")
 
         self.registry[scan_process.ID] = Scanner(scan_process.ID, scan_config, scan_process.SCAN_DATA_TABLE, scan_process.CERT_STORE_TABLE, begin_num=0, end_num=100)

@@ -8,3 +8,4 @@ from . import dictdata
 from . import config
 from . import dicttype
 from . import scan_process
+from . import cert_analysis

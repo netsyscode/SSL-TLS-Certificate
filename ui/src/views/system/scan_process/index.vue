@@ -95,7 +95,7 @@ import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 
 export default {
-  name: "Dept",
+  name: "Scan Process",
   dicts: ['sys_normal_disable'],
   components: { Treeselect },
   data() {
@@ -155,6 +155,9 @@ export default {
     this.getList();
     this.startAutoRefresh();
   },
+  beforeDestroy() {
+    this.stopAutoRefresh();
+  },
   methods: {
     /** 查询部门列表 */
     getList() {
@@ -184,6 +187,10 @@ export default {
         this.getList();
       }, 5000);
     }
-  }
+  },
+  stopAutoRefresh() {
+      // 停止定时器的逻辑
+      clearInterval(this.autoRefreshTimer);
+    }
 };
 </script>

@@ -26,6 +26,10 @@ import hashlib
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import insert
 
+from ..analyzer.analyze import X509CertScanAnalyzer
+
+
+
 class ScanType(Enum):
     SCAN_BY_DOMAIN = 0
     SCAN_BY_IP = 1
@@ -102,6 +106,9 @@ class Scanner:
         self.scan_data_table = generate_scan_data_table(scan_data_table_name)
         self.cert_data_table = generate_cert_data_table(cert_data_table_name)
 
+        # Run analysis in background
+        time.sleep(1)
+        self.analyzer = X509CertScanAnalyzer(scan_id, cert_data_table_name)
 
     def load_tasks_into_queue(self):
         self.current_index = self.begin_num
@@ -308,6 +315,9 @@ class Scanner:
             self.scan_data.status = "Completed"
         self.sync_update_scan_process_info()
 
+        # Run analysis in background
+        self.analyzer.analyzeCertScanResult()
+        
 
     def async_update_scan_process_info(self):
 

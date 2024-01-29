@@ -11,3 +11,5 @@ from .Config import Config
 from .ScanProcess import ScanProcess
 from .ScanData import generate_scan_data_table
 from .CertData import generate_cert_data_table
+from .CertAnalysis import generate_cert_analysis_table
+from .CertAnalysisStore import CertAnalysisStore

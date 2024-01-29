@@ -47,7 +47,7 @@ from .x509CertUtils import (
 from ..logger.logger import my_logger
 
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 from dataclasses import dataclass, asdict
 from typing import Optional, Dict, List, Union
 from queue import Queue
@@ -56,6 +56,16 @@ import jsonlines
 import json
 import os
 
+
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy import insert
+from .. import db
+
+from ..models import CertAnalysisStore, generate_cert_analysis_table
+from ..scanner import app_backend, db_backend
+from threading import Lock
+import threading
+import time
 
 @dataclass
 class X509SingleCertResult():
@@ -108,6 +118,7 @@ class X509SingleCertResult():
     # revocation_reason : Optional[ReasonFlags]
 
     raw_str : str
+    sha_256 : str
 
 
 # main stuff here
@@ -243,10 +254,14 @@ class X509SingleCertAnalyzer():
         issuer_org, is_issuer_org_mult = getNameAttribute(issuer, NameOID.ORGANIZATION_NAME, None)
         issuer_country, is_issuer_country_mult = getNameAttribute(issuer, NameOID.COUNTRY_NAME, None)
 
-        time_begin = self.cert.not_valid_before
-        time_end = self.cert.not_valid_after
+        time_begin = self.cert.not_valid_before_utc
+        time_end = self.cert.not_valid_after_utc
         cert_period = utcTimeDifferenceInDays(time_end, time_begin)
-        has_expired = (datetime.now() > time_end)
+        current_utc_time = datetime.now(timezone.utc)
+
+        # 通过添加时区信息确保 time_end 也是 UTC 时间
+        time_end_utc = time_end.replace(tzinfo=timezone.utc)
+        has_expired = (current_utc_time > time_end_utc)
 
         pub_key_type = self.cert.public_key()
         pub_key_size = pub_key_type.key_size
@@ -298,6 +313,7 @@ class X509SingleCertAnalyzer():
             ocsp_status,
             cert_status,
             self.cert.public_bytes(Encoding.PEM).decode("utf-8"),
+            sha256_hex
         )
 
 
@@ -305,38 +321,47 @@ class X509CertScanAnalyzer():
 
     def __init__(
             self,
-            scan_input_dir : str = os.path.join(os.path.dirname(__file__), r"..\data\20240125_results.jsonl")
+            scan_id : str,
+            scan_input_table_name : str,
         ) -> None:
 
-        self.scan_input_file = scan_input_dir
-        self.analyzeCertScanResult()
+        self.scan_id = scan_id
+        self.result_list = []
+        self.result_list_lock = Lock()
+        self.scan_input_table = db.Model.metadata.tables[scan_input_table_name]
+        self.result_table = generate_cert_analysis_table(f"cert_analysis{scan_input_table_name[-14:]}")
+        self.existing_cert_analysis_store : CertAnalysisStore = CertAnalysisStore.query.filter_by(SCAN_ID=scan_id).first()
+
+        self.num = 0
+        self.expired = 0
+        self.issuer = []
+        self.algo = []
+        self.length = []
+        self.valid = []
 
 
     def analyzeCertScanResult(self):
+        my_logger.info(f"Starting {self.scan_input_table} scan analysis...")
+        # timer_thread = threading.Thread(target=self.async_update_info)
+        # timer_thread.daemon = True  # 设置为守护线程，以便主线程退出时自动退出定时器线程
+        # timer_thread.start()
 
-        my_logger.info(f"Starting {self.scan_input_file} scan analysis...")
-        result_list = []
-        error_list = []
-        data = "1"
-        with jsonlines.open(self.scan_input_file, "r") as input_file:
-            while True:
+        
+        from sqlalchemy import select
+        with app_backend.app_context():
+            query = select(self.scan_input_table)
+            rows = db_backend.session.execute(query).all()
+
+            for row in rows:
+
+                # 'sha256_id': self.SHA256_ID,
+                # 'raw': self.RAW_PEM,
+                cert_id = row[0]
                 try:
-                    data = input_file.read()
-                except EOFError:
-                    break
-                host_name = data["host"]
-                error = data["error"]
-                if error:
-                    error_list.append(error)
+                    certs_as_x509 = (load_pem_x509_certificate(row[1].encode("utf-8"), default_backend()))
+                except:
+                    my_logger.warn("Meet cert ASN.1 format violation")
                     continue
-
-                certs_as_x509 = []
-                for cert in data["certificate"]:
-                    try:
-                        certs_as_x509.append(load_pem_x509_certificate(cert.encode("utf-8"), default_backend()))
-                    except:
-                        my_logger.warn("Meet cert ASN.1 format violation")
-                        continue
 
                 #     # Check cert type
                 #     cert_type = X509CertType.LEAFCERT
@@ -351,36 +376,74 @@ class X509CertScanAnalyzer():
                 #                 cert_type = X509CertType.INTERMEDIATECERT
                 #                 continue
 
-                single_cert_analyzer = X509SingleCertAnalyzer(host_name, X509CertType.LEAFCERT, certs_as_x509[0], certs_as_x509[0])
+                single_cert_analyzer = X509SingleCertAnalyzer("", X509CertType.LEAFCERT, certs_as_x509, certs_as_x509)
                 cert_analysis_result = single_cert_analyzer.analyzeSingleCertBase()
-                result_list.append(cert_analysis_result)
-
-        from collections import Counter
-        num = len(result_list)
-        expired = 0
-        algo = []
-        length = 0
-        for result in result_list:
-            result : X509SingleCertResult
-            if result.has_expired:
-                expired += 1
-            algo.append(str(result.subject_pub_key_type.__class__))
-            length += result.subject_pub_key_size
-
-        counter = Counter(algo)
-        algo_dict = dict(counter)
-
-        result = {
-            "num" : num,
-            "expired" : expired / num,
-            "algo_dict" : algo_dict,
-            "avg_length" : length / num
-        }
-
-        counter = Counter(error_list)
-        result_error_dict = dict(counter)
-
+                self.result_list.append(cert_analysis_result)
 
         my_logger.info("Cert scan analysis completed")
-        return result, result_error_dict
-    
+        self.sync_update_info()
+
+
+    def async_update_info(self):
+        self.sync_update_info()
+        time.sleep(10)
+
+
+    def sync_update_info(self):
+        my_logger.info(f"Updating...")
+        with self.result_list_lock:
+            with app_backend.app_context():
+
+                from collections import Counter
+                insert_analysis_data_statement = insert(self.result_table)
+                analysis_data_to_insert = []
+
+                for result in self.result_list:
+                    result : X509SingleCertResult
+                    my_logger.info(f"{result.sha_256}")
+                    analysis_data_to_insert.append({
+                        'SHA256_ID' : result.sha_256,
+                        'TYPE' : result.cert_type.value,
+                        'ISSUER' : result.issuer_cn,
+                        'ISSUER_CERT_ID' : "",
+                        'KEY_SIZE' : result.subject_pub_key_size,
+                        'KEY_TYPE' : str(result.subject_pub_key_type.__class__),
+                        'NOT_VALID_BEFORE' : str(result.not_valid_before),
+                        'VALIDATION_PERIOD' : result.validation_period,
+                        'EXPIRED' : result.has_expired
+                    })
+
+                    if result.has_expired:
+                        self.expired += 1
+                    self.algo.append(str(result.subject_pub_key_type.__class__))
+                    self.length.append(result.subject_pub_key_size)
+                    self.issuer.append(result.issuer_cn)
+                    self.valid.append(result.validation_period)
+                    self.num += 1
+
+
+                with db_backend.session.begin():
+                    db_backend.session.execute(insert_analysis_data_statement.values(analysis_data_to_insert))
+
+                counter = Counter(self.algo)
+                algo_dict = dict(counter)
+                counter = Counter(self.length)
+                length_dict = dict(counter)
+                counter = Counter(self.issuer)
+                issuer_dict = dict(counter)
+                counter = Counter(self.valid)
+                valid_dict = dict(counter)
+
+                self.existing_cert_analysis_store.SCAN_ID = self.scan_id
+                self.existing_cert_analysis_store.SCANNED_CERT_NUM = self.num
+                self.existing_cert_analysis_store.ISSUER_COUNT = issuer_dict
+                self.existing_cert_analysis_store.KEY_SIZE_COUNT = length_dict
+                self.existing_cert_analysis_store.KEY_TYPE_COUNT = algo_dict
+
+                self.existing_cert_analysis_store.VALIDATION_PERIOD_COUNT = valid_dict
+                self.existing_cert_analysis_store.EXPIRED_PERCENT = self.expired / self.num
+
+                db_backend.session.add(self.existing_cert_analysis_store)
+                db_backend.session.commit()
+        
+            self.result_list = []
