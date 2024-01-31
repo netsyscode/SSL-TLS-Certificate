@@ -48,19 +48,19 @@ from cryptography.x509.ocsp import (
 
 
 # Identifiers for X509 cert type based on its position in the cert chain
-class X509CertType(Enum):
+class CertType(Enum):
     LEAFCERT = 0
     INTERMEDIATECERT = 1
     ROOTCERT =  2
 
 BIMAP_CERTIFICATE_TYPE_AND_NAME : bidict = bidict({
-    X509CertType.LEAFCERT : "Leaf",
-    X509CertType.INTERMEDIATECERT : "Intermediate",
-    X509CertType.ROOTCERT : "Root"    
+    CertType.LEAFCERT : "Leaf",
+    CertType.INTERMEDIATECERT : "Intermediate",
+    CertType.ROOTCERT : "Root"    
 })
 
 # Identifiers for x509 leaf cert basd on its policies
-class X509LeafCertType(Enum):
+class LeafCertType(Enum):
     DV = 0
     IV = 1
     OV = 2

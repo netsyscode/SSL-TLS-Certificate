@@ -31,9 +31,9 @@ from cryptography.x509.ocsp import OCSPCertStatus, OCSPResponseStatus, OCSPRespo
 from cryptography.exceptions import InvalidSignature, UnsupportedAlgorithm
 from cryptography.x509 import Extensions
 
-from .x509CertUtils import (
-    X509CertType,
-    X509LeafCertType,
+from .utils import (
+    CertType,
+    LeafCertType,
     requestCRLResponse,
     requestOCSPResponse,
     extractDomain,
@@ -70,7 +70,7 @@ import time
 @dataclass
 class X509SingleCertResult():
 
-    cert_type : X509CertType
+    cert_type : CertType
 
     # Subject analysis
     subject_cn : str             # only for subject_cn field
@@ -127,7 +127,7 @@ class X509SingleCertAnalyzer():
     def __init__(
             self,
             host_name: str,
-            cert_type: X509CertType,
+            cert_type: CertType,
             cert: Certificate,
             issuer_cert: Optional[Certificate],
         ) -> None:
@@ -317,7 +317,7 @@ class X509SingleCertAnalyzer():
         )
 
 
-class X509CertScanAnalyzer():
+class CertScanAnalyzer():
 
     def __init__(
             self,
@@ -376,7 +376,7 @@ class X509CertScanAnalyzer():
                 #                 cert_type = X509CertType.INTERMEDIATECERT
                 #                 continue
 
-                single_cert_analyzer = X509SingleCertAnalyzer("", X509CertType.LEAFCERT, certs_as_x509, certs_as_x509)
+                single_cert_analyzer = X509SingleCertAnalyzer("", CertType.LEAFCERT, certs_as_x509, certs_as_x509)
                 cert_analysis_result = single_cert_analyzer.analyzeSingleCertBase()
                 self.result_list.append(cert_analysis_result)
 
@@ -400,7 +400,7 @@ class X509CertScanAnalyzer():
 
                 for result in self.result_list:
                     result : X509SingleCertResult
-                    my_logger.info(f"{result.sha_256}")
+                    # my_logger.info(f"{result.sha_256}")
                     analysis_data_to_insert.append({
                         'SHA256_ID' : result.sha_256,
                         'TYPE' : result.cert_type.value,

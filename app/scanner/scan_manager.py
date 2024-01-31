@@ -72,7 +72,7 @@ class ScanManager():
         data = {}
         for id in self.registry:
             data[id] = self.registry[id].get_status_info()
-            my_logger.info(f"{data[id]}")
+            # my_logger.info(f"{data[id]}")
             # return data[id]
         return data
 

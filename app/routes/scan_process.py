@@ -19,7 +19,7 @@ import uuid
 @base.route('/system/scan_process/list', methods=['GET'])
 @login_required
 def scan_process_list():
-    my_logger.info(f"{request.args}")
+    # my_logger.info(f"{request.args}")
     filters = []
     if 'name' in request.args:
         filters.append(ScanProcess.NAME.like('%' + request.args['name'] + '%'))
@@ -38,6 +38,6 @@ def scan_process_start():
     task_id = manager.register(config)
     threading.Thread(target=manager.start, args=(task_id,)).start()
     # manager.start(task_id)
-    my_logger.info("Test")
+    # my_logger.info("Test")
 
     return jsonify({'code': 200, 'msg': '操作成功'})

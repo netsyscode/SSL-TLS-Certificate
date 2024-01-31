@@ -5,7 +5,7 @@ from ..models import CertAnalysisStore
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
 
-from ..analyzer.analyze import X509CertScanAnalyzer
+from ..analyzer.cert_analyze import CertScanAnalyzer
 from ..logger.logger import my_logger
 
 from .. import db
@@ -18,7 +18,7 @@ from sqlalchemy import select
 @login_required
 def cert_analysis_list():
 
-    my_logger.info(f"{request.args}")
+    # my_logger.info(f"{request.args}")
     filters = []
     if 'name' in request.args:
         filters.append(CertAnalysisStore.SCAN_ID.like('%' + request.args['name'] + '%'))

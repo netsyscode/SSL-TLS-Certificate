@@ -183,14 +183,14 @@ export default {
     },
     /** 定时刷新表格数据 */
     startAutoRefresh() {
-      setInterval(() => {
+      this.autoRefreshTimer = setInterval(() => {
         this.getList();
       }, 5000);
-    }
-  },
-  stopAutoRefresh() {
+    },
+    stopAutoRefresh() {
       // 停止定时器的逻辑
       clearInterval(this.autoRefreshTimer);
-    }
+    },
+  },
 };
 </script>

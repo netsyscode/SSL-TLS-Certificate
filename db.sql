@@ -145,8 +145,10 @@ INSERT INTO `SYRESOURCE` (`ID`, `CREATEDATETIME`, `DESCRIPTION`, `ICONCLS`, `NAM
 	-- 这里添加想要新增的可访问的路由(左侧菜单栏的项目)
 	('smjcgl', '2015-08-25 10:34:53', '管理证书扫描进程', 'tree-table', '扫描进程管理', 2, '', '2022-05-25 00:48:32', 'scan_process', 'system/scan_process/index', 'system:menu:list', 'xtgl', '0', '0'),
 	('tjjc', '2015-08-25 10:34:53', '添加进程', 'ext-icon-bullet_wrench', '添加进程', 1, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!start', 'system:scan_process:add', 'smjcgl', '1', '0'),
-	('zsjggl', '2015-08-25 10:34:53', '管理证书分析结果', 'tree-table', '证书结果管理', 2, '', '2022-05-25 00:48:32', 'cert_analysis', 'system/cert_analysis/index', 'system:menu:list', 'xtgl', '0', '0');
+	('zsjggl', '2015-08-25 10:34:53', '管理证书分析结果', 'tree-table', '证书结果管理', 2, '', '2022-05-25 00:48:32', 'cert_analysis', 'system/cert_analysis/index', 'system:menu:list', 'xtgl', '0', '0'),
 	-- ('tjjc', '2015-08-25 10:34:53', '添加进程', 'ext-icon-bullet_wrench', '添加进程', 1, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!start', 'system:scan_process:add', 'smjcgl', '1', '0');
+	('cajggl', '2015-08-25 10:34:53', '管理CA分析结果', 'tree-table', 'CA结果管理', 4, '', '2022-05-25 00:48:32', 'ca_analysis', 'system/ca_analysis/index', 'system:menu:list', 'xtgl', '0', '0');
+
 
 -- 导出  表 authbase.SYRESOURCETYPE 结构
 CREATE TABLE IF NOT EXISTS `SYRESOURCETYPE` (
@@ -275,7 +277,9 @@ INSERT INTO `SYROLE_SYRESOURCE` (`SYROLE_ID`, `SYRESOURCE_ID`) VALUES
 	('f4e1b151-a171-4705-9154-503a046cb72a', 'smjcgl'),
 	('0', 'tjjc'),
 	('0', 'zsjggl'),
-	('f4e1b151-a171-4705-9154-503a046cb72a', 'zsjggl');
+	('f4e1b151-a171-4705-9154-503a046cb72a', 'zsjggl'),
+	('0', 'cajggl'),
+	('f4e1b151-a171-4705-9154-503a046cb72a', 'cajggl');
 
 -- 导出  表 authbase.SYS_CONFIG 结构
 CREATE TABLE IF NOT EXISTS `SYS_CONFIG` (
@@ -509,3 +513,11 @@ CREATE TABLE IF NOT EXISTS `CERT_ANALYSIS_STORE` (
   PRIMARY KEY (`SCAN_ID`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
 
+
+CREATE TABLE IF NOT EXISTS `CA_ANALYSIS_STORE` (
+  `SCAN_ID` varchar(36) CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
+--   `CREATEDATETIME` datetime DEFAULT NULL,
+  `SCANNED_CA_NUM` INT DEFAULT 0,
+  `CA_DATA_TABLE` VARCHAR(32) CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
+  PRIMARY KEY (`SCAN_ID`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;

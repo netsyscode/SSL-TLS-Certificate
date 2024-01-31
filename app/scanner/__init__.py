@@ -31,6 +31,7 @@ def create_app(config_name):
     db_backend.init_app(app_backend)
     return app_backend
 
+# Here, backend means other threads
 moment_backend = Moment()
 db_backend = SQLAlchemy()
 app_backend = create_app(os.getenv('FLASK_CONFIG') or 'default')

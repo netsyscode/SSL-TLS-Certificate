@@ -26,7 +26,7 @@ import hashlib
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import insert
 
-from ..analyzer.analyze import X509CertScanAnalyzer
+from ..analyzer.cert_analyze import CertScanAnalyzer
 
 
 
@@ -40,6 +40,8 @@ class ScanConfig():
     scan_type : ScanType = ScanType.SCAN_BY_DOMAIN
     input_csv_file : str = os.path.join(os.path.dirname(__file__), r"..\data\top-1m.csv")
     output_dir : str = os.path.join(os.path.dirname(__file__), r"..\data")
+    # input_csv_file : str = os.path.join(os.path.dirname(__file__), r"..\data\top-1m.csv")
+    # output_dir : str = os.path.join(os.path.dirname(__file__), r"..\data")
 
     proxy_host : str = '127.0.0.1'
     proxy_port : int = 33210
@@ -51,7 +53,7 @@ class ScanConfig():
 @dataclass
 class ScanData():
 
-    start_time : datetime = datetime.now()
+    start_time : datetime = datetime.utcnow()
     end_time : datetime = None
     status : str = "Running"
 
@@ -108,7 +110,7 @@ class Scanner:
 
         # Run analysis in background
         time.sleep(1)
-        self.analyzer = X509CertScanAnalyzer(scan_id, cert_data_table_name)
+        self.analyzer = CertScanAnalyzer(scan_id, cert_data_table_name)
 
     def load_tasks_into_queue(self):
         self.current_index = self.begin_num
@@ -236,12 +238,12 @@ class Scanner:
             # Retrieve the peer certificate
             certs = sock_ssl.get_peer_cert_chain()
             cert_pem = [dump_certificate(FILETYPE_PEM, cert).decode('utf-8') for cert in certs]
-            my_logger.info(f"Success fetching certificate for {hostname} : {len(certs)}")
+            # my_logger.info(f"Success fetching certificate for {hostname} : {len(certs)}")
             proxy_socket.close()
             return cert_pem, None
 
         except Exception as e:
-            my_logger.error(f"Error fetching certificate for {hostname}: {last_error} {last_error.__class__}")
+            # my_logger.error(f"Error fetching certificate for {hostname}: {last_error} {last_error.__class__}")
             proxy_socket.close()
             return [], f"{last_error} {last_error.__class__}"
 
@@ -273,6 +275,7 @@ class Scanner:
 
 
     def start(self):
+        self.scan_data.start_time = datetime.utcnow()
         with Progress(
             TextColumn("[bold blue]{task.description}", justify="right"),
             BarColumn(),
@@ -311,7 +314,7 @@ class Scanner:
         
         my_logger.info(f"Scan Completed")
         with self.scan_data_lock:
-            self.scan_data.end_time = datetime.now()
+            self.scan_data.end_time = datetime.utcnow()
             self.scan_data.status = "Completed"
         self.sync_update_scan_process_info()
 
@@ -332,7 +335,7 @@ class Scanner:
 
         my_logger.info(f"Updating...")
         if self.scan_data.status == "Running":
-            scan_time = (datetime.now() - self.scan_data.start_time).seconds
+            scan_time = (datetime.utcnow() - self.scan_data.start_time).seconds
         elif self.scan_data.status == "Completed":
             scan_time = (self.scan_data.end_time - self.scan_data.start_time).seconds
         elif self.scan_data.status == "Killed":
