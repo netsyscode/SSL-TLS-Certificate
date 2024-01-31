@@ -28,7 +28,7 @@ moment = Moment()
 db = SQLAlchemy()
 
 def create_app(config_name):
-    app = Flask(__name__, template_folder=r"../ui/templates", static_folder=r"../ui/static")
+    app = Flask(__name__, template_folder=r"..\ui\templates", static_folder=r"..\ui\static")
     CORS(app)
     #  替换默认的json编码器
     app.json_encoder = CustomJSONEncoder

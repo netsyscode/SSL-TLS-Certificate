@@ -17,7 +17,7 @@ from bidict import bidict
 from typing import Optional
 from datetime import datetime
 from urllib.parse import urlparse
-from typing import Dict, List
+from typing import Dict
 
 from ..logger.logger import my_logger
 from cryptography.hazmat.backends import default_backend
@@ -239,7 +239,7 @@ def checkLocalIP(ip : str) -> bool:
     return True
 
 
-def get_dns_caa_records(domain : str, timeout=5) -> (List[str], List[str]):
+def get_dns_caa_records(domain : str, timeout=5) -> (list[str], list[str]):
 
     try:
         resolver = dns.resolver.Resolver(configure=False)
