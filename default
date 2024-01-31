@@ -1,0 +1,23 @@
+server {
+	listen 80;
+	server_name 47.100.137.211;
+	
+	location /api {
+		include uwsgi_params;
+		uwsgi_pass 127.0.0.1:5000;
+		uwsgi_param UWSGI_PYHOME /root/global_ca_monitor/venv;
+		uwsgi_param UWSGI_CHDIR /root/global_ca_monitor;
+		uwsgi_param UWSGI_SCRIPT start:app;
+	}
+	location / {
+                root  /root/global_ca_monitor/ui/dist;
+		index  index.html index.htm;
+		try_files  $uri  $uri/  /index.html;
+	}
+        location /static/ {
+                root  /root/global_ca_monitor/ui/dist; 
+                expires  30d;
+                autoindex  on;
+        }
+}
+

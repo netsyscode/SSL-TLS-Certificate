@@ -421,8 +421,11 @@ class CertScanAnalyzer():
                     self.valid.append(result.validation_period)
                     self.num += 1
 
+                if analysis_data_to_insert == []:
+                    return
 
                 with db_backend.session.begin():
+                    my_logger.info(f"{analysis_data_to_insert}")
                     db_backend.session.execute(insert_analysis_data_statement.values(analysis_data_to_insert))
 
                 counter = Counter(self.algo)

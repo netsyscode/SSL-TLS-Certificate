@@ -36,7 +36,7 @@ class ScanManager():
 
         db.session.add(scan_process)
         db.session.commit()
-
+                
         '''
         '''
         cert_analysis_store = CertAnalysisStore()
@@ -55,7 +55,9 @@ class ScanManager():
         my_logger.info(f"New scan process registered")
 
         self.registry[scan_process.ID] = Scanner(scan_process.ID, scan_config, scan_process.SCAN_DATA_TABLE, scan_process.CERT_STORE_TABLE, begin_num=0, end_num=100)
-        return scan_process.ID
+        r = scan_process.ID
+        db.session.expunge(scan_process)
+        return r
 
     def start(self, task_id : str):
         my_logger.info(f"Starting new scan...")

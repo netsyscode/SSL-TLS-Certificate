@@ -38,8 +38,8 @@ class ScanType(Enum):
 @dataclass
 class ScanConfig():
     scan_type : ScanType = ScanType.SCAN_BY_DOMAIN
-    input_csv_file : str = os.path.join(os.path.dirname(__file__), r"..\data\top-1m.csv")
-    output_dir : str = os.path.join(os.path.dirname(__file__), r"..\data")
+    input_csv_file : str = os.path.join(os.path.dirname(__file__), r"../data/top-1m.csv")
+    output_dir : str = os.path.join(os.path.dirname(__file__), r"../data")
     # input_csv_file : str = os.path.join(os.path.dirname(__file__), r"..\data\top-1m.csv")
     # output_dir : str = os.path.join(os.path.dirname(__file__), r"..\data")
 
