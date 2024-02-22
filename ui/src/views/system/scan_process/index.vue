@@ -106,14 +106,18 @@
         </el-row>
 
         <el-row>
-          <el-col :span="12">
-            <el-form-item label="扫描域名数量" prop="scanDomainNum">
-              <el-input v-model="form.scanDomainNum" placeholder="请输入要扫描的域名数量" />
+          <el-col :span="50">
+            <el-form-item label-width="130px" label="扫描域名数量" prop="scanDomainNum">
+              <!-- <el-input v-model="form.scanDomainNum" placeholder="请输入要扫描的域名数量" /> -->
+              <el-input-number v-model="form.scanDomainNum" controls-position="right" :min="1" :max="10000000"/>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="扫描线程分配数量" prop="scanThreadNum">
-              <el-input-number v-model="form.scanThreadNum" controls-position="right" :min="0" />
+        </el-row>
+
+        <el-row>
+          <el-col :span="50">
+            <el-form-item label-width="150px" label="扫描线程分配数量" prop="scanThreadNum">
+              <el-input-number v-model="form.scanThreadNum" controls-position="right" :min="1" :max="100"/>
             </el-form-item>
           </el-col>
         </el-row>
@@ -134,7 +138,7 @@ import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 
 export default {
-  name: "Scan Process",
+  name: "ScanProcess",
   dicts: ['sys_normal_disable'],
   components: { Treeselect },
   data() {
@@ -164,29 +168,15 @@ export default {
       form: {},
       // 表单校验
       rules: {
-        parentId: [
-          { required: true, message: "上级部门不能为空", trigger: "blur" }
+        scanTypeOptions: [
+          { required: true, message: "扫描方式不能为空", trigger: "blur" }
         ],
-        deptName: [
-          { required: true, message: "部门名称不能为空", trigger: "blur" }
+        scanDomainNum: [
+          { required: true, message: "扫描域名数量不能为空", trigger: "blur" }
         ],
-        orderNum: [
-          { required: true, message: "显示排序不能为空", trigger: "blur" }
+        scanThreadNum: [
+          { required: true, message: "扫描线程分配数量不能为空", trigger: "blur" }
         ],
-        email: [
-          {
-            type: "email",
-            message: "请输入正确的邮箱地址",
-            trigger: ["blur", "change"]
-          }
-        ],
-        phone: [
-          {
-            pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/,
-            message: "请输入正确的手机号码",
-            trigger: "blur"
-          }
-        ]
       }
     };
   },
@@ -280,7 +270,25 @@ export default {
 
       // 在这里你可以根据选择执行相应的逻辑
       // 例如，发起请求、更新相关数据等
-    }
+    },
+    /** 展开/折叠操作 */
+    toggleExpandAll() {
+      this.refreshTable = false;
+      this.isExpandAll = !this.isExpandAll;
+      this.$nextTick(() => {
+        this.refreshTable = true;
+      });
+    },
+    /** 搜索按钮操作 */
+    handleQuery() {
+      this.getList();
+    },
+    /** 重置按钮操作 */
+    resetQuery() {
+      this.resetForm("queryForm");
+      this.handleQuery();
+    },
+
   },
 };
 </script>

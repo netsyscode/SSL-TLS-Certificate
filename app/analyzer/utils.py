@@ -216,8 +216,8 @@ def extractDomain(url : str):
 def isDomainMatch(source_domain : str, dest_domain : str):
     # if wilicard domain, convert to regular expression representing the whole
     pattern = dest_domain.replace(".", r"\.").replace("*", ".*")
-    pattern = pattern.replace("[", "\[").replace("]", "\]")
-    pattern = pattern.replace("(", "\(").replace(")", "\)")
+    # pattern = pattern.replace("[", "\[").replace("]", "\]")
+    # pattern = pattern.replace("(", "\(").replace(")", "\)")
     pattern = f"^{pattern}$"
 
     if bool(re.match(pattern, source_domain)) == False:

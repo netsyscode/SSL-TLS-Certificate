@@ -34,7 +34,12 @@ def scan_process_list():
 @login_required
 def scan_process_start():
 
-    config = ScanConfig(ScanType.SCAN_BY_DOMAIN)
+    config = ScanConfig(
+        request.json['scanTypeOptions'],
+        scan_domain_num=request.json['scanDomainNum'],
+        max_threads=request.json['scanThreadNum'],
+    )
+
     task_id = manager.register(config)
     threading.Thread(target=manager.start, args=(task_id,)).start()
     # manager.start(task_id)

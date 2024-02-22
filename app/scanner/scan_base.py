@@ -50,6 +50,8 @@ class ScanConfig():
     max_threads : int = 100
     save_threshold : int = 2000
 
+    scan_domain_num : int = 100
+
 @dataclass
 class ScanData():
 
@@ -74,7 +76,6 @@ class Scanner:
             scan_data_table_name : str,
             cert_data_table_name : str,
             begin_num=0,
-            end_num=20
         ) -> None:
 
         self.existing_scan_process : ScanProcess = ScanProcess.query.filter_by(ID=scan_id).first()
@@ -88,7 +89,7 @@ class Scanner:
         self.max_retries = 3
         
         self.begin_num = begin_num
-        self.end_num = end_num
+        self.end_num = scan_config.scan_domain_num
         self.task_queue = PriorityQueue()
         self.load_tasks_into_queue()
 
