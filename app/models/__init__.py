@@ -14,4 +14,4 @@ from .CertData import generate_cert_data_table
 from .CertAnalysis import generate_cert_analysis_table
 from .CertAnalysisStore import CertAnalysisStore
 from .CaAnalysis import generate_ca_analysis_table
-from .CaAnalysisStore import CertAnalysisStore
+from .CaAnalysisStore import CaAnalysisStore

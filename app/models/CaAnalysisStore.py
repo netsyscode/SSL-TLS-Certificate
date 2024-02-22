@@ -3,7 +3,7 @@ from app import db
 from datetime import datetime
 
 
-class CertAnalysisStore(db.Model):
+class CaAnalysisStore(db.Model):
     __tablename__ = "CA_ANALYSIS_STORE"
 
     SCAN_ID = db.Column(db.String(36), primary_key=True, nullable=False, unique=True, index=True)

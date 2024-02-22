@@ -48,15 +48,14 @@
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="scanList" @selection-change="handleSelectionChange">
-    <!-- <el-table
+    <el-table
       v-if="refreshTable"
       v-loading="loading"
       :data="scanList"
       row-key="scanId"
       :default-expand-all="isExpandAll"
-      :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
-    > -->
+      >
+      <!-- :tree-props="{children: 'children', hasChildren: 'hasChildren'}" -->
       <el-table-column prop="name" label="扫描名称" width="100"></el-table-column>
 
       <el-table-column label="开始时间" align="center" prop="startTime" width="230">
@@ -65,7 +64,7 @@
         </template> -->
       </el-table-column>
 
-      <el-table-column prop="scan_time" label="运行时间(秒)" width="80"></el-table-column>
+      <el-table-column prop="scan_time" label="运行时间(秒)" align="center" width="80"></el-table-column>
 
       <el-table-column label="结束时间" align="center" prop="endTime" width="230">
         <!-- <template slot-scope="scope">
@@ -73,18 +72,58 @@
         </template> -->
       </el-table-column>
 
-      <el-table-column prop="status" label="扫描状态" width="100">
+      <el-table-column prop="status" label="扫描状态" align="center" width="100">
         <!-- <template slot-scope="scope">
           <dict-tag :options="dict.type.sys_normal_disable" :value="scope.row.status"/>
         </template> -->
       </el-table-column>
 
-      <el-table-column prop="scanned_domains" label="扫描域名数" width="100"></el-table-column>
-      <el-table-column prop="successes" label="获取成功" width="100"></el-table-column>
-      <el-table-column prop="errors" label="获取失败" width="100"></el-table-column>
-      <el-table-column prop="scanned_certs" label="获取证书数量" width="100"></el-table-column>
+      <el-table-column prop="scanned_domains" label="扫描域名数" align="center" width="100"></el-table-column>
+      <el-table-column prop="successes" label="获取成功" align="center" width="100"></el-table-column>
+      <el-table-column prop="errors" label="获取失败" align="center" width="100"></el-table-column>
+      <el-table-column prop="scanned_certs" label="获取证书数量" align="center" width="100"></el-table-column>
 
     </el-table>
+
+    <!-- Config for new scan process -->
+    <el-dialog :title="title" :visible.sync="open" width="600px" append-to-body>
+      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+        <el-row>
+          <el-col :span="24" v-if="form.parentId !== 0">
+
+            <el-form-item label="扫描方式" prop="scanTypeOptions">
+              <el-select v-model="form.scanTypeOptions" @change="handleScanTypeOptionChange" placeholder="选择扫描方式">
+                <el-option label="扫描Top域名" value="0"></el-option>
+                <el-option label="扫描IP地址" value="1"></el-option>
+                <el-option label="扫描CT日志" value="2"></el-option>
+              </el-select>
+            </el-form-item>
+
+            <!-- <el-form-item label="扫描方式" prop="parentId">
+              <treeselect v-model="form.parentId" :options="scanTypeOptions" :normalizer="normalizer" placeholder="选择上级部门" />
+            </el-form-item> -->
+          </el-col>
+        </el-row>
+
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="扫描域名数量" prop="scanDomainNum">
+              <el-input v-model="form.scanDomainNum" placeholder="请输入要扫描的域名数量" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="扫描线程分配数量" prop="scanThreadNum">
+              <el-input-number v-model="form.scanThreadNum" controls-position="right" :min="0" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitForm">确 定</el-button>
+        <el-button @click="cancel">取 消</el-button>
+      </div>
+    </el-dialog>
 
   </div>
 </template>
@@ -107,7 +146,7 @@ export default {
       // 表格树数据
       scanList: [],
       // 部门树选项
-      deptOptions: [],
+      scanTypeOptions: [],
       // 弹出层标题
       title: "",
       // 是否显示弹出层
@@ -153,10 +192,10 @@ export default {
   },
   created() {
     this.getList();
-    this.startAutoRefresh();
+    // this.startAutoRefresh();
   },
   beforeDestroy() {
-    this.stopAutoRefresh();
+    // this.stopAutoRefresh();
   },
   methods: {
     /** 查询部门列表 */
@@ -170,16 +209,15 @@ export default {
     },
     /** 新增按钮操作 */
     handleAdd(row) {
-      // this.reset();
-      // if (row != undefined) {
-      //   this.form.parentId = row.scanId;
-      // }
-      // this.open = true;
-      // this.title = "新增";
-      addScanProcess().then(response => {
-        // this.deptOptions = this.handleTree(response.data, "scanId");
-        this.getList();
-      });
+      this.reset();
+      if (row != undefined) {
+        this.form.parentId = row.scanId;
+      }
+      this.open = true;
+      this.title = "新增扫描进程";
+      // getList().then(response => {
+      //   this.scanTypeOptions = this.handleTree(response.data, "scanId");
+      // });
     },
     /** 定时刷新表格数据 */
     startAutoRefresh() {
@@ -191,6 +229,58 @@ export default {
       // 停止定时器的逻辑
       clearInterval(this.autoRefreshTimer);
     },
+
+    /** 转换菜单数据结构 */
+    normalizer(node) {
+      if (node.children && !node.children.length) {
+        delete node.children;
+      }
+      return {
+        id: node.menuId,
+        label: node.menuName,
+        children: node.children
+      };
+    },
+    /** 提交按钮 */
+    submitForm: function() {
+      this.$refs["form"].validate(valid => {
+        if (valid) {
+          if (this.form.deptId != undefined) {
+            updateDept(this.form).then(response => {
+              this.$modal.msgSuccess("修改成功");
+              this.open = false;
+              this.getList();
+            });
+          } else {
+            addScanProcess(this.form).then(response => {
+              this.$modal.msgSuccess("新增成功");
+              this.open = false;
+              this.getList();
+            });
+          }
+        }
+      });
+    },
+    // 取消按钮
+    cancel() {
+      this.open = false;
+      this.reset();
+    },
+    // 表单重置
+    reset() {
+      this.form = {
+        scanTypeOptions: undefined,
+        scanDomainNum: undefined,
+        scanThreadNum: undefined
+      };
+      this.resetForm("form");
+    },
+    handleScanTypeOptionChange() {
+      console.log("用户选择的扫描方式：", this.form.scanTypeOptions);
+
+      // 在这里你可以根据选择执行相应的逻辑
+      // 例如，发起请求、更新相关数据等
+    }
   },
 };
 </script>

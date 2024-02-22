@@ -4,7 +4,7 @@ from datetime import datetime
 
 def generate_ca_analysis_table(table_name):
 
-    class CertAnalysis(db.Model):
+    class CaAnalysis(db.Model):
         __tablename__ = table_name
         __table_args__ = {'extend_existing': True}
 
