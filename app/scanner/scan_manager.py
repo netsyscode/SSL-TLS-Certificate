@@ -36,7 +36,7 @@ class ScanManager():
 
         db.session.add(scan_process)
         db.session.commit()
-
+                
         '''
         '''
         cert_analysis_store = CertAnalysisStore()
