@@ -17,7 +17,7 @@ from OpenSSL import SSL
 from OpenSSL.crypto import dump_certificate, FILETYPE_PEM
 from ..logger.logger import my_logger
 from dataclasses import dataclass
-from ..models import ScanProcess, ScanData, CertData, generate_cert_data_table, generate_scan_data_table
+from ..models import ScanStatus, ScanData, CertData, generate_cert_data_table, generate_scan_data_table
 import asyncio
 import threading
 from flask import jsonify
@@ -78,7 +78,7 @@ class Scanner:
             begin_num=0,
         ) -> None:
 
-        self.existing_scan_process : ScanProcess = ScanProcess.query.filter_by(ID=scan_id).first()
+        self.existing_scan_process : ScanStatus = ScanStatus.query.filter_by(ID=scan_id).first()
         self.input_csv_file = scan_config.input_csv_file
         self.out_put_dir = scan_config.output_dir
         self.max_threads = scan_config.max_threads

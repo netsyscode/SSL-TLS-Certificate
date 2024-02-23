@@ -98,55 +98,63 @@ CREATE TABLE IF NOT EXISTS `SYRESOURCE` (
 
 -- 正在导出表  authbase.SYRESOURCE 的数据：~44 rows (大约)
 INSERT INTO `SYRESOURCE` (`ID`, `CREATEDATETIME`, `DESCRIPTION`, `ICONCLS`, `NAME`, `SEQ`, `TARGET`, `UPDATEDATETIME`, `PATH`, `URL`, `PERMS`, `SYRESOURCE_ID`, `SYRESOURCETYPE_ID`, `STATUS`) VALUES
-	-- ('27fda67f-61d1-4fe6-8eea-d796a848ab67', '2022-05-28 12:54:39', NULL, 'edit', '参数设置', 6, '', '2022-05-28 12:54:39', 'config', 'system/config/index', 'system:config:list', 'xtgl', '3', '0'),
-	-- ('37ac3cd3-560b-49b3-ae86-96d1963e9db6', '2022-05-28 12:55:59', NULL, NULL, '参数修改', 3, NULL, '2022-05-28 12:55:59', NULL, NULL, 'system:config:edit', '27fda67f-61d1-4fe6-8eea-d796a848ab67', '1', '0'),
-	-- ('4621e9f8-e7c6-4c2b-8172-3d8c8ea75371', '2022-05-28 12:55:24', NULL, NULL, '参数新增', 2, NULL, '2022-05-28 12:55:24', NULL, NULL, 'system:config:add', '27fda67f-61d1-4fe6-8eea-d796a848ab67', '1', '0'),
-	-- ('726c7c1e-06f8-4c3e-b9e1-95778a430c07', '2022-05-28 12:51:16', NULL, NULL, '字典查询', 1, NULL, '2022-05-28 12:51:16', NULL, NULL, 'system:dict:query', 'ffb8cf26-1049-43ee-9dd5-16e5742ce9d5', '1', '0'),
-	-- ('b95cae69-6389-4ebc-b613-bee7aac5f730', '2022-05-28 12:52:26', NULL, NULL, '字典修改', 3, NULL, '2022-05-28 12:52:26', NULL, NULL, 'system:dict:edit', 'ffb8cf26-1049-43ee-9dd5-16e5742ce9d5', '1', '0'),
-	-- ('cc7ff599-a588-40b3-951d-ce9dd2490482', '2022-05-28 12:53:26', NULL, NULL, '字典导出', 5, NULL, '2022-05-28 12:53:26', NULL, NULL, 'system:dict:export', 'ffb8cf26-1049-43ee-9dd5-16e5742ce9d5', '1', '0'),
-	-- ('cssc', '2022-05-28 12:56:23', NULL, NULL, '参数删除', 4, NULL, '2022-05-28 12:56:23', NULL, NULL, 'system:config:remove', '27fda67f-61d1-4fe6-8eea-d796a848ab67', '1', '0'),
-	-- ('d60df8ae-86ee-4879-b9b9-2fe79f146d31', '2022-05-28 12:55:02', NULL, NULL, '参数查询', 1, NULL, '2022-05-28 12:55:02', NULL, NULL, 'system:config:query', '27fda67f-61d1-4fe6-8eea-d796a848ab67', '1', '0'),
-	-- ('dd41b52b-272c-49ac-b045-b05392890a8d', '2022-05-28 12:56:49', NULL, NULL, '参数导出', 5, NULL, '2022-05-28 12:56:49', NULL, NULL, 'system:config:export', '27fda67f-61d1-4fe6-8eea-d796a848ab67', '1', '0'),
-	-- ('edc3358e-b9c5-462f-8a70-7b1c7d7f2c26', '2022-05-28 12:51:53', NULL, NULL, '字典新增', 2, NULL, '2022-05-28 12:51:53', NULL, NULL, 'system:dict:add', 'ffb8cf26-1049-43ee-9dd5-16e5742ce9d5', '1', '0'),
-	-- ('ffb8cf26-1049-43ee-9dd5-16e5742ce9d5', '2022-05-28 12:50:37', NULL, 'dict', '字典管理', 5, '', '2022-05-28 12:50:37', 'dict', 'system/dict/index', 'system:dict:list', 'xtgl', '3', '0'),
-	-- ('jgbj', '2015-08-25 10:34:53', '编辑机构', 'ext-icon-bullet_wrench', '编辑机构', 2, '', '2022-05-25 00:39:56', NULL, '/base/syorganization!update', 'system:dept:edit', 'jggl', '1', '0'),
-	-- ('jgck', '2015-08-25 10:34:53', '查看机构', 'ext-icon-bullet_wrench', '查看机构', 4, '', '2015-08-25 10:34:53', NULL, '/base/syorganization!getById', 'system:dept:query', 'jggl', '1', '0'),
-	-- ('jggl', '2015-08-25 10:34:53', '管理系统中用户的机构', 'tree', '机构管理', 4, '', '2022-05-25 00:40:04', 'dept', 'system/dept/index', 'system:dept:list', 'xtgl', '0', '0'),
-	-- ('jglb', '2015-08-25 10:34:53', '查询机构列表', 'ext-icon-bullet_wrench', '机构列表', 0, '', '2016-11-28 14:09:52', NULL, '/base/syorganization!treeGrid', 'system:dept:list', 'jggl', '1', '0'),
-	-- ('jgsc', '2015-08-25 10:34:53', '删除机构', 'ext-icon-bullet_wrench', '删除机构', 3, '', '2015-08-25 10:34:53', NULL, '/base/syorganization!delete', 'system:dept:remove', 'jggl', '1', '0'),
-	-- ('jgsq', '2015-08-25 10:34:53', '机构授权', 'ext-icon-bullet_wrench', '机构授权', 5, '', '2015-08-25 10:34:53', NULL, '/base/syorganization!grant', NULL, 'jggl', '1', '0'),
-	-- ('jgtj', '2015-08-25 10:34:53', '添加机构', 'ext-icon-bullet_wrench', '添加机构', 1, '', '2015-08-25 10:34:53', NULL, '/base/syorganization!save', 'system:dept:add', 'jggl', '1', '0'),
-	-- ('jsbj', '2015-08-25 10:34:53', '编辑角色', 'ext-icon-bullet_wrench', '编辑角色', 2, '', '2015-08-25 10:34:53', NULL, '/base/syrole!update', 'system:role:edit', 'jsgl', '1', '0'),
-	-- ('jsck', '2015-08-25 10:34:53', '查看角色', 'ext-icon-bullet_wrench', '查看角色', 4, '', '2015-08-25 10:34:53', NULL, '/base/syrole!getById', 'system:role:query', 'jsgl', '1', '0'),
-	-- ('jsgl', '2015-08-25 10:34:53', '管理系统中用户的角色', 'peoples', '角色管理', 2, '', '2015-08-25 10:34:53', 'role', 'system/role/index', 'system:role:list', 'xtgl', '0', '0'),
-	-- ('jslb', '2015-08-25 10:34:53', '查询角色列表', 'ext-icon-bullet_wrench', '角色列表', 0, '', '2015-08-25 10:34:53', NULL, '/base/syrole!grid', 'system:role:list', 'jsgl', '1', '0'),
-	-- ('jssc', '2015-08-25 10:34:53', '删除角色', 'ext-icon-bullet_wrench', '删除角色', 3, '', '2015-08-25 10:34:53', NULL, '/base/syrole!delete', 'system:role:remove', 'jsgl', '1', '0'),
-	-- ('jssq', '2015-08-25 10:34:53', '角色授权', 'ext-icon-bullet_wrench', '角色授权', 5, '', '2015-08-25 10:34:53', NULL, '/base/syrole!grant', NULL, 'jsgl', '1', '0'),
-	-- ('jstj', '2015-08-25 10:34:53', '添加角色', 'ext-icon-bullet_wrench', '添加角色', 1, '', '2015-08-25 10:34:53', NULL, '/base/syrole!save', 'system:role:add', 'jsgl', '1', '0'),
-	-- ('online', '2015-08-25 10:34:53', '监控用户登录、注销', 'ext-icon-chart_line', '登录历史', 1, '', '2022-06-10 00:53:22', 'logininfor', 'monitor/logininfor/index', 'monitor:logininfor:list', 'xtjk', '0', '0'),
-	-- ('onlineGrid', '2015-08-25 10:34:53', '用户登录、注销历史记录列表', 'ext-icon-bullet_wrench', '用户登录历史列表', 1, '', '2022-05-28 13:16:37', NULL, '/base/syonline!grid', 'monitor:logininfor:list', 'online', '1', '0'),
+	('27fda67f-61d1-4fe6-8eea-d796a848ab67', '2022-05-28 12:54:39', NULL, 'edit', '参数设置', 6, '', '2022-05-28 12:54:39', 'config', 'system/config/index', 'system:config:list', 'xtgl', '3', '0'),
+	('37ac3cd3-560b-49b3-ae86-96d1963e9db6', '2022-05-28 12:55:59', NULL, NULL, '参数修改', 3, NULL, '2022-05-28 12:55:59', NULL, NULL, 'system:config:edit', '27fda67f-61d1-4fe6-8eea-d796a848ab67', '1', '0'),
+	('4621e9f8-e7c6-4c2b-8172-3d8c8ea75371', '2022-05-28 12:55:24', NULL, NULL, '参数新增', 2, NULL, '2022-05-28 12:55:24', NULL, NULL, 'system:config:add', '27fda67f-61d1-4fe6-8eea-d796a848ab67', '1', '0'),
+	('726c7c1e-06f8-4c3e-b9e1-95778a430c07', '2022-05-28 12:51:16', NULL, NULL, '字典查询', 1, NULL, '2022-05-28 12:51:16', NULL, NULL, 'system:dict:query', 'ffb8cf26-1049-43ee-9dd5-16e5742ce9d5', '1', '0'),
+	('b95cae69-6389-4ebc-b613-bee7aac5f730', '2022-05-28 12:52:26', NULL, NULL, '字典修改', 3, NULL, '2022-05-28 12:52:26', NULL, NULL, 'system:dict:edit', 'ffb8cf26-1049-43ee-9dd5-16e5742ce9d5', '1', '0'),
+	('cc7ff599-a588-40b3-951d-ce9dd2490482', '2022-05-28 12:53:26', NULL, NULL, '字典导出', 5, NULL, '2022-05-28 12:53:26', NULL, NULL, 'system:dict:export', 'ffb8cf26-1049-43ee-9dd5-16e5742ce9d5', '1', '0'),
+	('cssc', '2022-05-28 12:56:23', NULL, NULL, '参数删除', 4, NULL, '2022-05-28 12:56:23', NULL, NULL, 'system:config:remove', '27fda67f-61d1-4fe6-8eea-d796a848ab67', '1', '0'),
+	('d60df8ae-86ee-4879-b9b9-2fe79f146d31', '2022-05-28 12:55:02', NULL, NULL, '参数查询', 1, NULL, '2022-05-28 12:55:02', NULL, NULL, 'system:config:query', '27fda67f-61d1-4fe6-8eea-d796a848ab67', '1', '0'),
+	('dd41b52b-272c-49ac-b045-b05392890a8d', '2022-05-28 12:56:49', NULL, NULL, '参数导出', 5, NULL, '2022-05-28 12:56:49', NULL, NULL, 'system:config:export', '27fda67f-61d1-4fe6-8eea-d796a848ab67', '1', '0'),
+	('edc3358e-b9c5-462f-8a70-7b1c7d7f2c26', '2022-05-28 12:51:53', NULL, NULL, '字典新增', 2, NULL, '2022-05-28 12:51:53', NULL, NULL, 'system:dict:add', 'ffb8cf26-1049-43ee-9dd5-16e5742ce9d5', '1', '0'),
+	('ffb8cf26-1049-43ee-9dd5-16e5742ce9d5', '2022-05-28 12:50:37', NULL, 'dict', '字典管理', 5, '', '2022-05-28 12:50:37', 'dict', 'system/dict/index', 'system:dict:list', 'xtgl', '3', '0'),
+	('jgbj', '2015-08-25 10:34:53', '编辑机构', 'ext-icon-bullet_wrench', '编辑机构', 2, '', '2022-05-25 00:39:56', NULL, '/base/syorganization!update', 'system:dept:edit', 'jggl', '1', '0'),
+	('jgck', '2015-08-25 10:34:53', '查看机构', 'ext-icon-bullet_wrench', '查看机构', 4, '', '2015-08-25 10:34:53', NULL, '/base/syorganization!getById', 'system:dept:query', 'jggl', '1', '0'),
+	('jggl', '2015-08-25 10:34:53', '管理系统中用户的机构', 'tree', '机构管理', 4, '', '2022-05-25 00:40:04', 'dept', 'system/dept/index', 'system:dept:list', 'xtgl', '0', '0'),
+	('jglb', '2015-08-25 10:34:53', '查询机构列表', 'ext-icon-bullet_wrench', '机构列表', 0, '', '2016-11-28 14:09:52', NULL, '/base/syorganization!treeGrid', 'system:dept:list', 'jggl', '1', '0'),
+	('jgsc', '2015-08-25 10:34:53', '删除机构', 'ext-icon-bullet_wrench', '删除机构', 3, '', '2015-08-25 10:34:53', NULL, '/base/syorganization!delete', 'system:dept:remove', 'jggl', '1', '0'),
+	('jgsq', '2015-08-25 10:34:53', '机构授权', 'ext-icon-bullet_wrench', '机构授权', 5, '', '2015-08-25 10:34:53', NULL, '/base/syorganization!grant', NULL, 'jggl', '1', '0'),
+	('jgtj', '2015-08-25 10:34:53', '添加机构', 'ext-icon-bullet_wrench', '添加机构', 1, '', '2015-08-25 10:34:53', NULL, '/base/syorganization!save', 'system:dept:add', 'jggl', '1', '0'),
+	('jsbj', '2015-08-25 10:34:53', '编辑角色', 'ext-icon-bullet_wrench', '编辑角色', 2, '', '2015-08-25 10:34:53', NULL, '/base/syrole!update', 'system:role:edit', 'jsgl', '1', '0'),
+	('jsck', '2015-08-25 10:34:53', '查看角色', 'ext-icon-bullet_wrench', '查看角色', 4, '', '2015-08-25 10:34:53', NULL, '/base/syrole!getById', 'system:role:query', 'jsgl', '1', '0'),
+	('jsgl', '2015-08-25 10:34:53', '管理系统中用户的角色', 'peoples', '角色管理', 2, '', '2015-08-25 10:34:53', 'role', 'system/role/index', 'system:role:list', 'xtgl', '0', '0'),
+	('jslb', '2015-08-25 10:34:53', '查询角色列表', 'ext-icon-bullet_wrench', '角色列表', 0, '', '2015-08-25 10:34:53', NULL, '/base/syrole!grid', 'system:role:list', 'jsgl', '1', '0'),
+	('jssc', '2015-08-25 10:34:53', '删除角色', 'ext-icon-bullet_wrench', '删除角色', 3, '', '2015-08-25 10:34:53', NULL, '/base/syrole!delete', 'system:role:remove', 'jsgl', '1', '0'),
+	('jssq', '2015-08-25 10:34:53', '角色授权', 'ext-icon-bullet_wrench', '角色授权', 5, '', '2015-08-25 10:34:53', NULL, '/base/syrole!grant', NULL, 'jsgl', '1', '0'),
+	('jstj', '2015-08-25 10:34:53', '添加角色', 'ext-icon-bullet_wrench', '添加角色', 1, '', '2015-08-25 10:34:53', NULL, '/base/syrole!save', 'system:role:add', 'jsgl', '1', '0'),
+	('online', '2015-08-25 10:34:53', '监控用户登录、注销', 'ext-icon-chart_line', '登录历史', 1, '', '2022-06-10 00:53:22', 'logininfor', 'monitor/logininfor/index', 'monitor:logininfor:list', 'xtjk', '0', '0'),
+	('onlineGrid', '2015-08-25 10:34:53', '用户登录、注销历史记录列表', 'ext-icon-bullet_wrench', '用户登录历史列表', 1, '', '2022-05-28 13:16:37', NULL, '/base/syonline!grid', 'monitor:logininfor:list', 'online', '1', '0'),
 	('xtgl', '2015-08-25 10:34:53', '管理系统的资源、角色、机构、用户等信息', 'system', '系统管理', 1, '', '2023-05-16 20:03:02', '/system', NULL, NULL, NULL, '3', '0'),
-	-- ('xtjk', '2015-08-25 10:34:53', '监控系统运行情况等信息', 'monitor', '系统监控', 2, '', '2022-06-10 00:48:47', '/system/log', '', '', NULL, '0', '0'),
-	-- ('yhbj', '2015-08-25 10:34:53', '编辑用户', 'ext-icon-bullet_wrench', '编辑用户', 2, '', '2015-08-25 10:34:53', NULL, '/base/syuser!update', 'system:user:edit', 'yhgl', '1', '0'),
-	-- ('yhck', '2015-08-25 10:34:53', '查看用户', 'ext-icon-bullet_wrench', '查看用户', 4, '', '2015-08-25 10:34:53', NULL, '/base/syuser!getById', 'system:user:query', 'yhgl', '1', '0'),
-	-- ('yhgl', '2015-08-25 10:34:53', '管理系统中用户的用户', 'user', '用户管理', 1, '', '2023-05-16 20:08:40', 'user', 'system/user/index', 'system:user:list', 'xtgl', '0', '0'),
-	-- ('yhjg', '2015-08-25 10:34:53', '编辑用户机构', 'ext-icon-bullet_wrench', '用户机构', 6, '', '2015-08-25 10:34:53', NULL, '/base/syuser!grantOrganization', 'system:dept:edit', 'yhgl', '1', '0'),
-	-- ('yhjs', '2015-08-25 10:34:53', '编辑用户角色', 'ext-icon-bullet_wrench', '用户角色', 5, '', '2015-08-25 10:34:53', NULL, '/base/syuser!grantRole', 'system:role:edit', 'yhgl', '1', '0'),
-	-- ('yhlb', '2015-08-25 10:34:53', '查询用户列表', 'ext-icon-bullet_wrench', '用户列表', 0, '', '2015-08-25 10:34:53', NULL, '/base/syuser!grid', 'system:user:list', 'yhgl', '1', '0'),
-	-- ('yhsc', '2015-08-25 10:34:53', '删除用户', 'ext-icon-bullet_wrench', '删除用户', 3, '', '2015-08-25 10:34:53', NULL, '/base/syuser!delete', 'system:user:remove', 'yhgl', '1', '0'),
-	-- ('yhtj', '2015-08-25 10:34:53', '添加用户', 'ext-icon-bullet_wrench', '添加用户', 1, '', '2015-08-25 10:34:53', NULL, '/base/syuser!save', 'system:user:add', 'yhgl', '1', '0'),
-	-- ('zdsc', '2022-05-28 12:52:58', NULL, NULL, '字典删除', 4, NULL, '2022-05-28 12:52:58', NULL, NULL, 'system:dict:remove', 'ffb8cf26-1049-43ee-9dd5-16e5742ce9d5', '1', '0'),
-	-- ('zybj', '2015-08-25 10:34:53', '编辑资源', 'ext-icon-bullet_wrench', '编辑资源', 2, '', '2015-08-25 10:34:53', NULL, '/base/syresource!update', 'system:menu:edit', 'zygl', '1', '0'),
-	-- ('zyck', '2015-08-25 10:34:53', '查看资源', 'ext-icon-bullet_wrench', '查看资源', 4, '', '2015-08-25 10:34:53', NULL, '/base/syresource!getById', 'system:menu:query', 'zygl', '1', '0'),
-	-- ('zygl', '2015-08-25 10:34:53', '管理系统的资源', 'tree-table', '资源管理', 3, '', '2022-05-25 00:48:32', 'menu', 'system/menu/index', 'system:menu:list', 'xtgl', '0', '0'),
-	-- ('zylb', '2015-08-25 10:34:53', '查询资源', 'ext-icon-bullet_wrench', '资源列表', 0, '', '2015-08-25 10:34:53', NULL, '/base/syresource!treeGrid', 'system:menu:query', 'zygl', '1', '0'),
-	-- ('zysc', '2015-08-25 10:34:53', '删除资源', 'ext-icon-bullet_wrench', '删除资源', 3, '', '2015-08-25 10:34:53', NULL, '/base/syresource!delete', 'system:menu:remove', 'zygl', '1', '0'),
-	-- ('zytj', '2015-08-25 10:34:53', '添加资源', 'ext-icon-bullet_wrench', '添加资源', 1, '', '2015-08-25 10:34:53', NULL, '/base/syresource!save', 'system:menu:add', 'zygl', '1', '0'),
+	('xtjk', '2015-08-25 10:34:53', '监控系统运行情况等信息', 'monitor', '系统监控', 2, '', '2022-06-10 00:48:47', '/system/log', '', '', NULL, '0', '0'),
+	('yhbj', '2015-08-25 10:34:53', '编辑用户', 'ext-icon-bullet_wrench', '编辑用户', 2, '', '2015-08-25 10:34:53', NULL, '/base/syuser!update', 'system:user:edit', 'yhgl', '1', '0'),
+	('yhck', '2015-08-25 10:34:53', '查看用户', 'ext-icon-bullet_wrench', '查看用户', 4, '', '2015-08-25 10:34:53', NULL, '/base/syuser!getById', 'system:user:query', 'yhgl', '1', '0'),
+	('yhgl', '2015-08-25 10:34:53', '管理系统中用户的用户', 'user', '用户管理', 1, '', '2023-05-16 20:08:40', 'user', 'system/user/index', 'system:user:list', 'xtgl', '0', '0'),
+	('yhjg', '2015-08-25 10:34:53', '编辑用户机构', 'ext-icon-bullet_wrench', '用户机构', 6, '', '2015-08-25 10:34:53', NULL, '/base/syuser!grantOrganization', 'system:dept:edit', 'yhgl', '1', '0'),
+	('yhjs', '2015-08-25 10:34:53', '编辑用户角色', 'ext-icon-bullet_wrench', '用户角色', 5, '', '2015-08-25 10:34:53', NULL, '/base/syuser!grantRole', 'system:role:edit', 'yhgl', '1', '0'),
+	('yhlb', '2015-08-25 10:34:53', '查询用户列表', 'ext-icon-bullet_wrench', '用户列表', 0, '', '2015-08-25 10:34:53', NULL, '/base/syuser!grid', 'system:user:list', 'yhgl', '1', '0'),
+	('yhsc', '2015-08-25 10:34:53', '删除用户', 'ext-icon-bullet_wrench', '删除用户', 3, '', '2015-08-25 10:34:53', NULL, '/base/syuser!delete', 'system:user:remove', 'yhgl', '1', '0'),
+	('yhtj', '2015-08-25 10:34:53', '添加用户', 'ext-icon-bullet_wrench', '添加用户', 1, '', '2015-08-25 10:34:53', NULL, '/base/syuser!save', 'system:user:add', 'yhgl', '1', '0'),
+	('zdsc', '2022-05-28 12:52:58', NULL, NULL, '字典删除', 4, NULL, '2022-05-28 12:52:58', NULL, NULL, 'system:dict:remove', 'ffb8cf26-1049-43ee-9dd5-16e5742ce9d5', '1', '0'),
+	('zybj', '2015-08-25 10:34:53', '编辑资源', 'ext-icon-bullet_wrench', '编辑资源', 2, '', '2015-08-25 10:34:53', NULL, '/base/syresource!update', 'system:menu:edit', 'zygl', '1', '0'),
+	('zyck', '2015-08-25 10:34:53', '查看资源', 'ext-icon-bullet_wrench', '查看资源', 4, '', '2015-08-25 10:34:53', NULL, '/base/syresource!getById', 'system:menu:query', 'zygl', '1', '0'),
+	('zygl', '2015-08-25 10:34:53', '管理系统的资源', 'tree-table', '资源管理', 3, '', '2022-05-25 00:48:32', 'menu', 'system/menu/index', 'system:menu:list', 'xtgl', '0', '0'),
+	('zylb', '2015-08-25 10:34:53', '查询资源', 'ext-icon-bullet_wrench', '资源列表', 0, '', '2015-08-25 10:34:53', NULL, '/base/syresource!treeGrid', 'system:menu:query', 'zygl', '1', '0'),
+	('zysc', '2015-08-25 10:34:53', '删除资源', 'ext-icon-bullet_wrench', '删除资源', 3, '', '2015-08-25 10:34:53', NULL, '/base/syresource!delete', 'system:menu:remove', 'zygl', '1', '0'),
+	('zytj', '2015-08-25 10:34:53', '添加资源', 'ext-icon-bullet_wrench', '添加资源', 1, '', '2015-08-25 10:34:53', NULL, '/base/syresource!save', 'system:menu:add', 'zygl', '1', '0'),
+
 	-- 这里添加想要新增的可访问的路由(左侧菜单栏的项目)
 	('smjcgl', '2015-08-25 10:34:53', '管理证书扫描进程', 'tree-table', '扫描进程管理', 2, '', '2022-05-25 00:48:32', 'scan_process', 'system/scan_process/index', 'system:menu:list', 'xtgl', '0', '0'),
-	('tjjc', '2015-08-25 10:34:53', '添加进程', 'ext-icon-bullet_wrench', '添加进程', 1, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!start', 'system:scan_process:add', 'smjcgl', '1', '0'),
+	('tjjc', '2015-08-25 10:34:53', '添加进程', 'ext-icon-bullet_wrench', '添加进程', 1, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!add', 'system:scan_process:add', 'smjcgl', '1', '0'),
+	('tzjc', '2015-08-25 10:34:53', '停止进程', 'ext-icon-bullet_wrench', '停止进程', 5, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!stop', 'system:scan_process:stop', 'smjcgl', '1', '0'),
+	('xgjc', '2015-08-25 10:34:53', '修改进程参数', 'ext-icon-bullet_wrench', '修改进程参数', 4, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!edit', 'system:scan_process:edit', 'smjcgl', '1', '0'),
+	('ckjg', '2015-08-25 10:34:53', '查看扫描结果', 'ext-icon-bullet_wrench', '查看扫描结果', 3, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!view', 'system:scan_process:view', 'smjcgl', '1', '0'),
+	('scjc', '2015-08-25 10:34:53', '删除进程', 'ext-icon-bullet_wrench', '删除进程', 2, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!remove', 'system:scan_process:remove', 'smjcgl', '1', '0'),
+
+	('zscx', '2015-08-25 10:34:53', '证书查询', 'tree-table', '证书查询', 4, '', '2022-05-25 00:48:32', 'cert_search', 'system/cert_search/index', 'system:menu:list', 'xtgl', '0', '0'),
+	('cacx', '2015-08-25 10:34:53', 'CA查询', 'tree-table', 'CA查询', 5, '', '2022-05-25 00:48:32', 'ca_search', 'system/ca_search/index', 'system:menu:list', 'xtgl', '0', '0'),
+
 	('zsjggl', '2015-08-25 10:34:53', '管理证书分析结果', 'tree-table', '证书结果管理', 2, '', '2022-05-25 00:48:32', 'cert_analysis', 'system/cert_analysis/index', 'system:menu:list', 'xtgl', '0', '0'),
-	-- ('tjjc', '2015-08-25 10:34:53', '添加进程', 'ext-icon-bullet_wrench', '添加进程', 1, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!start', 'system:scan_process:add', 'smjcgl', '1', '0');
 	('cajggl', '2015-08-25 10:34:53', '管理CA分析结果', 'tree-table', 'CA结果管理', 4, '', '2022-05-25 00:48:32', 'ca_analysis', 'system/ca_analysis/index', 'system:menu:list', 'xtgl', '0', '0');
 
 
@@ -192,7 +200,7 @@ CREATE TABLE IF NOT EXISTS `SYROLE_SYORGANIZATION` (
   `SYROLE_ID` varchar(36) CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
   `SYORGANIZATION_ID` varchar(36) CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
   PRIMARY KEY (`SYORGANIZATION_ID`,`SYROLE_ID`) USING BTREE,
-  KEY `FK_kkrartsovl2frhfvriqdi7jwl` (`SYORGANIZATION_ID`) USING BTREE,
+  KEY `FK_kkrartsovl2frhfvriqdi7jwl-1` (`SYORGANIZATION_ID`) USING BTREE,
   KEY `FK_r139h669pg4ts6mbvn3ip5472` (`SYROLE_ID`) USING BTREE,
   CONSTRAINT `SYROLE_SYORGANIZATION_ibfk_1` FOREIGN KEY (`SYORGANIZATION_ID`) REFERENCES `SYORGANIZATION` (`ID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `SYROLE_SYORGANIZATION_ibfk_2` FOREIGN KEY (`SYROLE_ID`) REFERENCES `SYROLE` (`ID`) ON DELETE RESTRICT ON UPDATE RESTRICT
@@ -276,6 +284,15 @@ INSERT INTO `SYROLE_SYRESOURCE` (`SYROLE_ID`, `SYRESOURCE_ID`) VALUES
 	('0', 'smjcgl'),
 	('f4e1b151-a171-4705-9154-503a046cb72a', 'smjcgl'),
 	('0', 'tjjc'),
+	('0', 'tzjc'),
+	('0', 'xgjc'),
+	('0', 'ckjg'),
+	('0', 'scjc'),
+
+	('0', 'zscx'),
+	('f4e1b151-a171-4705-9154-503a046cb72a', 'zscx'),
+	('0', 'cacx'),
+	('f4e1b151-a171-4705-9154-503a046cb72a', 'cacx'),
 	('0', 'zsjggl'),
 	('f4e1b151-a171-4705-9154-503a046cb72a', 'zsjggl'),
 	('0', 'cajggl'),
@@ -356,7 +373,16 @@ INSERT INTO `SYS_DICT_DATA` (`dict_code`, `dict_sort`, `dict_label`, `dict_value
 	(27, 1, '成功', '0', 'sys_common_status', '', 'primary', 'N', '0', 'admin', '2022-05-14 14:04:21', '', NULL, '正常状态'),
 	(28, 2, '失败', '1', 'sys_common_status', '', 'danger', 'N', '0', 'admin', '2022-05-14 14:04:21', '', NULL, '停用状态'),
 	(100, 0, '登录', '1', 'sys_login_type', NULL, 'default', NULL, '0', 'admin', '2022-06-10 00:29:31', 'admin', '2022-06-10 00:29:58', NULL),
-	(101, 1, '注销', '0', 'sys_login_type', NULL, 'default', NULL, '0', 'admin', '2022-06-10 00:29:48', NULL, '2022-06-10 00:29:48', NULL);
+	(101, 1, '注销', '0', 'sys_login_type', NULL, 'default', NULL, '0', 'admin', '2022-06-10 00:29:48', NULL, '2022-06-10 00:29:48', NULL),
+
+	-- 在这里添加新的Dict数据
+	(50, 1, '运行中', '0', 'sys_scan_status', '', 'primary', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '正常状态'),
+	(51, 2, '完成', '1', 'sys_scan_status', '', 'primary', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '扫描正常结束'),
+	(52, 3, '停止', '2', 'sys_scan_status', '', 'danger', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '扫描人为中断'),
+	(53, 1, '扫描Top域名', '0', 'sys_scan_type', '', 'primary', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+	(54, 2, '扫描IP地址', '1', 'sys_scan_type', '', 'primary', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+	(55, 3, '扫描CT日志', '2', 'sys_scan_type', '', 'primary', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '');
+
 
 -- 导出  表 authbase.SYS_DICT_TYPE 结构
 CREATE TABLE IF NOT EXISTS `SYS_DICT_TYPE` (
@@ -385,7 +411,10 @@ INSERT INTO `SYS_DICT_TYPE` (`dict_id`, `dict_name`, `dict_type`, `status`, `cre
 	(8, '通知状态', 'sys_notice_status', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '通知状态列表'),
 	(9, '操作类型', 'sys_oper_type', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '操作类型列表'),
 	(10, '系统状态', 'sys_common_status', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '登录状态列表'),
-	(11, '登录日志类型', 'sys_login_type', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL);
+	(11, '登录日志类型', 'sys_login_type', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL),
+	-- 在这里添加新的Dict类型
+	(12, '扫描进程状态', 'sys_scan_status', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL),
+	(13, '扫描类型', 'sys_scan_type', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL);
 
 -- 导出  表 authbase.SYUSER 结构
 CREATE TABLE IF NOT EXISTS `SYUSER` (
@@ -452,44 +481,50 @@ INSERT INTO `SYUSER_SYROLE` (`SYUSER_ID`, `SYROLE_ID`) VALUES
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;
 
--- DROP TABLE `SCAN_PROCESS`;
-CREATE TABLE IF NOT EXISTS `SCAN_PROCESS` (
+-- 
+-- 在此处添加新的Table
+-- 
+
+-- 1. 扫描状态信息：
+-- scan_status 存储扫描进程状态
+CREATE TABLE IF NOT EXISTS `SCAN_STATUS` (
   `ID` varchar(36) CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
-  `CREATEDATETIME` datetime DEFAULT NULL,
-  `TYPE` varchar(20) CHARACTER SET gbk COLLATE gbk_chinese_ci DEFAULT NULL,
   `NAME` varchar(20) CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
-  `START_TIME` datetime DEFAULT NULL,
+  `TYPE` INT DEFAULT 0 COMMENT "see SYS_DICT_DATA",
+  `START_TIME` datetime NOT NULL,
   `END_TIME` datetime DEFAULT NULL,
-  `SCAN_DATA_TABLE` char(32),
-  `CERT_STORE_TABLE` char(32),
-  `STATUS` varchar(10) DEFAULT "Pending",
-  `SCAN_TIME` INT DEFAULT 0,
+  `STATUS` INT DEFAULT 0 COMMENT "see SYS_DICT_DATA",
+  `SCAN_TIME_IN_SECONDS` INT DEFAULT 0,
   `SCANNED_DOMIANS` INT DEFAULT 0,
   `SUCCESSES` INT DEFAULT 0,
   `ERRORS` INT DEFAULT 0,
   `SCANNED_CERTS` INT DEFAULT 0,
-  PRIMARY KEY (`ID`) USING BTREE
+  `NUM_THREADS` INT DEFAULT 0,
+  `CERT_STORE_TABLE` char(32),
+--   `SCAN_DATA_TABLE` char(32),
+  PRIMARY KEY (`ID`, `START_TIME`) USING BTREE,
+  UNIQUE KEY `FK_scan_status_id` (`ID`) USING BTREE,
+  UNIQUE KEY `FK_scan_status_start_time` (`START_TIME`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
+
+INSERT INTO `SCAN_STATUS` (`ID`, `NAME`, `TYPE`, `START_TIME`, `END_TIME`, `CERT_STORE_TABLE`, `STATUS`, `SCAN_TIME_IN_SECONDS`, `SCANNED_DOMIANS`, `SUCCESSES`, `ERRORS`, `SCANNED_CERTS`) VALUES
+  ('a1c392c2-7f1a-4a50-bc76-1c6495b0e04d', 'ProcessA', '0', '2022-01-27 13:00:00', '2022-01-27 14:30:00', 'CertTableA', '0', '0', '0', '0', '0', '0');
+
+
+-- scan_data 存储扫描日期（分区）网站域名以及返回的证书链（索引），按照扫描的日期来分区
+CREATE TABLE IF NOT EXISTS `SCAN_DATA` (
+  `SCAN_TIME` datetime NOT NULL,
+  `DOMAIN` varchar(512) CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
+  `ERROR_MSG` TEXT,
+  `RECEIVED_CERTS` JSON,
+  PRIMARY KEY (`SCAN_TIME`, `DOMAIN`) USING BTREE,
+  KEY `FK_scan_data_scan_time` (`SCAN_TIME`) USING BTREE,
+  KEY `FK_scan_data_domain` (`DOMAIN`(255)) USING BTREE,	-- index by with length 255 prefix
+  CONSTRAINT `FK_scan_data_scan_time` FOREIGN KEY (`SCAN_TIME`) REFERENCES `SCAN_STATUS` (`START_TIME`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
 
 
-INSERT INTO `SCAN_PROCESS` (`ID`, `CREATEDATETIME`, `TYPE`, `NAME`, `START_TIME`, `END_TIME`, `SCAN_DATA_TABLE`, `CERT_STORE_TABLE`, `STATUS`, `SCAN_TIME`, `SCANNED_DOMIANS`, `SUCCESSES`, `ERRORS`, `SCANNED_CERTS`) VALUES
-	('a1c392c2-7f1a-4a50-bc76-1c6495b0e04d', '2022-01-27 12:30:00', 'TypeA', 'ProcessA', '2022-01-27 13:00:00', '2022-01-27 14:30:00', 'ScanTableA', 'CertTableA', '0', 0, 0, 0, 0, 0),
-	('b4e10c5f-5862-4a88-b3dd-03627e13e12c', '2022-01-27 14:45:00', 'TypeB', 'ProcessB', '2022-01-27 15:30:00', '2022-01-27 16:45:00', 'ScanTableB', 'CertTableB', '0', 0, 0, 0, 0, 0),
-	('c7f83d1a-9dc0-4f3f-8cd2-6aa22f8c03ae', '2022-01-27 09:00:00', 'TypeC', 'ProcessC', '2022-01-27 10:15:00', '2022-01-27 11:45:00', 'ScanTableC', 'CertTableC', '0', 0, 0, 0, 0, 0);
-
-
--- CREATE TABLE IF NOT EXISTS `SCAN_DATA` (
---   `RANK` INT NOT NULL,
---   `DOMAIN` TEXT CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
---   `CERT_CHAIN` JSON,
---   PRIMARY KEY (`RANK`,`DOMAIN`) USING BTREE,
--- --   KEY `FK_j7iwtgslc2esrjx0ptieleoko` (`SYROLE_ID`) USING BTREE,
--- --   KEY `FK_1pi4p5h4y5ghbs5f4gdlgn620` (`SYUSER_ID`) USING BTREE,
--- --   CONSTRAINT `FK_1pi4p5h4y5ghbs5f4gdlgn620` FOREIGN KEY (`SYUSER_ID`) REFERENCES `SYUSER` (`ID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
--- --   CONSTRAINT `FK_j7iwtgslc2esrjx0ptieleoko` FOREIGN KEY (`SYROLE_ID`) REFERENCES `SYROLE` (`ID`) ON DELETE RESTRICT ON UPDATE RESTRICT
--- ) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
-
-
+-- 2. 
 -- CREATE TABLE IF NOT EXISTS `CERT_STORE` (
 --   `CERT_ID` varchar(36) NOT NULL,
 --   `CERT_RAW` TEXT NOT NULL,

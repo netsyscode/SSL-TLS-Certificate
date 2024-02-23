@@ -22,6 +22,41 @@ class Organization(db.Model, UserMixin):
     EMAIL = db.Column(db.String(50))
     STATUS = db.Column(db.String(10))
 
+    '''
+        resources 属性的定义表明 Organization 模型与 Resource 模型之间存在多对多的关系，并且这个关系是通过 organization_resource_table 中间表来维护的。这样的设计使得一个组织可以拥有多个资源，而一个资源也可以被多个组织拥有。
+
+        你可以利用这个关系来进行一些操作，比如添加资源给组织、获取某个组织拥有的资源等。
+
+        以下是一些可能的用法：
+
+        添加资源给组织：
+
+        python
+        Copy code
+        # 创建一个组织
+        organization = Organization(...)
+
+        # 创建一个资源
+        resource = Resource(...)
+
+        # 将资源添加给组织
+        organization.resources.append(resource)
+
+        # 提交到数据库
+        db.session.add(organization)
+        db.session.commit()
+        这将在 organization_resource_table 中添加一行，表示这个组织拥有了这个资源。
+
+        获取某个组织拥有的资源：
+
+        python
+        Copy code
+        # 获取某个组织
+        organization = Organization.query.get(organization_id)
+
+        # 获取该组织拥有的所有资源
+        resources = organization.resources.all()
+    '''
     resources = db.relationship('Resource',
                                 secondary=organization_resource_table,
                                 backref=db.backref('organizations', lazy='dynamic'))

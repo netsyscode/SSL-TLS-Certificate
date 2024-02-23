@@ -11,7 +11,7 @@ from datetime import datetime
 import time
 from .scan_base import Scanner, ScanConfig
 from ..logger.logger import my_logger
-from ..models import ScanProcess, CertAnalysisStore
+from ..models import ScanStatus, CertAnalysisStore
 from .. import db
 import uuid
 import asyncio
@@ -24,7 +24,7 @@ class ScanManager():
 
     def register(self, scan_config : ScanConfig):
 
-        scan_process = ScanProcess()
+        scan_process = ScanStatus()
         scan_process.ID = str(uuid.uuid4())
         scan_process.CREATEDATETIME = datetime.now()
         time_to_str = scan_process.CREATEDATETIME.strftime("%Y%m%d%H%M%S")
