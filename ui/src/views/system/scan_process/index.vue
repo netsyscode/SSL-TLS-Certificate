@@ -74,7 +74,7 @@
         </template> -->
       </el-table-column>
 
-      <el-table-column prop="scan_time" label="运行时间(秒)" align="center" width="80"></el-table-column>
+      <el-table-column prop="scan_time_in_seconds" label="运行时间(秒)" align="center" width="80"></el-table-column>
       <el-table-column label="结束时间" align="center" prop="endTime" width="230">
         <!-- <template slot-scope="scope">
           <span>{{ parseTime(scope.row.endTime) }}</span>

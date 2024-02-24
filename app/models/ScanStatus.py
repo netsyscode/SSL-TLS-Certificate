@@ -33,6 +33,7 @@ class ScanStatus(db.Model):
             'scanType' : self.TYPE,
             'startTime' : self.START_TIME,
             'endTime': self.END_TIME,
+            "scan_time_in_seconds" : self.SCAN_TIME_IN_SECONDS,
             'status': self.STATUS,
             "scanned_domains" : self.SCANNED_DOMIANS,
             "successes" : self.SUCCESSES,

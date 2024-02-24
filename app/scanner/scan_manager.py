@@ -5,18 +5,49 @@
 '''
 
 import os
-from typing import Optional, Dict, Union
-from dataclasses import dataclass
-from datetime import datetime
-import time
-from .scan_base import Scanner, ScanConfig
-from ..logger.logger import my_logger
-from ..models import ScanStatus, CertAnalysisStore
-from .. import db
 import uuid
-import asyncio
+from enum import Enum
+from datetime import datetime
+from dataclasses import dataclass
+from typing import Optional, Dict, Union
+
+from .. import db
+from ..logger.logger import my_logger
+from ..models import ScanStatus, ScanData, CertAnalysisStore, CaAnalysisStore
 
 
+class ScanType(Enum):
+    SCAN_BY_DOMAIN = 0
+    SCAN_BY_IP = 1
+    SCAN_BY_CT = 2
+
+class ScanStatusType(Enum):
+    RUNNING = 0
+    COMPLETED = 1
+    STOP = 2
+
+@dataclass
+class ScanConfig():
+    '''
+        Scan Config represents all user-controlled parameters, passing from frontend
+    '''
+    scan_name : str = ""
+    scan_type : ScanType = ScanType.SCAN_BY_DOMAIN
+    input_csv_file : str = os.path.join(os.path.dirname(__file__), r"../data/top-1m.csv")
+    output_dir : str = os.path.join(os.path.dirname(__file__), r"../data")
+    # input_csv_file : str = os.path.join(os.path.dirname(__file__), r"..\data\top-1m.csv")
+    # output_dir : str = os.path.join(os.path.dirname(__file__), r"..\data")
+
+    proxy_host : str = '127.0.0.1'
+    proxy_port : int = 33210
+    timeout : int = 5
+
+    max_threads : int = 100
+    save_threshold : int = 2000
+    scan_domain_num : int = 100
+
+
+from .scan_base import Scanner
 class ScanManager():
 
     def __init__(self) -> None:
@@ -24,19 +55,23 @@ class ScanManager():
 
     def register(self, scan_config : ScanConfig):
 
+        # register entry in ScanStatus db model
         scan_process = ScanStatus()
         scan_process.ID = str(uuid.uuid4())
-        scan_process.CREATEDATETIME = datetime.now()
-        time_to_str = scan_process.CREATEDATETIME.strftime("%Y%m%d%H%M%S")
-        scan_process.TYPE = "Scan By Domain"
-        scan_process.NAME = "test_scan"
-        scan_process.SCAN_DATA_TABLE = f"scan_data_{time_to_str}"
+        scan_process.NAME = scan_config.scan_name
+        scan_process.TYPE = scan_config.scan_type.value
+        scan_process.START_TIME = datetime.utcnow()
+        scan_process.STATUS = ScanStatusType.RUNNING.value
+        scan_process.NUM_THREADS = scan_config.max_threads
+
+        time_to_str = scan_process.START_TIME.strftime("%Y%m%d%H%M%S")
         scan_process.CERT_STORE_TABLE = f"cert_store_{time_to_str}"
-        scan_process.STATUS = "Pending"
 
         db.session.add(scan_process)
         db.session.commit()
-                
+
+        # register entry in CertAnalysis db model
+        # register entry in CaAnalysis db model
         '''
         '''
         cert_analysis_store = CertAnalysisStore()
@@ -53,8 +88,7 @@ class ScanManager():
         '''
 
         my_logger.info(f"New scan process registered")
-
-        self.registry[scan_process.ID] = Scanner(scan_process.ID, scan_config, scan_process.SCAN_DATA_TABLE, scan_process.CERT_STORE_TABLE)
+        self.registry[scan_process.ID] = Scanner(scan_process.ID, scan_process.START_TIME, scan_config, scan_process.CERT_STORE_TABLE)
         r = scan_process.ID
         db.session.expunge(scan_process)
         db.session.expunge(cert_analysis_store)
@@ -68,9 +102,11 @@ class ScanManager():
     def kill(self, task_id : str):
         self.registry[task_id].stop()
 
+    # Old version, deprecated
     def get_status(self, task_id : str):
         return self.registry[task_id].get_status_info()
     
+    # Old version, deprecated
     def get_all_status(self):
         data = {}
         for id in self.registry:

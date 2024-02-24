@@ -4,16 +4,10 @@ from ..models import ScanStatus
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
 
-from ..scanner.scan_base import ScanConfig, ScanType
-from ..scanner.scan_manager import manager
-from ..logger.logger import my_logger
 import threading
-
-import asyncio
-
-from .. import db
 from datetime import datetime
-import uuid
+from ..scanner.scan_manager import manager, ScanConfig, ScanType
+from ..logger.logger import my_logger
 
 
 @base.route('/system/scan_process/list', methods=['GET'])
@@ -21,12 +15,12 @@ import uuid
 def scan_process_list():
     # my_logger.info(f"{request.args}")
     filters = []
-    if 'name' in request.args:
-        filters.append(ScanStatus.NAME.like('%' + request.args['name'] + '%'))
+    if 'scanProcessName' in request.args:
+        filters.append(ScanStatus.NAME.like('%' + request.args['scanProcessName'] + '%'))
+    if 'scanStatus' in request.args:
+        filters.append(ScanStatus.STATUS == request.args['scanStatus'])
 
     scan_processes = ScanStatus.query.filter(*filters)
-    # my_logger.info(f"{[scan_process.to_json() for scan_process in scan_processes]}")
-
     return jsonify({'msg': '操作成功', 'code': 200, "data": [scan_process.to_json() for scan_process in scan_processes]})
 
 
@@ -35,9 +29,10 @@ def scan_process_list():
 def scan_process_start():
 
     config = ScanConfig(
-        request.json['scanTypeOptions'],
-        scan_domain_num=request.json['scanDomainNum'],
-        max_threads=request.json['scanThreadNum'],
+        scan_name=request.json['scanName'],
+        scan_type=ScanType(int(request.json['scanTypeOptions'])),
+        scan_domain_num=int(request.json['scanDomainNum']),
+        max_threads=int(request.json['scanThreadNum'])
     )
 
     task_id = manager.register(config)

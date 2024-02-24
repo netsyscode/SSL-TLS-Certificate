@@ -8,7 +8,8 @@ def generate_scan_data_table(table_name):
         __tablename__ = table_name
         __table_args__ = {'extend_existing': True}
 
-        SCAN_TIME = db.Column(db.DateTime, db.ForeignKey('SCAN_STATUS.START_TIME'), index=True, primary_key=True, nullable=False)
+        # SCAN_TIME = db.Column(db.DateTime, db.ForeignKey('SCAN_STATUS.START_TIME'), index=True, primary_key=True, nullable=False)
+        SCAN_TIME = db.Column(db.DateTime, index=True, primary_key=True, nullable=False)
         DOMAIN = db.Column(db.Text, nullable=False)
         ERROR_MSG = db.Column(db.Text, default=None)
         RECEIVED_CERTS = db.Column(db.JSON, default=[])
@@ -34,7 +35,8 @@ class ScanData(db.Model):
     __tablename__ = 'SCAN_DATA'
     __table_args__ = {'extend_existing': True}
 
-    SCAN_TIME = db.Column(db.DateTime, db.ForeignKey('SCAN_STATUS.START_TIME'), index=True, primary_key=True, nullable=False)
+    # SCAN_TIME = db.Column(db.DateTime, db.ForeignKey('SCAN_STATUS.START_TIME'), index=True, primary_key=True, nullable=False)
+    SCAN_TIME = db.Column(db.DateTime, index=True, primary_key=True, nullable=False)
     DOMAIN = db.Column(db.Text, nullable=False)
     ERROR_MSG = db.Column(db.Text, default=None)
     RECEIVED_CERTS = db.Column(db.JSON, default=[])
@@ -52,4 +54,3 @@ class ScanData(db.Model):
 
     def __repr__(self):
         return f"<ScanData {self.SCAN_TIME}>"
-    

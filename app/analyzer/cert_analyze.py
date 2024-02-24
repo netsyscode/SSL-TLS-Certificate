@@ -49,7 +49,7 @@ from ..logger.logger import my_logger
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from dataclasses import dataclass, asdict
-from typing import Optional, Dict, List, Union
+from typing import Optional, Dict, List, Union, Tuple
 from queue import Queue
 import hashlib
 import jsonlines
@@ -140,7 +140,7 @@ class X509SingleCertAnalyzer():
 
     def checkRevocationStatusFromOCSP(
             self
-        )-> (Optional[OCSPResponseStatus], Optional[OCSPCertStatus], Optional[datetime], Optional[ReasonFlags]):
+        )-> Tuple[Optional[OCSPResponseStatus], Optional[OCSPCertStatus], Optional[datetime], Optional[ReasonFlags]]:
 
         if self.issuer_cert is None: return None
         try:
