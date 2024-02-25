@@ -307,8 +307,8 @@ class Scanner:
         # 
         with app.app_context():
             self.analyzer = CertScanAnalyzer(self.scan_id, self.cert_data_table_name)
-            # self.analyzer.analyzeCertScanResult()
-        
+            self.analyzer.analyzeCertScanResult()
+
 
     def async_update_scan_process_info(self):
 

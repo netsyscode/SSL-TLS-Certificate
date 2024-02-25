@@ -11,7 +11,7 @@ from ..scanner.scan_manager import manager, ScanConfig, ScanType
 from ..logger.logger import my_logger
 
 
-@base.route('/system/scan_process/list', methods=['GET'])
+@base.route('/system/cert_search/list', methods=['GET'])
 @login_required
 def scan_process_list():
     # my_logger.info(f"{request.args}")
