@@ -33,7 +33,7 @@ def scan_process_list():
         page=page, per_page=rows, error_out=False)
     scan_processes = pagination.items
 
-    return jsonify({'msg': '操作成功', 'code': 200, "data": [scan_process.to_json() for scan_process in scan_processes]})
+    return jsonify({'msg': '操作成功', 'code': 200, "data": [scan_process.to_json() for scan_process in scan_processes], 'total': pagination.total})
 
 
 @base.route('/system/scan_process', methods=['POST'])

@@ -19,13 +19,27 @@
         />
       </el-form-item>
       
-      <el-form-item label="扫描日期" prop="scanDate">
+      <el-form-item label="有效起始日期范围" prop="notValidBeforeRange">
         <el-date-picker
-          v-model="queryParams.scanDate"
-          type="date"
-          placeholder="请选择证书扫描日期"
-          format="yyyy-MM-dd"
+          v-model="notValidBeforeRange"
+          style="width: 240px"
           value-format="yyyy-MM-dd"
+          type="daterange"
+          range-separator="-"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        ></el-date-picker>
+      </el-form-item>
+
+      <el-form-item label="有效终止日期范围" prop="notValidAfterRange">
+        <el-date-picker
+          v-model="notValidAfterRange"
+          style="width: 240px"
+          value-format="yyyy-MM-dd"
+          type="daterange"
+          range-separator="-"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
         ></el-date-picker>
       </el-form-item>
 
@@ -44,7 +58,7 @@
       :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
       >
 
-      crt.sh ID	 Logged At  ⇧	Not Before	Not After	Common Name	Matching Identities	Issuer Name
+      <!-- crt.sh ID	 Logged At  ⇧	Not Before	Not After	Common Name	Matching Identities	Issuer Name
       'cert_id': self.CERT_ID,
             'cert_type': self.CERT_TYPE,
             'issuer_org': self.ISSUER_ORG,
@@ -55,7 +69,7 @@
             'not_valid_after': self.NOT_VALID_AFTER,
             'validation_period': self.VALIDATION_PERIOD,
             'expired': self.EXPIRED
-        }
+        } -->
 
       <el-table-column prop="cert_id" label="证书ID" width="200">
         <template slot-scope="scope">
@@ -101,6 +115,14 @@
 
     </el-table>
 
+    <pagination
+      v-show="total>0"
+      :total="total"
+      :page.sync="queryParams.pageNum"
+      :limit.sync="queryParams.pageSize"
+      @pagination="getList"
+    />
+
   </div>
 </template>
 
@@ -131,16 +153,25 @@ export default {
       refreshTable: true,
       // 查询参数
       queryParams: {
+        pageNum: 1,
+        pageSize: 30,
         certID: undefined,
         certDomain: undefined,
         scanDate: undefined
-      }
+      },
+      notValidBeforeRange: [],
+      notValidAfterRange: [],
+      // 总条数
+      total: 0
     };
   },
-
+  created() {
+    this.loading = false;
+  },
   methods: {
     /** 搜索按钮操作 */
     handleQuery() {
+      this.queryParams.pageNum = 1;
       this.getList();
     },
     /** 重置按钮操作 */
@@ -151,8 +182,10 @@ export default {
     /** 查询扫描进程列表 */
     getList() {
       this.loading = true;
-      listScanProcess(this.queryParams).then(response => {
-        // this.searchResult = this.handleTree(response.data, "scanId");
+      queryParams = this.addDateRange(this.queryParams, this.notValidBeforeRange, "notValidBefore")
+      queryParams = this.addDateRange(queryParams, this.notValidAfterRange, "notValidAfter")
+
+      listCert(queryParams).then(response => {
         this.searchResult = response.data;
         this.loading = false;
       });

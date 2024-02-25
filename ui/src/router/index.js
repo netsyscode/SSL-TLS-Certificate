@@ -161,7 +161,21 @@ export const dynamicRoutes = [
         meta: { title: '修改生成配置', activeMenu: '/tool/gen' }
       }
     ]
-  }
+  },
+  {
+    path: '/system/cert_search',
+    component: Layout,
+    hidden: true,
+    permissions: ['system:cert:list'],
+    children: [
+      {
+        path: 'index/:cert_id(\\d+)',
+        component: () => import('@/views/system/cert_search/data'),
+        name: 'Data',
+        meta: { title: '证书详情', activeMenu: '/system/cert_search' }
+      }
+    ]
+  },
 ]
 
 // 防止连续点击多次路由报错

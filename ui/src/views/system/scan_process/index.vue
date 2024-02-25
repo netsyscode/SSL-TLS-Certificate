@@ -237,6 +237,8 @@ export default {
       },
       // 扫描起止时间
       scanDateRange : [],
+      // 总条数
+      total: 0,
       // 表单参数
       form: {},
       // 表单校验
@@ -289,6 +291,7 @@ export default {
       this.loading = true;
       listScanProcess(this.addDateRange(this.queryParams, this.scanDateRange)).then(response => {
         this.scanList = response.data;
+        this.total = response.total;
         this.loading = false;
       });
     },
