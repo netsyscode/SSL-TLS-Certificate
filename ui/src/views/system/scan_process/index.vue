@@ -21,6 +21,25 @@
         </el-select>
       </el-form-item>
 
+      <el-form-item label="扫描日期" prop="scanDate">
+        <el-date-picker
+          v-model="queryParams.scanDate"
+          type="date"
+          placeholder="选择扫描日期"
+          format="yyyy-MM-dd"
+          value-format="yyyy-MM-dd"
+        ></el-date-picker>
+      </el-form-item>
+      <!-- <el-date-picker
+          v-model="dateRange"
+          style="width: 240px"
+          value-format="yyyy-MM-dd"
+          type="daterange"
+          range-separator="-"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        ></el-date-picker> -->
+
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -211,7 +230,8 @@ export default {
       // 查询参数
       queryParams: {
         scanProcessName: undefined,
-        scanStatus: undefined
+        scanStatus: undefined,
+        scanDate: undefined
       },
       // 表单参数
       form: {},
