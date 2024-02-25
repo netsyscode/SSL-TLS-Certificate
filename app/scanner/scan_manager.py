@@ -13,7 +13,7 @@ from typing import Optional, Dict, Union
 
 from app import db, app
 from ..logger.logger import my_logger
-from ..models import ScanStatus, ScanData, CertAnalysisStats, CaAnalysisStore
+from ..models import ScanStatus, ScanData, CertAnalysisStats
 
 
 class ScanType(Enum):

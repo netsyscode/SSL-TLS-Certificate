@@ -20,12 +20,19 @@ def scan_process_list():
         filters.append(ScanStatus.NAME.like('%' + request.args['scanProcessName'] + '%'))
     if 'scanStatus' in request.args:
         filters.append(ScanStatus.STATUS == request.args['scanStatus'])
-    if 'scanDate' in request.args:
-        scan_date = datetime.strptime(request.args['scanDate'], '%Y-%m-%d')
-        filters.append(func.DATE(ScanStatus.START_TIME) == scan_date.date())
-        # filters.append(ScanStatus.START_TIME == scan_date)
+    if 'params[beginTime]' in request.args and 'params[endTime]' in request.args:
+        filters.append(ScanStatus.START_TIME >= request.args['params[beginTime]'])
+        filters.append(ScanStatus.START_TIME<= request.args['params[endTime]'])
+        # both are ok
+        # scan_date = datetime.strptime(request.args['params[endTime]'], '%Y-%m-%d')
+        # filters.append(func.DATE(ScanStatus.START_TIME) <= scan_date.date())
 
-    scan_processes = ScanStatus.query.filter(*filters)
+    page = request.args.get('pageNum', 1, type=int)
+    rows = request.args.get('pageSize', 10, type=int)
+    pagination = ScanStatus.query.filter(*filters).paginate(
+        page=page, per_page=rows, error_out=False)
+    scan_processes = pagination.items
+
     return jsonify({'msg': '操作成功', 'code': 200, "data": [scan_process.to_json() for scan_process in scan_processes]})
 
 

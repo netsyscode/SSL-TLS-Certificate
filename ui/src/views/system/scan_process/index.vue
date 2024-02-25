@@ -21,24 +21,17 @@
         </el-select>
       </el-form-item>
 
-      <el-form-item label="扫描日期" prop="scanDate">
+      <el-form-item label="扫描日期范围" prop="scanDateRange">
         <el-date-picker
-          v-model="queryParams.scanDate"
-          type="date"
-          placeholder="选择扫描日期"
-          format="yyyy-MM-dd"
-          value-format="yyyy-MM-dd"
-        ></el-date-picker>
-      </el-form-item>
-      <!-- <el-date-picker
-          v-model="dateRange"
+          v-model="scanDateRange"
           style="width: 240px"
           value-format="yyyy-MM-dd"
           type="daterange"
           range-separator="-"
           start-placeholder="开始日期"
           end-placeholder="结束日期"
-        ></el-date-picker> -->
+        ></el-date-picker>
+      </el-form-item>
 
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -149,6 +142,14 @@
 
     </el-table>
 
+    <pagination
+      v-show="total>0"
+      :total="total"
+      :page.sync="queryParams.pageNum"
+      :limit.sync="queryParams.pageSize"
+      @pagination="getList"
+    />
+
     <!-- Config for new scan process -->
     <el-dialog :title="title" :visible.sync="open" width="600px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="130px">
@@ -229,10 +230,13 @@ export default {
       refreshTable: true,
       // 查询参数
       queryParams: {
+        pageNum: 1,
+        pageSize: 10,
         scanProcessName: undefined,
-        scanStatus: undefined,
-        scanDate: undefined
+        scanStatus: undefined
       },
+      // 扫描起止时间
+      scanDateRange : [],
       // 表单参数
       form: {},
       // 表单校验
@@ -272,6 +276,7 @@ export default {
     },
     /** 搜索按钮操作 */
     handleQuery() {
+      this.queryParams.pageNum = 1;
       this.getList();
     },
     /** 重置按钮操作 */
@@ -282,8 +287,7 @@ export default {
     /** 查询扫描进程列表 */
     getList() {
       this.loading = true;
-      listScanProcess(this.queryParams).then(response => {
-        // this.scanList = this.handleTree(response.data, "scanId");
+      listScanProcess(this.addDateRange(this.queryParams, this.scanDateRange)).then(response => {
         this.scanList = response.data;
         this.loading = false;
       });

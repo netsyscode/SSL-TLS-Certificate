@@ -26,6 +26,12 @@ def scan_process_list():
         # filters.append(ScanStatus.START_TIME == scan_date)
 
     scan_processes = ScanStatus.query.filter(*filters)
+        page = request.args.get('pageNum', 1, type=int)
+    rows = request.args.get('pageSize', 10, type=int)
+    pagination = DictType.query.filter(*filters).paginate(
+        page=page, per_page=rows, error_out=False)
+    types = pagination.items
+
     return jsonify({'msg': '操作成功', 'code': 200, "data": [scan_process.to_json() for scan_process in scan_processes]})
 
 
