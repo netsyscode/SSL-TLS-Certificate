@@ -20,11 +20,14 @@ from OpenSSL import SSL
 from OpenSSL.crypto import dump_certificate, FILETYPE_PEM
 from dataclasses import dataclass
 
-from . import db_backend, app_backend
+from app import db, app
 from .scan_manager import ScanConfig, ScanType, ScanStatusType
 from ..logger.logger import my_logger
 from ..analyzer.cert_analyze import CertScanAnalyzer
-from ..models import ScanStatus, ScanData, CertData, generate_cert_data_table, generate_scan_data_table
+from ..models import (
+    ScanStatus, ScanData, CertData, generate_cert_data_table, generate_scan_data_table,
+    CertScanMeta, CertStoreContent, CertStoreRaw
+)
 
 @dataclass
 class ScanStatusData():
@@ -58,6 +61,7 @@ class Scanner:
         ) -> None:
 
         # scan settings from scan config
+        self.scan_id = scan_id
         self.input_csv_file = scan_config.input_csv_file
         self.out_put_dir = scan_config.output_dir
         self.max_threads = scan_config.max_threads
@@ -85,11 +89,8 @@ class Scanner:
         self.console = Console()
 
         # Create Tables
+        self.cert_data_table_name = cert_data_table_name
         self.cert_data_table = generate_cert_data_table(cert_data_table_name)
-
-        # prepare cert analysis stuff
-        time.sleep(1)
-        self.analyzer = CertScanAnalyzer(scan_id, cert_data_table_name)
 
 
     def load_tasks_into_queue(self):
@@ -133,15 +134,15 @@ class Scanner:
 
     def save_results(self):
 
-        with app_backend.app_context():
+        with app.app_context():
             my_logger.info(f"Saving {len(self.cached_results)} results...")
 
-            insert_cert_data_statement = insert(self.cert_data_table)
+            scan_status_data_to_insert = []
             cert_data_to_insert = {}
-            scan_data_to_insert = []
+            cert_metadata_to_insert = []
 
             for result in self.cached_results:
-                scan_data_to_insert.append(
+                scan_status_data_to_insert.append(
                     ScanData(
                         SCAN_TIME = self.scan_status_data.start_time,
                         DOMAIN = result['host'],
@@ -152,20 +153,31 @@ class Scanner:
 
                 for i in range(len(result['sha256'])):
                     cert_data_to_insert[result['sha256'][i]] = result['certificate'][i]
+                    cert_metadata_to_insert.append(
+                        {
+                            'CERT_ID' : result['sha256'][i],
+                            'SCAN_DATE' : self.scan_status_data.start_time,
+                            'SCAN_DOMAIN' : result['host']
+                        }
+                    )
+            
+            cert_data_to_insert = [{'CERT_ID' : key, 'CERT_RAW' : value} for key, value in cert_data_to_insert.items()]
+            with db.session.begin():
+                db.session.expunge_all()
+                db.session.add_all(scan_status_data_to_insert)
 
-            db_backend.session.expunge_all()
-            db_backend.session.add_all(scan_data_to_insert)
-            db_backend.session.commit()
+                # only template model, can not use insert(Model) here
+                insert_cert_data_statement = insert(self.cert_data_table).values(cert_data_to_insert).prefix_with('IGNORE')
+                db.session.execute(insert_cert_data_statement)
 
-            cert_data_to_insert = [{'SHA256_ID' : key, 'RAW_PEM' : value} for key, value in cert_data_to_insert.items()]
-            with db_backend.session.begin():
+                # many many primary key dupliates...
+                # need to deal with Integrity Error with duplicate primary key pair with bulk_insert_mappings
+                insert_cert_raw_statement = insert(CertStoreRaw).values(cert_data_to_insert).prefix_with('IGNORE')
+                db.session.execute(insert_cert_raw_statement)
 
-                for cert_data in cert_data_to_insert:
-                    try:
-                        db_backend.session.execute(insert_cert_data_statement.values(cert_data))
-                    except IntegrityError as e:
-                        db_backend.session.rollback()  # 回滚当前事务，保证数据一致性
-                        continue
+                # db.session.bulk_insert_mappings(CertScanMeta, cert_metadata_to_insert)
+                insert_cert_scan_metadata_statement = insert(CertScanMeta).values(cert_metadata_to_insert).prefix_with('IGNORE')
+                db.session.execute(insert_cert_scan_metadata_statement)
 
         self.cached_results = []
 
@@ -290,8 +302,12 @@ class Scanner:
             self.scan_status_data.status = ScanStatusType.COMPLETED
         self.sync_update_scan_process_info()
 
-        # Run analysis in background
-        # self.analyzer.analyzeCertScanResult()
+        # 
+        # Run analysis in background after scanning
+        # 
+        with app.app_context():
+            self.analyzer = CertScanAnalyzer(self.scan_id, self.cert_data_table_name)
+            # self.analyzer.analyzeCertScanResult()
         
 
     def async_update_scan_process_info(self):
@@ -315,7 +331,7 @@ class Scanner:
         else:
             scan_time = -1
 
-        with app_backend.app_context():
+        with app.app_context():
             self.scan_status_entry.SCAN_TIME_IN_SECONDS = scan_time
             self.scan_status_entry.END_TIME = self.scan_status_data.end_time
             self.scan_status_entry.STATUS = self.scan_status_data.status.value
@@ -323,8 +339,8 @@ class Scanner:
             self.scan_status_entry.SCANNED_CERTS = self.scan_status_data.scanned_certs
             self.scan_status_entry.SUCCESSES = self.scan_status_data.success_count
             self.scan_status_entry.ERRORS = self.scan_status_data.error_count
-            db_backend.session.add(self.scan_status_entry)
-            db_backend.session.commit()
+            db.session.add(self.scan_status_entry)
+            db.session.commit()
 
 
     async def stop(self):

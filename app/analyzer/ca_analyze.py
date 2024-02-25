@@ -14,8 +14,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy import insert
 from .. import db
 
-from ..models import CertAnalysisStore, generate_cert_analysis_table
-from ..scanner import app_backend, db_backend
+from ..models import CertAnalysisStats, generate_cert_analysis_table
+from ..scanner import app, db
 from threading import Lock
 import threading
 import time

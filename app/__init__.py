@@ -6,6 +6,7 @@ from flask_login import LoginManager
 import flask_excel as excel
 from flask_cors import CORS
 
+import os
 import json
 from datetime import datetime, date
 
@@ -38,9 +39,9 @@ def create_app(config_name):
     moment.init_app(app)
     db.init_app(app)
     loginmanager.init_app(app)
-
-    from .base import base as base_blueprint
-    app.register_blueprint(base_blueprint)
     excel.init_excel(app)
     return app
 
+app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+from .base import base as base_blueprint
+app.register_blueprint(base_blueprint)

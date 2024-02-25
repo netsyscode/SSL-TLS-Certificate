@@ -10,7 +10,7 @@ def generate_scan_data_table(table_name):
 
         # SCAN_TIME = db.Column(db.DateTime, db.ForeignKey('SCAN_STATUS.START_TIME'), index=True, primary_key=True, nullable=False)
         SCAN_TIME = db.Column(db.DateTime, index=True, primary_key=True, nullable=False)
-        DOMAIN = db.Column(db.Text, nullable=False)
+        DOMAIN = db.Column(db.Text, primary_key=True, nullable=False)
         ERROR_MSG = db.Column(db.Text, default=None)
         RECEIVED_CERTS = db.Column(db.JSON, default=[])
 
@@ -37,7 +37,7 @@ class ScanData(db.Model):
 
     # SCAN_TIME = db.Column(db.DateTime, db.ForeignKey('SCAN_STATUS.START_TIME'), index=True, primary_key=True, nullable=False)
     SCAN_TIME = db.Column(db.DateTime, index=True, primary_key=True, nullable=False)
-    DOMAIN = db.Column(db.Text, nullable=False)
+    DOMAIN = db.Column(db.Text, primary_key=True, nullable=False)
     ERROR_MSG = db.Column(db.Text, default=None)
     RECEIVED_CERTS = db.Column(db.JSON, default=[])
 

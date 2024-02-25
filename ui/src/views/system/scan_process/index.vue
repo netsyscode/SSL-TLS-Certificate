@@ -244,7 +244,7 @@ export default {
     startAutoRefresh() {
       this.autoRefreshTimer = setInterval(() => {
         this.getList();
-      }, 5000);
+      }, 15000);
     },
     stopAutoRefresh() {
       // 停止定时器的逻辑

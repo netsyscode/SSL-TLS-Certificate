@@ -11,9 +11,9 @@ from datetime import datetime
 from dataclasses import dataclass
 from typing import Optional, Dict, Union
 
-from .. import db
+from app import db, app
 from ..logger.logger import my_logger
-from ..models import ScanStatus, ScanData, CertAnalysisStore, CaAnalysisStore
+from ..models import ScanStatus, ScanData, CertAnalysisStats, CaAnalysisStore
 
 
 class ScanType(Enum):
@@ -74,7 +74,7 @@ class ScanManager():
         # register entry in CaAnalysis db model
         '''
         '''
-        cert_analysis_store = CertAnalysisStore()
+        cert_analysis_store = CertAnalysisStats()
         cert_analysis_store.SCAN_ID = scan_process.ID
         cert_analysis_store.SCANNED_CERT_NUM = 0
         cert_analysis_store.ISSUER_COUNT = {}

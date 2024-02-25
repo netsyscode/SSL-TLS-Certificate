@@ -59,10 +59,8 @@ import os
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import insert
-from .. import db
-
-from ..models import CertAnalysisStore, generate_cert_analysis_table
-from ..scanner import app_backend, db_backend
+from ..models import CertAnalysisStats, CertStoreContent
+from app import app, db
 from threading import Lock
 import threading
 import time
@@ -329,8 +327,8 @@ class CertScanAnalyzer():
         self.result_list = []
         self.result_list_lock = Lock()
         self.scan_input_table = db.Model.metadata.tables[scan_input_table_name]
-        self.result_table = generate_cert_analysis_table(f"cert_analysis{scan_input_table_name[-14:]}")
-        self.existing_cert_analysis_store : CertAnalysisStore = CertAnalysisStore.query.filter_by(SCAN_ID=scan_id).first()
+        # self.result_table = generate_cert_analysis_table(f"cert_analysis{scan_input_table_name[-14:]}")
+        self.existing_cert_analysis_store : CertAnalysisStats = CertAnalysisStats.query.filter_by(SCAN_ID=scan_id).first()
 
         self.num = 0
         self.expired = 0
@@ -348,14 +346,14 @@ class CertScanAnalyzer():
 
         
         from sqlalchemy import select
-        with app_backend.app_context():
+        with app.app_context():
             query = select(self.scan_input_table)
-            rows = db_backend.session.execute(query).all()
+            rows = db.session.execute(query).all()
 
             for row in rows:
 
-                # 'sha256_id': self.SHA256_ID,
-                # 'raw': self.RAW_PEM,
+                # 'sha256_id': self.CERT_ID,
+                # 'raw': self.CERT_RAW,
                 cert_id = row[0]
                 try:
                     certs_as_x509 = (load_pem_x509_certificate(row[1].encode("utf-8"), default_backend()))
@@ -392,27 +390,43 @@ class CertScanAnalyzer():
     def sync_update_info(self):
         my_logger.info(f"Updating...")
         with self.result_list_lock:
-            with app_backend.app_context():
+            with app.app_context():
 
                 from collections import Counter
-                insert_analysis_data_statement = insert(self.result_table)
-                analysis_data_to_insert = []
+                # insert_analysis_data_statement = insert(self.result_table)
+                cert_store_data_to_insert = []
+
+                KEY_TYPE_MAPPING = {
+                    primitive_rsa.RSAPublicKey : 0,
+                    primitive_ec.EllipticCurvePublicKey : 1
+                }
 
                 for result in self.result_list:
                     result : X509SingleCertResult
-                    # my_logger.info(f"{result.sha_256}")
-                    analysis_data_to_insert.append({
-                        'SHA256_ID' : result.sha_256,
-                        'TYPE' : result.cert_type.value,
-                        'ISSUER' : result.issuer_cn,
+                    cert_store_data_to_insert.append({
+                        'CERT_ID' : result.sha_256,
+                        'CERT_RAW' : result.raw_str,                      
+                        'CERT_TYPE' : result.cert_type.value,
+                        'ISSUER_ORG' : result.issuer_cn,
                         'ISSUER_CERT_ID' : "",
                         'KEY_SIZE' : result.subject_pub_key_size,
-                        'KEY_TYPE' : str(result.subject_pub_key_type.__class__),
-                        'NOT_VALID_BEFORE' : str(result.not_valid_before),
+                        'KEY_TYPE' : KEY_TYPE_MAPPING[result.subject_pub_key_type.__class__],
+                        'NOT_VALID_BEFORE' : result.not_valid_before,
+                        'NOT_VALID_BEFORE' : result.not_valid_before,
                         'VALIDATION_PERIOD' : result.validation_period,
                         'EXPIRED' : result.has_expired
                     })
-
+                            # CERT_ID = result.sha_256,
+                            # CERT_RAW = result.raw_str,                      
+                            # CERT_TYPE = result.cert_type.value,
+                            # ISSUER_ORG = result.issuer_cn,
+                            # ISSUER_CERT_ID = "",
+                            # KEY_SIZE = result.subject_pub_key_size,
+                            # KEY_TYPE = KEY_TYPE_MAPPING[result.subject_pub_key_type.__class__],
+                            # NOT_VALID_BEFORE = result.not_valid_before,
+                            # NOT_VALID_BEFORE = result.not_valid_before,
+                            # VALIDATION_PERIOD = result.validation_period,
+                            # EXPIRED = result.has_expired
                     if result.has_expired:
                         self.expired += 1
                     self.algo.append(str(result.subject_pub_key_type.__class__))
@@ -421,12 +435,12 @@ class CertScanAnalyzer():
                     self.valid.append(result.validation_period)
                     self.num += 1
 
-                if analysis_data_to_insert == []:
+                if cert_store_data_to_insert == []:
                     return
 
-                with db_backend.session.begin():
-                    my_logger.info(f"{analysis_data_to_insert}")
-                    db_backend.session.execute(insert_analysis_data_statement.values(analysis_data_to_insert))
+                # There will be many duplicate mappings on insertions, so we use bulk_insert_mappings
+                db.session.bulk_insert_mappings(CertStoreContent, cert_store_data_to_insert)
+                db.session.commit()
 
                 counter = Counter(self.algo)
                 algo_dict = dict(counter)
@@ -446,7 +460,7 @@ class CertScanAnalyzer():
                 self.existing_cert_analysis_store.VALIDATION_PERIOD_COUNT = valid_dict
                 self.existing_cert_analysis_store.EXPIRED_PERCENT = self.expired / self.num
 
-                db_backend.session.add(self.existing_cert_analysis_store)
-                db_backend.session.commit()
+                db.session.add(self.existing_cert_analysis_store)
+                db.session.commit()
         
             self.result_list = []

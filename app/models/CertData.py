@@ -8,41 +8,101 @@ def generate_cert_data_table(table_name):
         __tablename__ = table_name
         __table_args__ = {'extend_existing': True}
         
-        SHA256_ID = db.Column(db.String(64, collation='gbk_chinese_ci'), primary_key=True, nullable=False, unique=True, index=True, default=None)
-        RAW_PEM = db.Column(db.Text, nullable=False)
-        # 0 : Leaf
-        # 1 : Inter
-        # 2 : Root
-        # TYPE = db.Column(db.Integer, default=0)
-        # ISSUER = db.Column(db.String(128, collation='gbk_chinese_ci'))
-        # ISSUER_CERT_ID = db.Column(db.String(36, collation='gbk_chinese_ci'))
-        # KEY_SIZE = db.Column(db.Integer, nullable=False)
-        # KEY_TYPE = db.Column(db.String(8, collation='gbk_chinese_ci'), nullable=False)
-        # NOT_VALID_BEFORE = db.Column(db.DateTime)
-        # NOT_VALID_AFTER = db.Column(db.DateTime)
-        # VALIDATION_PERIOD = db.Column(db.Integer, nullable=False)
-        # EXPIRED = db.Column(db.Bool)
+        CERT_ID = db.Column(db.String(64, collation='gbk_chinese_ci'), primary_key=True, nullable=False, unique=True, index=True)
+        CERT_RAW = db.Column(db.Text, nullable=False)
 
         def to_json(self):
             return {
-                'sha256_id': self.SHA256_ID,
-                'raw': self.RAW_PEM,
-                # 'type': self.TYPE,
-                # 'issuer': self.ISSUER,
-                # 'issuer_cert_id': self.ISSUER_CERT_ID,
-                # 'key_size': self.KEY_SIZE,
-                # 'key_type': self.KEY_TYPE,
-                # 'not_valid_before': self.NOT_VALID_BEFORE,
-                # 'not_valid_after': self.NOT_VALID_AFTER,
-                # 'validation_period': self.VALIDATION_PERIOD,
-                # 'expired': self.EXPIRED,
+                'sha256_id': self.CERT_ID,
+                'raw': self.CERT_RAW,
             }
         
         def get_id(self):
             return str(self.__tablename__)
 
         def __repr__(self):
-            return f"<CertData {self.SHA256_ID}>"
+            return f"<CertData {self.CERT_ID}>"
 
     CertData.__table__.create(db.engine)
     return db.Model.metadata.tables[table_name]
+
+
+class CertStoreRaw(db.Model):
+    __tablename__ = "CERT_STORE_RAW"
+    
+    CERT_ID = db.Column(db.String(64, collation='gbk_chinese_ci'), primary_key=True, nullable=False, unique=True, index=True)
+    CERT_RAW = db.Column(db.Text, nullable=False)
+
+    def to_json(self):
+        return {
+            'cert_id': self.CERT_ID,
+            'raw': self.CERT_RAW
+        }
+    
+    def get_id(self):
+        return str(self.CERT_ID)
+
+    def __repr__(self):
+        return f"<CertStoreRaw {self.CERT_ID}>"
+
+
+class CertStoreContent(db.Model):
+    __tablename__ = "CERT_STORE_CONTENT"
+    
+    CERT_ID = db.Column(db.String(64, collation='gbk_chinese_ci'), db.ForeignKey('CERT_STORE_RAW.CERT_ID'), primary_key=True, nullable=False, unique=True, index=True)
+    CERT_TYPE = db.Column(db.Integer, default=0, nullable=False, comment="leaf")
+    ISSUER_ORG = db.Column(db.String(128, collation='gbk_chinese_ci'), comment="use issuer org name")
+    ISSUER_CERT_ID = db.Column(db.String(64, collation='gbk_chinese_ci'))
+    KEY_SIZE = db.Column(db.Integer, nullable=False)
+    KEY_TYPE = db.Column(db.Integer, nullable=False)
+    NOT_VALID_BEFORE = db.Column(db.DateTime, nullable=False)
+    NOT_VALID_AFTER = db.Column(db.DateTime, nullable=False)
+    VALIDATION_PERIOD = db.Column(db.Integer, nullable=False)
+    EXPIRED = db.Column(db.Integer, nullable=False)
+
+    def to_json(self):
+        return {
+            'cert_id': self.CERT_ID,
+            'cert_type': self.CERT_TYPE,
+            'issuer_org': self.ISSUER_ORG,
+            'issuer_cert_id': self.ISSUER_CERT_ID,
+            'key_size': self.KEY_SIZE,
+            'key_type': self.KEY_TYPE,
+            'not_valid_before': self.NOT_VALID_BEFORE,
+            'not_valid_after': self.NOT_VALID_AFTER,
+            'validation_period': self.VALIDATION_PERIOD,
+            'expired': self.EXPIRED
+        }
+
+    # def get_raw(self):
+    #     return {
+    #         'cert_id': self.CERT_ID,
+    #         'raw': self.CERT_RAW
+    #     }
+    
+    def get_id(self):
+        return str(self.CERT_ID)
+
+    def __repr__(self):
+        return f"<CertStoreContent {self.CERT_ID}>"
+
+
+class CertScanMeta(db.Model):
+    __tablename__ = "CERT_SCAN_METADATA"
+
+    CERT_ID = db.Column(db.String(64, collation='gbk_chinese_ci'), db.ForeignKey('CERT_STORE_RAW.CERT_ID'), primary_key=True, nullable=False, index=True)
+    SCAN_DATE = db.Column(db.DateTime, primary_key=True, nullable=False)
+    SCAN_DOMAIN = db.Column(db.Text, primary_key=True, nullable=False)
+
+    def to_json(self):
+        return {
+            'cert_id': self.CERT_ID,
+            'scan_date': self.SCAN_DATE,
+            'scan_domain': self.SCAN_DOMAIN
+        }
+    
+    def get_id(self):
+        return str(self.CERT_ID)
+
+    def __repr__(self):
+        return f"<CertScanMeta {self.CERT_ID}>"

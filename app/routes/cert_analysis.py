@@ -1,6 +1,6 @@
 
 from ..base import base
-from ..models import CertAnalysisStore
+from ..models import CertAnalysisStats
 
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
@@ -21,8 +21,8 @@ def cert_analysis_list():
     # my_logger.info(f"{request.args}")
     filters = []
     if 'name' in request.args:
-        filters.append(CertAnalysisStore.SCAN_ID.like('%' + request.args['name'] + '%'))
-    cert_analysises = CertAnalysisStore.query.filter(*filters)
+        filters.append(CertAnalysisStats.SCAN_ID.like('%' + request.args['name'] + '%'))
+    cert_analysises = CertAnalysisStats.query.filter(*filters)
 
     # my_logger.info(f"{[cert_analysis.to_json() for cert_analysis in cert_analysises]}")
     return jsonify({'msg': '操作成功', 'code': 200, "data": [cert_analysis.to_json() for cert_analysis in cert_analysises]})

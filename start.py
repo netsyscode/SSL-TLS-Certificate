@@ -5,11 +5,9 @@
     Template from authbase
 '''
 
-import os
-from app import create_app, db
+from app import app
 from flask import request, render_template, jsonify
 
-app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 
 @app.errorhandler(404)
 def page_not_found(e):
