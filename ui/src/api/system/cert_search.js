@@ -12,7 +12,7 @@ export function listCert(query) {
 
 export function getCertInfo(certId) {
   return request({
-    url: '/system/cert_view/' + certId,
+    url: '/system/cert_retrive/' + certId,
     method: 'get'
   })
 }

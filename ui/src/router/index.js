@@ -171,7 +171,7 @@ export const dynamicRoutes = [
       {
         path: ':cert_id(.*)',
         component: () => import('@/views/system/cert_search/data'),
-        name: 'Data',
+        name: 'CertSearchData',
         meta: { title: '证书详情', activeMenu: '/system/cert_search' }
       }
     ]

@@ -43,7 +43,7 @@ def cert_search_list():
     return jsonify({'msg': '操作成功', 'code': 200, "data": [search_cert.to_json() for search_cert in search_certs], "total" : pagination.total})
 
 
-@base.route('/system/cert_view/<cert_id>', methods=['GET'])
+@base.route('/system/cert_retrive/<cert_id>', methods=['GET'])
 @login_required
 def get_cert_info(cert_id):
 
@@ -51,6 +51,6 @@ def get_cert_info(cert_id):
 
     filters = []
     filters.append(CertScanMeta.CERT_ID == cert_id)
-    scan_metas = CertStoreContent.query.filter(*filters)
+    scan_metas = CertScanMeta.query.filter(*filters)
 
     return jsonify({'code': 200, 'msg': '操作成功', "cert_raw" : cert_raw, "scan_info" : [scan_meta.to_json() for scan_meta in scan_metas]})
