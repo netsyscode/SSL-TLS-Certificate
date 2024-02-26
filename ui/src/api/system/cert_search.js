@@ -1,7 +1,7 @@
 
 import request from '@/utils/request'
 
-export function listScanProcess(query) {
+export function listCert(query) {
   return request({
     url: '/system/cert_search/list',
     method: 'get',
@@ -10,10 +10,9 @@ export function listScanProcess(query) {
 }
 
 
-export function addScanProcess(data) {
+export function getCertInfo(certId) {
   return request({
-    url: '/system/cert_search',
-    method: 'post',
-    data: data
+    url: '/system/cert_view/' + certId,
+    method: 'get'
   })
 }

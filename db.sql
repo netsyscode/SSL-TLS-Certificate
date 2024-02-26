@@ -145,18 +145,20 @@ INSERT INTO `SYRESOURCE` (`ID`, `CREATEDATETIME`, `DESCRIPTION`, `ICONCLS`, `NAM
 	('zytj', '2015-08-25 10:34:53', '添加资源', 'ext-icon-bullet_wrench', '添加资源', 1, '', '2015-08-25 10:34:53', NULL, '/base/syresource!save', 'system:menu:add', 'zygl', '1', '0'),
 
 	-- 这里添加想要新增的可访问的路由(左侧菜单栏的项目)
-	('smjcgl', '2015-08-25 10:34:53', '管理证书扫描进程', 'tree-table', '扫描进程管理', 2, '', '2022-05-25 00:48:32', 'scan_process', 'system/scan_process/index', 'system:menu:list', 'xtgl', '0', '0'),
+  -- ('xtgl', '2015-08-25 10:34:53', '管理系统的资源、角色、机构、用户等信息', 'system', '系统管理', 1, '', '2023-05-16 20:03:02', '/system', NULL, NULL, NULL, '3', '0'),
+
+	('smjcgl', '2015-08-25 10:34:53', '管理证书扫描进程', 'tree', '扫描进程管理', 1, '', '2022-05-25 00:48:32', 'scan_process', 'system/scan_process/index', 'system:scan_process:list', 'xtgl', '0', '0'),
 	('tjjc', '2015-08-25 10:34:53', '添加进程', 'ext-icon-bullet_wrench', '添加进程', 1, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!add', 'system:scan_process:add', 'smjcgl', '1', '0'),
 	('tzjc', '2015-08-25 10:34:53', '停止进程', 'ext-icon-bullet_wrench', '停止进程', 5, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!stop', 'system:scan_process:stop', 'smjcgl', '1', '0'),
 	('xgjc', '2015-08-25 10:34:53', '修改进程参数', 'ext-icon-bullet_wrench', '修改进程参数', 4, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!edit', 'system:scan_process:edit', 'smjcgl', '1', '0'),
 	('ckjg', '2015-08-25 10:34:53', '查看扫描结果', 'ext-icon-bullet_wrench', '查看扫描结果', 3, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!view', 'system:scan_process:view', 'smjcgl', '1', '0'),
 	('scjc', '2015-08-25 10:34:53', '删除进程', 'ext-icon-bullet_wrench', '删除进程', 2, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!remove', 'system:scan_process:remove', 'smjcgl', '1', '0'),
 
-	('zscx', '2015-08-25 10:34:53', '证书查询', 'tree-table', '证书查询', 4, '', '2022-05-25 00:48:32', 'cert_search', 'system/cert_search/index', 'system:menu:list', 'xtgl', '0', '0'),
-	('cacx', '2015-08-25 10:34:53', 'CA查询', 'tree-table', 'CA查询', 5, '', '2022-05-25 00:48:32', 'ca_search', 'system/ca_search/index', 'system:menu:list', 'xtgl', '0', '0'),
+	('zscx', '2015-08-25 10:34:53', '证书查询', 'tree', '证书查询', 2, '', '2022-05-25 00:48:32', 'cert_search', 'system/cert_search/index', 'system:cert:list', 'xtgl', '0', '0'),
+	('cacx', '2015-08-25 10:34:53', 'CA查询', 'tree', 'CA查询', 3, '', '2022-05-25 00:48:32', 'ca_search', 'system/ca_search/index', 'system:ca:list', 'xtgl', '0', '0'),
 
-	('zsjggl', '2015-08-25 10:34:53', '管理证书分析结果', 'tree-table', '证书结果管理', 2, '', '2022-05-25 00:48:32', 'cert_analysis', 'system/cert_analysis/index', 'system:menu:list', 'xtgl', '0', '0'),
-	('cajggl', '2015-08-25 10:34:53', '管理CA分析结果', 'tree-table', 'CA结果管理', 4, '', '2022-05-25 00:48:32', 'ca_analysis', 'system/ca_analysis/index', 'system:menu:list', 'xtgl', '0', '0');
+	('zsjggl', '2015-08-25 10:34:53', '管理证书分析结果', 'tree', '证书结果管理', 4, '', '2022-05-25 00:48:32', 'cert_analysis', 'system/cert_analysis/index', 'system:cert_analysis:list', 'xtgl', '0', '0'),
+	('cajggl', '2015-08-25 10:34:53', '管理CA分析结果', 'tree', 'CA结果管理', 5, '', '2022-05-25 00:48:32', 'ca_analysis', 'system/ca_analysis/index', 'system:ca_analysis:list', 'xtgl', '0', '0');
 
 
 -- 导出  表 authbase.SYRESOURCETYPE 结构
@@ -377,12 +379,15 @@ INSERT INTO `SYS_DICT_DATA` (`dict_code`, `dict_sort`, `dict_label`, `dict_value
 	(101, 1, '注销', '0', 'sys_login_type', NULL, 'default', NULL, '0', 'admin', '2022-06-10 00:29:48', NULL, '2022-06-10 00:29:48', NULL),
 
 	-- 在这里添加新的Dict数据
-	(50, 1, '运行中', '0', 'sys_scan_status', '', 'primary', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '正常状态'),
+	(50, 1, '运行中', '0', 'sys_scan_status', '', 'warning', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '正常状态'),
 	(51, 2, '完成', '1', 'sys_scan_status', '', 'primary', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '扫描正常结束'),
 	(52, 3, '停止', '2', 'sys_scan_status', '', 'danger', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '扫描人为中断'),
-	(53, 1, '扫描Top域名', '0', 'sys_scan_type', '', 'primary', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
-	(54, 2, '扫描IP地址', '1', 'sys_scan_type', '', 'primary', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
-	(55, 3, '扫描CT日志', '2', 'sys_scan_type', '', 'primary', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '');
+	(53, 1, '扫描Top域名', '0', 'sys_scan_type', '', 'info', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+	(54, 2, '扫描IP地址', '1', 'sys_scan_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+	(55, 3, '扫描CT日志', '2', 'sys_scan_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+	(56, 1, 'leaf', '0', 'sys_cert_type', '', 'info', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+	(57, 2, 'intermediate', '1', 'sys_cert_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+	(58, 3, 'root', '3', 'sys_cert_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '');
 
 
 -- 导出  表 authbase.SYS_DICT_TYPE 结构
@@ -415,7 +420,9 @@ INSERT INTO `SYS_DICT_TYPE` (`dict_id`, `dict_name`, `dict_type`, `status`, `cre
 	(11, '登录日志类型', 'sys_login_type', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL),
 	-- 在这里添加新的Dict类型
 	(12, '扫描进程状态', 'sys_scan_status', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL),
-	(13, '扫描类型', 'sys_scan_type', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL);
+	(13, '扫描类型', 'sys_scan_type', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL),
+	(14, '证书类型', 'sys_cert_type', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL);
+
 
 -- 导出  表 authbase.SYUSER 结构
 CREATE TABLE IF NOT EXISTS `SYUSER` (
@@ -542,6 +549,7 @@ CREATE TABLE IF NOT EXISTS `CERT_STORE_RAW` (
 CREATE TABLE IF NOT EXISTS `CERT_STORE_CONTENT` (
   `CERT_ID` varchar(64) NOT NULL,
   `CERT_TYPE` INT NOT NULL DEFAULT 0 COMMENT "leaf intermediate or root",
+  `SUBJECT_DOMAIN` varchar(512) CHARACTER SET gbk COLLATE gbk_chinese_ci,
   `ISSUER_ORG` varchar(128) CHARACTER SET gbk COLLATE gbk_chinese_ci COMMENT "use orgName",
   `ISSUER_CERT_ID` varchar(64) CHARACTER SET gbk COLLATE gbk_chinese_ci,
   `KEY_SIZE` INT NOT NULL,

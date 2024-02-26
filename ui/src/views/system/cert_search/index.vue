@@ -1,6 +1,7 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch">
+
       <el-form-item label="证书SHA256" prop="certID">
         <el-input
           v-model="queryParams.certID"
@@ -10,7 +11,7 @@
         />
       </el-form-item>
 
-      <el-form-item label="域名" prop="certDomain">
+      <el-form-item label="证书域名" prop="certDomain">
         <el-input
           v-model="queryParams.certDomain"
           placeholder="请输入证书对应域名"
@@ -53,66 +54,40 @@
       v-if="refreshTable"
       v-loading="loading"
       :data="searchResult"
-      row-key="scanId"
+      row-key="certId"
       :default-expand-all="isExpandAll"
       :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
       >
 
-      <!-- crt.sh ID	 Logged At  ⇧	Not Before	Not After	Common Name	Matching Identities	Issuer Name
-      'cert_id': self.CERT_ID,
-            'cert_type': self.CERT_TYPE,
-            'issuer_org': self.ISSUER_ORG,
-            'issuer_cert_id': self.ISSUER_CERT_ID,
-            'key_size': self.KEY_SIZE,
-            'key_type': self.KEY_TYPE,
-            'not_valid_before': self.NOT_VALID_BEFORE,
-            'not_valid_after': self.NOT_VALID_AFTER,
-            'validation_period': self.VALIDATION_PERIOD,
-            'expired': self.EXPIRED
-        } -->
-
       <el-table-column prop="cert_id" label="证书ID" width="200">
         <template slot-scope="scope">
-          <router-link :to="'/system/cert_search/index/' + scope.row.cert_id" class="link-type">
-            <span>{{ scope.row.dictType }}</span>
+          <router-link :to="'/system/cert_view/' + scope.row.cert_id" class="link-type">
+            <span>{{ scope.row.cert_id }}</span>
           </router-link>
         </template>
       </el-table-column>
 
-      <el-table-column prop="name" label="扫描名称" width="100"></el-table-column>
-
-      <el-table-column prop="num_threads" label="线程数量" align="center" width="100"></el-table-column>
-      <el-table-column prop="scanType" label="扫描类型" align="center" width="100">
+      <el-table-column prop="cert_type" label="证书类别" align="center" width="100">
         <template slot-scope="scope">
-          <dict-tag :options="dict.type.sys_scan_type" :value="scope.row.scanType"/>
+          <dict-tag :options="dict.type.sys_cert_type" :value="scope.row.cert_type"/>
         </template>
       </el-table-column>
 
-      <el-table-column prop="startTime" label="开始时间" align="center" width="230">
+      <el-table-column prop="subject_cn" label="主体域名" align="center" width="300"></el-table-column>
+      <el-table-column prop="issuer_org" label="签发者" align="center" width="300"></el-table-column>
+      <el-table-column prop="validation_period" label="有效期(天)" align="center" width="100"></el-table-column>
+
+      <el-table-column prop="not_valid_before" label="有效期开始时间" align="center" width="230">
         <!-- <template slot-scope="scope">
           <span>{{ parseTime(scope.row.startTime) }}</span>
         </template> -->
       </el-table-column>
-
-      <el-table-column prop="scan_time_in_seconds" label="运行时间(秒)" align="center" width="80"></el-table-column>
-      <el-table-column label="结束时间" align="center" prop="endTime" width="230">
+      <el-table-column prop="not_valid_after" label="有效期截止时间" align="center" width="230">
         <!-- <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.endTime) }}</span>
+          <span>{{ parseTime(scope.row.startTime) }}</span>
         </template> -->
       </el-table-column>
-
-      <el-table-column prop="status" label="扫描状态" align="center" width="100">
-        <template slot-scope="scope">
-          <dict-tag :options="dict.type.sys_scan_status" :value="scope.row.status"/>
-        </template>
-      </el-table-column>
-
-      <el-table-column prop="scanned_domains" label="扫描域名数" align="center" width="100"></el-table-column>
-      <el-table-column prop="successes" label="获取成功" align="center" width="100"></el-table-column>
-      <el-table-column prop="errors" label="获取失败" align="center" width="100"></el-table-column>
-      <el-table-column prop="scanned_certs" label="获取证书数量" align="center" width="100"></el-table-column>
-
-
+      
     </el-table>
 
     <pagination
@@ -127,13 +102,13 @@
 </template>
 
 <script>
-import { listScanProcess, addScanProcess } from "@/api/system/scan_process";
+import { listCert } from "@/api/system/cert_search";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 
 export default {
-  name: "ScanProcess",
-  dicts: ['sys_scan_type', 'sys_scan_status'],
+  name: "CertSearch",
+  dicts: ['sys_cert_type'],
   components: { Treeselect },
   data() {
     return {
@@ -156,8 +131,7 @@ export default {
         pageNum: 1,
         pageSize: 30,
         certID: undefined,
-        certDomain: undefined,
-        scanDate: undefined
+        certDomain: undefined
       },
       notValidBeforeRange: [],
       notValidAfterRange: [],
@@ -182,10 +156,11 @@ export default {
     /** 查询扫描进程列表 */
     getList() {
       this.loading = true;
-      queryParams = this.addDateRange(this.queryParams, this.notValidBeforeRange, "notValidBefore")
-      queryParams = this.addDateRange(queryParams, this.notValidAfterRange, "notValidAfter")
+      let queryParams = this.addDateRange(this.queryParams, this.notValidBeforeRange, "NotValidBefore")
+      let finalQueryParams = this.addDateRange(queryParams, this.notValidAfterRange, "NotValidAfter")
+      console.log(finalQueryParams)
 
-      listCert(queryParams).then(response => {
+      listCert(finalQueryParams).then(response => {
         this.searchResult = response.data;
         this.loading = false;
       });

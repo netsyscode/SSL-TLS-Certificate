@@ -163,13 +163,13 @@ export const dynamicRoutes = [
     ]
   },
   {
-    path: '/system/cert_search',
+    path: '/system/cert_view',
     component: Layout,
     hidden: true,
     permissions: ['system:cert:list'],
     children: [
       {
-        path: 'index/:cert_id(\\d+)',
+        path: ':cert_id(.*)',
         component: () => import('@/views/system/cert_search/data'),
         name: 'Data',
         meta: { title: '证书详情', activeMenu: '/system/cert_search' }

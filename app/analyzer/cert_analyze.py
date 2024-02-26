@@ -5,6 +5,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import dsa as primitive_dsa, rsa as primitive_rsa, ec as primitive_ec, dh as primitive_dh
 from cryptography.hazmat.primitives.asymmetric import types, padding
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+import cryptography.hazmat.bindings
 from cryptography.x509 import (
     Version,
     Name,
@@ -59,7 +60,7 @@ import os
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import insert
-from ..models import CertAnalysisStats, CertStoreContent
+from ..models import CertAnalysisStats, CertStoreContent, CertStoreRaw
 from app import app, db
 from threading import Lock
 import threading
@@ -84,6 +85,7 @@ class X509SingleCertResult():
 
     # Expiration analysis
     not_valid_before : datetime
+    not_valid_after : datetime
     validation_period : int     # in days
     has_expired : bool
 
@@ -298,6 +300,7 @@ class X509SingleCertAnalyzer():
             issuer_org,
             issuer_country,
             time_begin,
+            time_end,
             cert_period,
             has_expired,
             self.cert.public_key().public_bytes(
@@ -327,16 +330,15 @@ class CertScanAnalyzer():
         self.result_list = []
         self.result_list_lock = Lock()
         self.scan_input_table = db.Model.metadata.tables[scan_input_table_name]
-        # self.result_table = generate_cert_analysis_table(f"cert_analysis{scan_input_table_name[-14:]}")
         self.existing_cert_analysis_store : CertAnalysisStats = CertAnalysisStats.query.filter_by(SCAN_ID=scan_id).first()
 
         self.num = 0
         self.expired = 0
         self.issuer = []
-        self.algo = []
+        self.key_type = []
         self.length = []
         self.valid = []
-
+        self.sig_algo = []
 
     def analyzeCertScanResult(self):
         my_logger.info(f"Starting {self.scan_input_table} scan analysis...")
@@ -398,51 +400,44 @@ class CertScanAnalyzer():
 
                 KEY_TYPE_MAPPING = {
                     primitive_rsa.RSAPublicKey : 0,
-                    primitive_ec.EllipticCurvePublicKey : 1
+                    primitive_ec.EllipticCurvePublicKey : 1,
+                    cryptography.hazmat.bindings._rust.openssl.rsa.RSAPublicKey : 0,
+                    cryptography.hazmat.bindings._rust.openssl.ec.ECPublicKey : 1
                 }
 
                 for result in self.result_list:
                     result : X509SingleCertResult
                     cert_store_data_to_insert.append({
                         'CERT_ID' : result.sha_256,
-                        'CERT_RAW' : result.raw_str,                      
+                        # 'CERT_RAW' : result.raw_str,
                         'CERT_TYPE' : result.cert_type.value,
-                        'ISSUER_ORG' : result.issuer_cn,
+                        'SUBJECT_DOMAIN' : result.subject_cn,
+                        'ISSUER_ORG' : result.issuer_org,
                         'ISSUER_CERT_ID' : "",
                         'KEY_SIZE' : result.subject_pub_key_size,
                         'KEY_TYPE' : KEY_TYPE_MAPPING[result.subject_pub_key_type.__class__],
                         'NOT_VALID_BEFORE' : result.not_valid_before,
-                        'NOT_VALID_BEFORE' : result.not_valid_before,
+                        'NOT_VALID_AFTER' : result.not_valid_after,
                         'VALIDATION_PERIOD' : result.validation_period,
                         'EXPIRED' : result.has_expired
                     })
-                            # CERT_ID = result.sha_256,
-                            # CERT_RAW = result.raw_str,                      
-                            # CERT_TYPE = result.cert_type.value,
-                            # ISSUER_ORG = result.issuer_cn,
-                            # ISSUER_CERT_ID = "",
-                            # KEY_SIZE = result.subject_pub_key_size,
-                            # KEY_TYPE = KEY_TYPE_MAPPING[result.subject_pub_key_type.__class__],
-                            # NOT_VALID_BEFORE = result.not_valid_before,
-                            # NOT_VALID_BEFORE = result.not_valid_before,
-                            # VALIDATION_PERIOD = result.validation_period,
-                            # EXPIRED = result.has_expired
+
                     if result.has_expired:
                         self.expired += 1
-                    self.algo.append(str(result.subject_pub_key_type.__class__))
+                    self.key_type.append(str(result.subject_pub_key_type.__class__))
                     self.length.append(result.subject_pub_key_size)
-                    self.issuer.append(result.issuer_cn)
+                    self.issuer.append(result.issuer_org)
                     self.valid.append(result.validation_period)
+                    self.sig_algo.append(result.cert_signature_hash_algorithm)
                     self.num += 1
 
                 if cert_store_data_to_insert == []:
                     return
 
-                # There will be many duplicate mappings on insertions, so we use bulk_insert_mappings
-                db.session.bulk_insert_mappings(CertStoreContent, cert_store_data_to_insert)
-                db.session.commit()
+                insert_cert_store_statement = insert(CertStoreContent).values(cert_store_data_to_insert).prefix_with('IGNORE')
+                db.session.execute(insert_cert_store_statement)
 
-                counter = Counter(self.algo)
+                counter = Counter(self.key_type)
                 algo_dict = dict(counter)
                 counter = Counter(self.length)
                 length_dict = dict(counter)
@@ -450,17 +445,18 @@ class CertScanAnalyzer():
                 issuer_dict = dict(counter)
                 counter = Counter(self.valid)
                 valid_dict = dict(counter)
+                counter = Counter(self.sig_algo)
+                sig_algo_dict = dict(counter)
 
-                self.existing_cert_analysis_store.SCAN_ID = self.scan_id
                 self.existing_cert_analysis_store.SCANNED_CERT_NUM = self.num
-                self.existing_cert_analysis_store.ISSUER_COUNT = issuer_dict
+                self.existing_cert_analysis_store.ISSUER_ORG_COUNT = issuer_dict
                 self.existing_cert_analysis_store.KEY_SIZE_COUNT = length_dict
                 self.existing_cert_analysis_store.KEY_TYPE_COUNT = algo_dict
-
+                self.existing_cert_analysis_store.SIG_ALG_COUNT = sig_algo_dict
                 self.existing_cert_analysis_store.VALIDATION_PERIOD_COUNT = valid_dict
                 self.existing_cert_analysis_store.EXPIRED_PERCENT = self.expired / self.num
 
-                db.session.add(self.existing_cert_analysis_store)
+                # db.session.add(self.existing_cert_analysis_store)
                 db.session.commit()
         
             self.result_list = []

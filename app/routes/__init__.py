@@ -9,3 +9,4 @@ from . import config
 from . import dicttype
 from . import scan_process
 from . import cert_analysis
+from . import cert_search

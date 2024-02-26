@@ -41,6 +41,9 @@ class CertStoreRaw(db.Model):
     
     def get_id(self):
         return str(self.CERT_ID)
+    
+    def get_raw(self):
+        return str(self.CERT_RAW)
 
     def __repr__(self):
         return f"<CertStoreRaw {self.CERT_ID}>"
@@ -51,6 +54,7 @@ class CertStoreContent(db.Model):
     
     CERT_ID = db.Column(db.String(64, collation='gbk_chinese_ci'), db.ForeignKey('CERT_STORE_RAW.CERT_ID'), primary_key=True, nullable=False, unique=True, index=True)
     CERT_TYPE = db.Column(db.Integer, default=0, nullable=False, comment="leaf")
+    SUBJECT_DOMAIN = db.Column(db.String(512, collation='gbk_chinese_ci'))
     ISSUER_ORG = db.Column(db.String(128, collation='gbk_chinese_ci'), comment="use issuer org name")
     ISSUER_CERT_ID = db.Column(db.String(64, collation='gbk_chinese_ci'))
     KEY_SIZE = db.Column(db.Integer, nullable=False)
@@ -64,6 +68,7 @@ class CertStoreContent(db.Model):
         return {
             'cert_id': self.CERT_ID,
             'cert_type': self.CERT_TYPE,
+            'subject_cn' : self.SUBJECT_DOMAIN,
             'issuer_org': self.ISSUER_ORG,
             'issuer_cert_id': self.ISSUER_CERT_ID,
             'key_size': self.KEY_SIZE,
