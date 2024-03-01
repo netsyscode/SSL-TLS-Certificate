@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from app import db, app
 from .scan_manager import ScanConfig, ScanType, ScanStatusType
 from ..logger.logger import my_logger
-from ..analyzer.cert_analyze import CertScanAnalyzer
+from ..analyzer.scan_cert_analyze import ScanCertAnalyzer
 from ..models import (
     ScanStatus, ScanData, CertData, generate_cert_data_table, generate_scan_data_table,
     CertScanMeta, CertStoreContent, CertStoreRaw
@@ -306,7 +306,7 @@ class Scanner:
         # Run analysis in background after scanning
         # 
         with app.app_context():
-            self.analyzer = CertScanAnalyzer(self.scan_id, self.cert_data_table_name)
+            self.analyzer = ScanCertAnalyzer(self.scan_id, self.cert_data_table_name)
             self.analyzer.analyzeCertScanResult()
 
 

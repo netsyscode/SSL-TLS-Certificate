@@ -17,7 +17,7 @@ from bidict import bidict
 from typing import Optional
 from datetime import datetime
 from urllib.parse import urlparse
-from typing import Dict
+from typing import Dict, Tuple
 
 from ..logger.logger import my_logger
 from cryptography.hazmat.backends import default_backend
@@ -178,7 +178,7 @@ def requestCRLResponse(
 
 
 # For a given file, detect its encoding and return the content
-def detectFileEncoding(file_path : str) -> (bytes, str):
+def detectFileEncoding(file_path : str) -> Tuple[bytes, str]:
     with open(file_path, 'rb') as cert_file:
         raw_data = cert_file.read()
         result = chardet.detect(raw_data)
@@ -189,7 +189,7 @@ def getNameAttribute(
         name : Name,
         oid : ObjectIdentifier,
         value_if_exception : any
-    ) -> (any, bool):
+    ) -> any:
 
     '''
         Edited 11/05/23
@@ -197,11 +197,11 @@ def getNameAttribute(
     '''
     try:
         attributes = name.get_attributes_for_oid(oid)
-        return (attributes[0].value, len(attributes) > 1)
+        return attributes[0].value
 
     except (AttributeNotFound, IndexError):
         # my_logger.warn(f"Name attribute {oid} in {name} not found")
-        return (value_if_exception, False)
+        return value_if_exception
 
 
 # Extract domain from given URL
@@ -239,7 +239,7 @@ def checkLocalIP(ip : str) -> bool:
     return True
 
 
-def get_dns_caa_records(domain : str, timeout=5) -> (list[str], list[str]):
+def get_dns_caa_records(domain : str, timeout=5) -> Tuple[list[str], list[str]]:
 
     try:
         resolver = dns.resolver.Resolver(configure=False)
@@ -309,7 +309,7 @@ def get_dns_caa_records(domain : str, timeout=5) -> (list[str], list[str]):
         return [], []
 
 
-def getCertSHA256Hex(cert : Certificate) -> str:
+def get_cert_sha256_hex(cert : Certificate) -> str:
     sha256_hash = hashlib.sha256(cert.public_bytes(Encoding.PEM))
     sha256_hex = sha256_hash.hexdigest()
     return sha256_hex

@@ -9,6 +9,7 @@ from flask_sqlalchemy.model import Query
 import threading
 from datetime import datetime
 from ..scanner.scan_manager import manager, ScanConfig, ScanType
+from ..parser.cert_parser_base import X509CertParser
 from ..logger.logger import my_logger
 
 
@@ -48,9 +49,10 @@ def cert_search_list():
 def get_cert_info(cert_id):
 
     cert_raw = CertStoreRaw.query.get(cert_id).get_raw()
+    parser = X509CertParser(cert_raw)
 
     filters = []
     filters.append(CertScanMeta.CERT_ID == cert_id)
     scan_metas = CertScanMeta.query.filter(*filters)
 
-    return jsonify({'code': 200, 'msg': '操作成功', "cert_raw" : cert_raw, "scan_info" : [scan_meta.to_json() for scan_meta in scan_metas]})
+    return jsonify({'code': 200, 'msg': '操作成功', "cert_data" : parser.to_json(), "scan_info" : [scan_meta.to_json() for scan_meta in scan_metas]})

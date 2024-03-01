@@ -105,7 +105,7 @@ import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 import MultiEChartsPieChart from '../components/piechart/MultiPieChart';
 
 export default {
-  name: "Cert Analysis",
+  name: "CertAnalysis",
   dicts: ['sys_normal_disable'],
   components: { Treeselect, MultiEChartsPieChart },
 

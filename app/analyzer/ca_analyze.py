@@ -1,6 +1,6 @@
 
-from .utils import LeafCertType, CertType
-from .cert_analyze import CertScanAnalyzer
+from ..utils.utils import LeafCertType, CertType
+from ..analyzer.scan_cert_analyze import ScanCertAnalyzer
 from ..logger.logger import my_logger
 
 from collections import Counter
@@ -70,8 +70,8 @@ class CAMetricResult():
 
 class CAMetricAnalyzer():
 
-    def __init__(self, cert_scan_analyzer : CertScanAnalyzer) -> None:
-        self.cert_scan_analyzer : CertScanAnalyzer = cert_scan_analyzer
+    def __init__(self, cert_scan_analyzer : ScanCertAnalyzer) -> None:
+        self.cert_scan_analyzer : ScanCertAnalyzer = cert_scan_analyzer
         self.ca_dict : Dict[Tuple[str, str, str], CAMetricResult] = {}
         self.support_data = AnalysisSupportDataStructure({}, {}, {}, {})
         self.analyzeFromCertScanResult()

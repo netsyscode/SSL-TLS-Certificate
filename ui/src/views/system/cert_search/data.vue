@@ -3,7 +3,7 @@
     <el-row :gutter="20">
       <el-col :sm="24" :lg="24" style="padding-left: 20px">
         <h2>证书详细信息</h2>
-        <p>{{ certRaw }}</p>
+        <p>{{ certData }}</p>
       </el-col>
     </el-row>
 
@@ -77,7 +77,7 @@ export default {
       // 是否显示弹出层
       open: false,
       // 证书信息
-      certRaw: undefined,
+      certData: {},
       scanInfoList: [],
     };
   },
@@ -90,7 +90,7 @@ export default {
     getCert(certId) {
       this.loading = true;
       getCertInfo(certId).then(response => {
-        this.certRaw = response.cert_raw
+        this.certData = response.cert_data
         this.scanInfoList = response.scan_info
         this.loading = false;
       });

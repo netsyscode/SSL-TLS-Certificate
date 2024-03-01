@@ -5,7 +5,7 @@ from ..models import CertAnalysisStats
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
 
-from ..analyzer.cert_analyze import CertScanAnalyzer
+from ..analyzer.scan_cert_analyze import ScanCertAnalyzer
 from ..logger.logger import my_logger
 
 from .. import db

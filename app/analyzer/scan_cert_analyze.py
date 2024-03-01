@@ -1,4 +1,6 @@
 
+
+
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 # from cryptography.hazmat.backends.openssl import rsa, ec
@@ -32,7 +34,7 @@ from cryptography.x509.ocsp import OCSPCertStatus, OCSPResponseStatus, OCSPRespo
 from cryptography.exceptions import InvalidSignature, UnsupportedAlgorithm
 from cryptography.x509 import Extensions
 
-from .utils import (
+from ..utils.utils import (
     CertType,
     LeafCertType,
     requestCRLResponse,
@@ -42,10 +44,11 @@ from .utils import (
     utcTimeDifferenceInDays,
     getNameAttribute,
     get_dns_caa_records,
-    getCertSHA256Hex
+    get_cert_sha256_hex
 )
 
 from ..logger.logger import my_logger
+from ..parser.cert_parser_base import X509CertParser
 
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
@@ -61,41 +64,16 @@ import os
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import insert
 from ..models import CertAnalysisStats, CertStoreContent, CertStoreRaw
+from ..parser.cert_parser_base import X509ParsedInfo
 from app import app, db
 from threading import Lock
 import threading
 import time
 
-@dataclass
-class X509SingleCertResult():
 
-    cert_type : CertType
 
-    # Subject analysis
-    subject_cn : str             # only for subject_cn field
-    subject_cns : List[str]      # SAN included 
-    subject_org : Optional[str]
-    subject_country : Optional[str]
 
-    # Issuer analysis
-    issuer_cn : str
-    issuer_org : str
-    issuer_country : str
-    # is_issuer_name_matched : bool
-
-    # Expiration analysis
-    not_valid_before : datetime
-    not_valid_after : datetime
-    validation_period : int     # in days
-    has_expired : bool
-
-    # crypto checking
-    pub_key : str
-    subject_pub_key_type : types.CertificatePublicKeyTypes
-    subject_pub_key_size : int
-    cert_signature_hash_algorithm : str
-    # cert_signature_algorithm : Union[None, padding.PKCS1v15, padding.PSS, ec.ECDSA]
-    # cert_signature_algorithm : str
+class data():
     # cert_signature_verified : bool
 
     '''
@@ -111,19 +89,13 @@ class X509SingleCertResult():
                     the server does not respond
                     the cert has no AIA (Authority Information Access) extension
     '''
-    is_revoked_from_CRL : Optional[bool]
-    ocsp_response_status : Optional[OCSPResponseStatus]
-    ocsp_cert_status : Optional[OCSPCertStatus]
+    # is_revoked_from_CRL : Optional[bool]
+    # ocsp_response_status : Optional[OCSPResponseStatus]
+    # ocsp_cert_status : Optional[OCSPCertStatus]
     # revocation_time : Optional[datetime]
     # revocation_reason : Optional[ReasonFlags]
 
-    raw_str : str
-    sha_256 : str
-
-
-# main stuff here
-class X509SingleCertAnalyzer():
-
+class certTmep():
     def __init__(
             self,
             host_name: str,
@@ -136,6 +108,17 @@ class X509SingleCertAnalyzer():
         self.cert_type = cert_type
         self.cert = cert
         self.issuer_cert = issuer_cert
+
+        # Check CRL
+        # crl_revoked = self.checkRevocationStatusFromCRL()
+        crl_revoked = None
+        # Check OCSP:
+        ocsp_status, cert_status, revocation_time, revocation_reason = None, None, None, None
+        # ocsp_result = self.checkRevocationStatusFromOCSP()
+        # if ocsp_result is not None:
+            # ocsp_status, cert_status, revocation_time, revocation_reason = ocsp_result
+        
+        
 
 
     def checkRevocationStatusFromOCSP(
@@ -240,85 +223,12 @@ class X509SingleCertAnalyzer():
             my_logger.warn(f"Cert {self.cert.serial_number} has no issuer cert avaliable")
 
         return sig_verified
-    
-
-    def analyzeSingleCertBase(self) -> X509SingleCertResult:
-
-        subject = self.cert.subject
-        subject_cn, is_subject_cn_mult = getNameAttribute(subject, NameOID.COMMON_NAME, None)
-        subject_org, is_subject_org_mult = getNameAttribute(subject, NameOID.ORGANIZATION_NAME, None)
-        subject_country, is_subject_country_mult = getNameAttribute(subject, NameOID.COUNTRY_NAME, None)
-
-        issuer = self.cert.issuer
-        issuer_cn, is_issuer_cn_mult = getNameAttribute(issuer, NameOID.COMMON_NAME, None)
-        issuer_org, is_issuer_org_mult = getNameAttribute(issuer, NameOID.ORGANIZATION_NAME, None)
-        issuer_country, is_issuer_country_mult = getNameAttribute(issuer, NameOID.COUNTRY_NAME, None)
-
-        time_begin = self.cert.not_valid_before_utc
-        time_end = self.cert.not_valid_after_utc
-        cert_period = utcTimeDifferenceInDays(time_end, time_begin)
-        current_utc_time = datetime.now(timezone.utc)
-
-        # 通过添加时区信息确保 time_end 也是 UTC 时间
-        time_end_utc = time_end.replace(tzinfo=timezone.utc)
-        has_expired = (current_utc_time > time_end_utc)
-
-        pub_key_type = self.cert.public_key()
-        pub_key_size = pub_key_type.key_size
-
-        try:
-            signature_hash_algorithm = self.cert.signature_hash_algorithm
-            signature_hash_algorithm_name = self.cert.signature_hash_algorithm.name
-        except UnsupportedAlgorithm:
-            '''
-                cryptography.exceptions.UnsupportedAlgorithm: 
-                Signature algorithm OID: 1.2.840.113549.1.1.10 not recognized
-            '''
-            signature_hash_algorithm = None
-            signature_hash_algorithm_name = "Unsupported"
-
-        # Check CRL
-        # crl_revoked = self.checkRevocationStatusFromCRL()
-        crl_revoked = None
-        # Check OCSP:
-        ocsp_status, cert_status, revocation_time, revocation_reason = None, None, None, None
-        # ocsp_result = self.checkRevocationStatusFromOCSP()
-        # if ocsp_result is not None:
-            # ocsp_status, cert_status, revocation_time, revocation_reason = ocsp_result
-
-        # SHA256
-        sha256_hex = getCertSHA256Hex(self.cert)
-
-        return X509SingleCertResult(
-
-            self.cert_type,
-            subject_cn,
-            [subject_cn],
-            subject_org,
-            subject_country,
-            issuer_cn,
-            issuer_org,
-            issuer_country,
-            time_begin,
-            time_end,
-            cert_period,
-            has_expired,
-            self.cert.public_key().public_bytes(
-                encoding=Encoding.PEM,
-                format=PublicFormat.SubjectPublicKeyInfo
-            ).decode(),
-            pub_key_type,
-            pub_key_size,
-            signature_hash_algorithm_name,
-            crl_revoked,
-            ocsp_status,
-            cert_status,
-            self.cert.public_bytes(Encoding.PEM).decode("utf-8"),
-            sha256_hex
-        )
 
 
-class CertScanAnalyzer():
+
+
+
+class ScanCertAnalyzer():
 
     def __init__(
             self,
@@ -356,28 +266,8 @@ class CertScanAnalyzer():
 
                 # 'sha256_id': self.CERT_ID,
                 # 'raw': self.CERT_RAW,
-                cert_id = row[0]
-                try:
-                    certs_as_x509 = (load_pem_x509_certificate(row[1].encode("utf-8"), default_backend()))
-                except:
-                    my_logger.warn("Meet cert ASN.1 format violation")
-                    continue
-
-                #     # Check cert type
-                #     cert_type = X509CertType.LEAFCERT
-                #     basic_constraints_result = Extensions.get_extension_for_oid(ExtensionOID.BASIC_CONSTRAINTS)
-
-                #     if basic_constraints_result:
-                #         if basic_constraints_result.ca_bit:
-                #             if cert.subject == cert.issuer:
-                #                 cert_type = X509CertType.ROOTCERT
-                #                 continue
-                #             else:
-                #                 cert_type = X509CertType.INTERMEDIATECERT
-                #                 continue
-
-                single_cert_analyzer = X509SingleCertAnalyzer("", CertType.LEAFCERT, certs_as_x509, certs_as_x509)
-                cert_analysis_result = single_cert_analyzer.analyzeSingleCertBase()
+                single_cert_analyzer = X509CertParser(row[1])
+                cert_analysis_result = single_cert_analyzer.parse_cert_base()
                 self.result_list.append(cert_analysis_result)
 
         my_logger.info("Cert scan analysis completed")
@@ -406,7 +296,13 @@ class CertScanAnalyzer():
                 }
 
                 for result in self.result_list:
-                    result : X509SingleCertResult
+                    result : X509ParsedInfo
+                    current_utc_time = datetime.now(timezone.utc)
+
+                    # 通过添加时区信息确保 time_end 也是 UTC 时间
+                    time_end_utc = result.not_valid_after.replace(tzinfo=timezone.utc)
+                    has_expired = (current_utc_time > time_end_utc)
+
                     cert_store_data_to_insert.append({
                         'CERT_ID' : result.sha_256,
                         # 'CERT_RAW' : result.raw_str,
@@ -415,16 +311,16 @@ class CertScanAnalyzer():
                         'ISSUER_ORG' : result.issuer_org,
                         'ISSUER_CERT_ID' : "",
                         'KEY_SIZE' : result.subject_pub_key_size,
-                        'KEY_TYPE' : KEY_TYPE_MAPPING[result.subject_pub_key_type.__class__],
+                        'KEY_TYPE' : KEY_TYPE_MAPPING[result.subject_pub_key_algo.__class__],
                         'NOT_VALID_BEFORE' : result.not_valid_before,
                         'NOT_VALID_AFTER' : result.not_valid_after,
                         'VALIDATION_PERIOD' : result.validation_period,
-                        'EXPIRED' : result.has_expired
+                        'EXPIRED' : has_expired
                     })
 
-                    if result.has_expired:
+                    if has_expired:
                         self.expired += 1
-                    self.key_type.append(str(result.subject_pub_key_type.__class__))
+                    self.key_type.append(str(result.subject_pub_key_algo.__class__))
                     self.length.append(result.subject_pub_key_size)
                     self.issuer.append(result.issuer_org)
                     self.valid.append(result.validation_period)
