@@ -387,7 +387,9 @@ INSERT INTO `SYS_DICT_DATA` (`dict_code`, `dict_sort`, `dict_label`, `dict_value
 	(55, 3, '扫描CT日志', '2', 'sys_scan_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
 	(56, 1, 'leaf', '0', 'sys_cert_type', '', 'info', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
 	(57, 2, 'intermediate', '1', 'sys_cert_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
-	(58, 3, 'root', '3', 'sys_cert_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '');
+	(58, 3, 'root', '3', 'sys_cert_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+	(59, 1, 'RSA', '0', 'sys_key_type', '', 'info', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+	(60, 2, 'ECDSA', '1', 'sys_key_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '');
 
 
 -- 导出  表 authbase.SYS_DICT_TYPE 结构
@@ -421,7 +423,8 @@ INSERT INTO `SYS_DICT_TYPE` (`dict_id`, `dict_name`, `dict_type`, `status`, `cre
 	-- 在这里添加新的Dict类型
 	(12, '扫描进程状态', 'sys_scan_status', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL),
 	(13, '扫描类型', 'sys_scan_type', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL),
-	(14, '证书类型', 'sys_cert_type', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL);
+	(14, '证书类型', 'sys_cert_type', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL),
+	(15, '密钥类型', 'sys_key_type', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL);
 
 
 -- 导出  表 authbase.SYUSER 结构

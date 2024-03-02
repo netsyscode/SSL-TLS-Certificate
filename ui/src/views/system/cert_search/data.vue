@@ -3,7 +3,46 @@
     <el-row :gutter="20">
       <el-col :sm="24" :lg="24" style="padding-left: 20px">
         <h2>证书详细信息</h2>
-        <p>{{ certData }}</p>
+
+        <template>
+          <el-card>
+            <div slot="header">Certificate Information</div>
+            <div class="certificate-item">
+              <strong>Certificate:</strong>
+
+              <div class="indent">
+                <div v-for="(value, key) in certData" :key="key">
+
+                  <strong style="display: inline-block;"> {{ key }}:</strong>
+
+                  <template v-if="isObject(value)" class="indent">
+                    <div v-for="(subValue, subKey) in value" :key="subKey">
+                      <strong style="display: inline-block;">{{ subKey }}:</strong>
+                      <span v-if="checkKeyInDict(subKey)[0]" style="display: inline-block;">
+                        <dict-tag :options="checkKeyInDict(subKey)[1]" :value="subValue"/>
+                      </span>
+                      <span v-else>
+                        <code class="code-block">{{ subValue }}</code>
+                      </span>
+                    </div>
+                  </template>
+
+                  <template v-else>
+                    <span v-if="checkKeyInDict(key)[0]" style="display: inline-block;">
+                      <dict-tag :options="checkKeyInDict(key)[1]" :value="value"/>
+                    </span>
+                    <span v-else>
+                      <code class="code-block">{{ value }}</code>
+                    </span>
+                  </template>
+
+                </div>
+              </div>
+
+            </div>
+          </el-card>
+        </template>
+
       </el-col>
     </el-row>
 
@@ -65,7 +104,7 @@ import { getCertInfo } from "@/api/system/cert_search";
 
 export default {
   name: "CertView",
-  dicts: ['sys_cert_type'],
+  dicts: ['sys_cert_type', 'sys_key_type'],
   data() {
     return {
       // 遮罩层
@@ -95,6 +134,18 @@ export default {
         this.loading = false;
       });
     },
+    isObject(value) {
+      return value !== null && typeof value === 'object';
+    },
+    checkKeyInDict(key) {
+      if (key === "cert_type") {
+        return [true, this.dict.type.sys_cert_type || ''];
+      } else if (key === "subject_pub_key_algo") {
+        return [true, this.dict.type.sys_key_type || ''];
+      } else {
+        return [false, ''];
+      }
+    }
   }
 };
 </script>
@@ -160,6 +211,24 @@ export default {
       padding-inline-start: 40px;
     }
   }
+  .certificate-item {
+  margin-bottom: 8px;
+  }
+  strong {
+    font-family: 'Courier New', monospace;
+    background-color: #f4f4f4;
+    padding: 2px 2px;
+    border-radius: 4px;
+    display: inline-block;
+    line-height: 2.5;
+  }
+  .code-block {
+    font-family: 'Courier New', monospace;
+    padding: 2px 4px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+
 }
 </style>
 
