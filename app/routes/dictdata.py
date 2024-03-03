@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from flask_login import current_user
-from ..base import base
+from ..blueprint import base
 from ..models import DictData, DictType
 from flask import render_template, request, jsonify
 from sqlalchemy import asc

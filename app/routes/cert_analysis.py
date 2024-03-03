@@ -1,11 +1,11 @@
 
-from ..base import base
+from ..blueprint import base
 from ..models import CertAnalysisStats
 
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
 
-from ..analyzer.scan_cert_analyze import ScanCertAnalyzer
+from ..analyzer.cert_analyze_base import ScanCertAnalyzer
 from ..logger.logger import my_logger
 
 from .. import db

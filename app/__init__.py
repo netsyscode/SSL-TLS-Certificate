@@ -1,7 +1,7 @@
 from flask import Flask, render_template
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
-from config import config
+from config.config import config
 from flask_login import LoginManager
 import flask_excel as excel
 from flask_cors import CORS
@@ -43,5 +43,5 @@ def create_app(config_name):
     return app
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
-from .base import base as base_blueprint
+from .blueprint import base as base_blueprint
 app.register_blueprint(base_blueprint)

@@ -3,7 +3,7 @@ import importlib
 from operator import or_
 
 from app.models.Organization import Organization
-from ..base import base
+from ..blueprint import base
 from ..models import Role, Resource, User
 from flask import render_template, request
 from flask_login import current_user

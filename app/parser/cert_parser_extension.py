@@ -31,7 +31,7 @@ from cryptography.x509.oid import (
     AuthorityInformationAccessOID
 )
 
-from ..utils.utils import (
+from ..utils.cert import (
     CertType,
     LeafCertType,
     requestCRLResponse,

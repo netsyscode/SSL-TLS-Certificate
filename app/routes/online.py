@@ -1,4 +1,4 @@
-from ..base import base
+from ..blueprint import base
 from ..models import OnLine
 from flask import render_template, request, jsonify
 from sqlalchemy import asc

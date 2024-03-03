@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from app import db, app
 from .scan_manager import ScanConfig, ScanType, ScanStatusType
 from ..logger.logger import my_logger
-from ..analyzer.scan_cert_analyze import ScanCertAnalyzer
+from ..analyzer.cert_analyze_base import ScanCertAnalyzer
 from ..models import (
     ScanStatus, ScanData, CertData, generate_cert_data_table, generate_scan_data_table,
     CertScanMeta, CertStoreContent, CertStoreRaw
