@@ -1,0 +1,88 @@
+<html>
+    <head>
+        <title>证书态势分析</title>
+        <style>
+            .button {
+                display: inline-block;
+                padding: 10px 20px;
+                font-size: 18px;
+                cursor: pointer;
+                text-align: center;
+                text-decoration: none;
+                outline: none;
+                color: #fff;
+                background-color: #3067e8;
+                border: none;
+                border-radius: 15px;
+                box-shadow: 0 9px #c1c1c3;
+                }
+                
+            .button:hover {
+                background-color: #3067e8
+            }
+            
+            .button:active {
+                background-color: #34549f;
+                box-shadow: 0 5px #666;
+                transform: translateY(4px);
+            }
+        </style>
+    <!-- <link rel="stylesheet" href="/static/style.css"> -->
+    </head>
+
+
+    <body>
+        <h1 align = "center">证书态势分析</h1>
+        
+        <div style = "text-align:center;">
+            <br><a href="/system/scan_status" class = "button">爬取状态</a> <a href="/cert_fail/0" class = "button">问题证书</a> <a href="/ca/0" class = "button">CA态势分析</a> <a href="/" class = "button">返回首页</a><br>
+        </div>
+        
+        <div style = "text-align:center;">
+            <br><h2 >叶证书数据量：</h2><br>
+            <div id="certnum"></div>
+            
+            <h2 >过期证书比例：</h2><br>
+            <div id="expired"></div>
+            
+            <h2>加密算法比例:</h2>
+            <div id="algo"></div>
+
+            <h2>密钥平均长度: </h2><br>
+            <div id="avg_length"></div>
+
+            <!-- <input type="text" id="domainInput" placeholder="Enter Domain" onkeypress="handleKeyPressCertificate(event)"> -->
+            
+        <!-- {% if data %}
+        <h2>证书详情</h2>
+            {% for elem in data %}
+            <div>
+                <h3>{{ elem.domain }}</h3>
+
+                <div>签名算法&emsp;{{ elem.signature }}</div>
+
+                <div><b>发布者信息：</b></div>
+
+                <div>&emsp;通用名称:{{ elem.issuerCN }}&emsp;机构名:{{ elem.issuerO }}<br>机构单元名称:{{ elem.issuerOU }}</div>
+
+                <div>&emsp;国家:{{ elem.issuerC }}&emsp;州/省:{{ elem.issuerS }}&emsp;地理位置:{{ elem.issuerL }}</div>
+
+                <div><b>持有者信息:</b></div>
+
+                <div>&emsp;通用名称:{{ elem.subjectCN }}&emsp;机构名:{{ elem.subjectO }}&emsp;机构单元名称:{{ elem.subjectOU }}</div>
+
+                <div>&emsp;国家:{{ elem.subjectC }}&emsp;州/省:{{ elem.subjectS }}&emsp;地理位置:{{ elem.subjectL }}</div>
+
+                <div>密钥长度&emsp;{{ elem.keyLength }}</div>
+
+                <div>有效期内&emsp;{{ elem.timeValid }}</div>
+            </div><br>
+            {% endfor %} -->
+
+            <!-- <a href="/cert/0">首页</a> <a href="/cert/{{ prevPage }}">上一页</a> <a href="/cert/{{ nextPage }}">下一页</a> <a href="/cert/{{ lastPage }}">尾页</a>
+        {% endif %} -->
+        <script src="/static/scripts/cert.js"></script>
+
+        </div>
+    </body>
+</html>

@@ -1,0 +1,58 @@
+<html>
+    <head>
+        <title>全球互联网证书监控系统</title>
+        <style>
+            .button {
+                display: inline-block;
+                padding: 10px 20px;
+                font-size: 18px;
+                cursor: pointer;
+                text-align: center;
+                text-decoration: none;
+                outline: none;
+                color: #fff;
+                background-color: #3067e8;
+                border: none;
+                border-radius: 15px;
+                box-shadow: 0 9px #c1c1c3;
+                }
+                
+            .button:hover {
+                background-color: #3067e8
+            }
+            
+            .button:active {
+                background-color: #34549f;
+                box-shadow: 0 5px #666;
+                transform: translateY(4px);
+            }
+        </style>
+        <!-- <script type="module" src="/static/scripts/scan.js"></script> -->
+
+    </head>
+
+    <body>
+        <h1 align = "center">全球互联网证书监控系统</h1>
+        <div style="text-align:center;">
+            <br><br>
+            <button onclick=startScanning() class="button" id="scanButton">开始扫描（10W域名）</button>
+            <br><br><br>
+        </div>
+        <div style = "text-align:center;">
+            <a  href="/cert" class = "button">证书态势分析</a> <br> <br> <br>
+        </div>
+        <div style = "text-align:center;">
+            <a href="/cert_fail" class = "button">问题证书</a> <br> <br> <br> 
+        </div>
+        <div style = "text-align:center;">
+            <a href="/ca" class = "button">CA态势分析</a> <br> <br> <br> 
+        </div>
+        <!-- <script type="module" src="../dist/bundle.js"></script> -->
+        <!-- <script type="module" src="/static/scripts/scan.js"></script> -->
+
+        <script src="/static/scripts/scan.js"></script>
+    </body>
+
+
+<!--reference:
+https://blog.csdn.net/weixin_35750483/article/details/128869005?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522170489694916800215057757%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=170489694916800215057757&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~baidu_landing_v2~default-2-128869005-null-null.142^v99^pc_search_result_base7&utm_term=html%E8%B6%85%E9%93%BE%E6%8E%A5%E6%8C%89%E9%92%AE%E6%A0%B7%E5%BC%8F&spm=1018.2226.3001.4187-->
