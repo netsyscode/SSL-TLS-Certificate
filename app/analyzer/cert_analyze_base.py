@@ -34,7 +34,7 @@ from cryptography.x509.ocsp import OCSPCertStatus, OCSPResponseStatus, OCSPRespo
 from cryptography.exceptions import InvalidSignature, UnsupportedAlgorithm
 from cryptography.x509 import Extensions
 
-from ..utils.utils import (
+from ..utils.cert import (
     CertType,
     LeafCertType,
     requestCRLResponse,

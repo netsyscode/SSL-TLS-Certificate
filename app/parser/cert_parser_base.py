@@ -30,7 +30,7 @@ from cryptography.x509.oid import NameOID, ExtensionOID, SignatureAlgorithmOID, 
 from cryptography.exceptions import InvalidSignature, UnsupportedAlgorithm
 from ..logger.logger import my_logger
 
-from ..utils.utils import (
+from ..utils.cert import (
     CertType,
     LeafCertType,
     requestCRLResponse,
@@ -47,7 +47,7 @@ from ..utils.utils import (
 from datetime import datetime, timezone
 from dataclasses import dataclass, asdict
 from typing import Optional, Dict, List, Union, Tuple
-from ..utils.utils import CertType
+from ..utils.cert import CertType
 from ..utils.custom_exceptions import ParseError
 from .cert_parser_extension import X509CertExtensionParser, ExtensionResult
 

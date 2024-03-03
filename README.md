@@ -1,11 +1,19 @@
 # global_ca_monitor
 
-## Run
+## Backend
 
 In the root dir:
 
 ```
+pip install -r requirements.txt
 py .\start.py
 ```
 
-See frontend in http://127.0.0.1:5000
+## Frontend
+
+In the ui dir:
+
+```
+npm install
+npm run dev
+```

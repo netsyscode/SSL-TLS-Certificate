@@ -1,4 +1,4 @@
-from ..base import base
+from ..blueprint import base
 from ..models import Resource
 from ..models import Role
 from ..models import User

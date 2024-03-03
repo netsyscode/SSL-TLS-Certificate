@@ -1,6 +1,6 @@
 
-from ..utils.utils import LeafCertType, CertType
-from ..analyzer.scan_cert_analyze import ScanCertAnalyzer
+from ..utils.cert import LeafCertType, CertType
+from .cert_analyze_base import ScanCertAnalyzer
 from ..logger.logger import my_logger
 
 from collections import Counter

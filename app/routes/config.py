@@ -2,7 +2,7 @@ from datetime import datetime
 from distutils.command.config import config
 
 from flask_login import current_user
-from ..base import base
+from ..blueprint import base
 from ..models import Config
 from flask import render_template, request, jsonify
 from sqlalchemy import asc
