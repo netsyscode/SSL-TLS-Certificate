@@ -43,3 +43,22 @@ class CertAnalysisStats(db.Model):
 
     def __repr__(self):
         return f"<CertAnalysisStats {self.SCAN_ID}>"
+
+
+class CertChainRelation(db.Model):
+    __tablename__ = "CERT_CHAIN_RELATION"
+
+    CERT_ID = db.Column(db.String(64), db.ForeignKey('CERT_STORE_RAW.CERT_ID'), primary_key=True, nullable=False, index=True)
+    CERT_PARENT_ID = db.Column(db.String(64), db.ForeignKey('CA_CERT_STORE.CERT_ID'), primary_key=True, nullable=False, index=True)
+
+    def to_json(self):
+        return {
+            "cert_id": self.CERT_ID,
+            "cert_parent_id": self.CERT_PARENT_ID
+        }
+    
+    def get_id(self):
+        return str(self.CERT_ID)
+
+    def __repr__(self):
+        return f"<CertChainRelation {self.CERT_ID}>"

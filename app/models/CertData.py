@@ -111,3 +111,27 @@ class CertScanMeta(db.Model):
 
     def __repr__(self):
         return f"<CertScanMeta {self.CERT_ID}>"
+
+
+class CaCertStore(db.Model):
+    __tablename__ = "CA_CERT_STORE"
+    
+    CERT_ID = db.Column(db.String(64, collation='gbk_chinese_ci'), db.ForeignKey('CERT_STORE_RAW.CERT_ID'), primary_key=True, nullable=False, index=True)
+    CERT_RAW = db.Column(db.Text, nullable=False)
+    CERT_TYPE = db.Column(db.Integer, default=1, nullable=False)
+
+    def to_json(self):
+        return {
+            'cert_id': self.CERT_ID,
+            'raw': self.CERT_RAW,
+            'cert_type' : self.CERT_TYPE
+        }
+    
+    def get_id(self):
+        return str(self.CERT_ID)
+    
+    def get_raw(self):
+        return str(self.CERT_RAW)
+
+    def __repr__(self):
+        return f"<CaCertStore {self.CERT_ID}>"
