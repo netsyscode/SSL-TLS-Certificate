@@ -31,24 +31,18 @@ from cryptography.exceptions import InvalidSignature, UnsupportedAlgorithm
 from ..logger.logger import my_logger
 
 from ..utils.cert import (
-    CertType,
-    LeafCertType,
-    requestCRLResponse,
-    requestOCSPResponse,
-    extractDomain,
-    isDomainMatch,
-    utcTimeDifferenceInDays,
-    getNameAttribute,
-    get_dns_caa_records,
+    domain_extract,
+    is_domain_match,
+    utc_time_diff_in_days,
+    get_name_attribute,
     get_cert_sha256_hex
 )
-
 
 from datetime import datetime, timezone
 from dataclasses import dataclass, asdict
 from typing import Optional, Dict, List, Union, Tuple
-from ..utils.cert import CertType
-from ..utils.custom_exceptions import ParseError
+from ..utils.type import CertType, LeafCertType
+from ..utils.exception import ParseError
 from .cert_parser_extension import X509CertExtensionParser, ExtensionResult
 
 
@@ -103,18 +97,18 @@ class X509CertParser():
     def parse_cert_base(self) -> X509ParsedInfo:
 
         subject = self.cert.subject
-        subject_cn = getNameAttribute(subject, NameOID.COMMON_NAME, None)
-        subject_org = getNameAttribute(subject, NameOID.ORGANIZATION_NAME, None)
-        subject_country = getNameAttribute(subject, NameOID.COUNTRY_NAME, None)
+        subject_cn = get_name_attribute(subject, NameOID.COMMON_NAME, None)
+        subject_org = get_name_attribute(subject, NameOID.ORGANIZATION_NAME, None)
+        subject_country = get_name_attribute(subject, NameOID.COUNTRY_NAME, None)
 
         issuer = self.cert.issuer
-        issuer_cn = getNameAttribute(issuer, NameOID.COMMON_NAME, None)
-        issuer_org = getNameAttribute(issuer, NameOID.ORGANIZATION_NAME, None)
-        issuer_country = getNameAttribute(issuer, NameOID.COUNTRY_NAME, None)
+        issuer_cn = get_name_attribute(issuer, NameOID.COMMON_NAME, None)
+        issuer_org = get_name_attribute(issuer, NameOID.ORGANIZATION_NAME, None)
+        issuer_country = get_name_attribute(issuer, NameOID.COUNTRY_NAME, None)
 
         time_begin = self.cert.not_valid_before_utc
         time_end = self.cert.not_valid_after_utc
-        cert_period = utcTimeDifferenceInDays(time_end, time_begin)
+        cert_period = utc_time_diff_in_days(time_end, time_begin)
 
 
         pub_key_type = self.cert.public_key()
@@ -135,15 +129,15 @@ class X509CertParser():
         sha256_hex = get_cert_sha256_hex(self.cert)
 
         # Check cert type
-        cert_type = CertType.LEAFCERT
+        cert_type = CertType.LEAF
         basic_constraints_result = self.cert.extensions.get_extension_for_oid(oid=ExtensionOID.BASIC_CONSTRAINTS)
 
         if basic_constraints_result:
             if basic_constraints_result.value.ca:
                 if subject == issuer:
-                    cert_type = CertType.ROOTCERT
+                    cert_type = CertType.ROOT
                 else:
-                    cert_type = CertType.INTERMEDIATECERT
+                    cert_type = CertType.INTERMEDIATE
 
 
         return X509ParsedInfo(

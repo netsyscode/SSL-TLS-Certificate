@@ -1,23 +1,4 @@
 
-
-import os
-from typing import Optional, Dict, Union
-from dataclasses import dataclass
-from datetime import datetime
-import time
-from app.scanner.scan_base import Scanner, ScanConfig, ScanType
-
-
-
-# if __name__ == "__main__":
-#     config = ScanConfig(ScanType.SCAN_BY_DOMAIN, save_threshold=10)
-#     task_id = Scanner(config)
-#     task_id.start()
-
-
-
-from socket import socket
-from datetime import datetime
 from OpenSSL import SSL
 from OpenSSL.crypto import dump_certificate, FILETYPE_PEM
 import urllib3

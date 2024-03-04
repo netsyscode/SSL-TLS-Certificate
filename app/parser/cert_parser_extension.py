@@ -31,17 +31,14 @@ from cryptography.x509.oid import (
     AuthorityInformationAccessOID
 )
 
+from ..utils.type import LeafCertType
 from ..utils.cert import (
-    CertType,
-    LeafCertType,
-    requestCRLResponse,
-    requestOCSPResponse,
-    extractDomain,
-    isDomainMatch,
-    utcTimeDifferenceInDays,
-    getNameAttribute,
-    checkLocalDomain,
-    checkLocalIP
+    domain_extract,
+    is_domain_match,
+    utc_time_diff_in_days,
+    get_name_attribute,
+    check_local_domain,
+    check_local_ip
 )
 
 from webPKIScanner.logger.logger import (
@@ -114,8 +111,8 @@ class X509CertExtensionParser():
         output_list = []
         for extension in self.extensions:
             # do not want static method here right now...
-            if extension.value.__class__ in EXTENSIONTOEXTENSIONParser.keys():
-                result = EXTENSIONTOEXTENSIONParser[extension.value.__class__]().analyze(extension)
+            if extension.value.__class__ in EXTENSIONTOEXTENSIONPARSER.keys():
+                result = EXTENSIONTOEXTENSIONPARSER[extension.value.__class__]().analyze(extension)
                 output_list.append(result)
         return output_list
 
@@ -220,11 +217,11 @@ class SANParser(SingleExtensionParser):
             for name in value._general_names:
                 if isinstance(name, DNSName):
                     dns_names.append(name.value)
-                    if checkLocalDomain(name.value):
+                    if check_local_domain(name.value):
                         has_local_domain = True
                 elif isinstance(name, IPAddress):
                     ip_names.append(name.value)
-                    if checkLocalIP(name.value):
+                    if check_local_ip(name.value):
                         has_local_ip = True
                 else:
                     has_other_name_type = True
@@ -251,7 +248,7 @@ class CertPoliciesParser(SingleExtensionParser):
         return None
 
 
-EXTENSIONTOEXTENSIONParser : Dict[Extension, SingleExtensionParser] = {
+EXTENSIONTOEXTENSIONPARSER : Dict[Extension, SingleExtensionParser] = {
     AuthorityInformationAccess : AIAParser,
     BasicConstraints : BasicConstraintParser,
     ExtendedKeyUsage : ExtendedKeyUsageParser,

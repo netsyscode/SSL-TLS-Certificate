@@ -63,9 +63,9 @@ class Organization(db.Model, UserMixin):
 
     SYORGANIZATION_ID = db.Column(db.String, db.ForeignKey('SYORGANIZATION.ID'))
 
-    parent = db.relationship('Organization', remote_side=[ID], backref='organization', uselist=False)
-
-    children = db.relationship('Organization')
+    # "Show the parent-child relationship explicitly."
+    parent = db.relationship('Organization', remote_side=[ID], backref='children', uselist=False)
+    children = db.relationship('Organization', remote_side=[ID], backref='parent', uselist=True)
 
     def to_json(self):
         return {

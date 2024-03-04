@@ -34,21 +34,18 @@ from cryptography.x509.ocsp import OCSPCertStatus, OCSPResponseStatus, OCSPRespo
 from cryptography.exceptions import InvalidSignature, UnsupportedAlgorithm
 from cryptography.x509 import Extensions
 
+from .cert_analyze_revocation import requestCRLResponse, requestOCSPResponse
 from ..utils.cert import (
-    CertType,
-    LeafCertType,
-    requestCRLResponse,
-    requestOCSPResponse,
-    extractDomain,
-    isDomainMatch,
-    utcTimeDifferenceInDays,
-    getNameAttribute,
-    get_dns_caa_records,
+    domain_extract,
+    is_domain_match,
+    utc_time_diff_in_days,
+    get_name_attribute,
     get_cert_sha256_hex
 )
 
 from ..logger.logger import my_logger
 from ..parser.cert_parser_base import X509CertParser
+from ..utils.type import CertType
 
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone

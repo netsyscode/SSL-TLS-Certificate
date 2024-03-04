@@ -3,12 +3,11 @@ from ..blueprint import base
 from ..models import ScanStatus
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
-from sqlalchemy import func
 
 import threading
-from datetime import datetime
-from ..scanner.scan_manager import manager, ScanConfig, ScanType
-from ..logger.logger import my_logger
+from ..scanner.scan_manager import manager
+from ..config.scan_config import ScanConfig
+from ..utils.type import ScanType
 
 
 @base.route('/system/scan_process/list', methods=['GET'])
@@ -41,10 +40,10 @@ def scan_process_list():
 def scan_process_start():
 
     config = ScanConfig(
-        scan_name=request.json['scanName'],
-        scan_type=ScanType(int(request.json['scanTypeOptions'])),
-        scan_domain_num=int(request.json['scanDomainNum']),
-        max_threads=int(request.json['scanThreadNum'])
+        SCAN_NAME=request.json['scanName'],
+        SCAN_TYPE=ScanType(int(request.json['scanTypeOptions'])),
+        NUM_DOMAIN_SCAN=int(request.json['scanDomainNum']),
+        THREADS_ALLOC=int(request.json['scanThreadNum'])
     )
 
     task_id = manager.register(config)

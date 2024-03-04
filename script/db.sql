@@ -379,9 +379,10 @@ INSERT INTO `SYS_DICT_DATA` (`dict_code`, `dict_sort`, `dict_label`, `dict_value
 	(101, 1, '注销', '0', 'sys_login_type', NULL, 'default', NULL, '0', 'admin', '2022-06-10 00:29:48', NULL, '2022-06-10 00:29:48', NULL),
 
 	-- 在这里添加新的Dict数据
-	(50, 1, '运行中', '0', 'sys_scan_status', '', 'warning', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '正常状态'),
-	(51, 2, '完成', '1', 'sys_scan_status', '', 'primary', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '扫描正常结束'),
-	(52, 3, '停止', '2', 'sys_scan_status', '', 'danger', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '扫描人为中断'),
+	(49, 1, '运行中', '0', 'sys_scan_status', '', 'warning', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '正常状态'),
+	(50, 2, '完成', '1', 'sys_scan_status', '', 'primary', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '扫描正常结束'),
+	(51, 3, '暂停', '2', 'sys_scan_status', '', 'warnin', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '扫描暂停'),
+	(52, 4, '终止', '2', 'sys_scan_status', '', 'danger', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '扫描人为中断'),
 	(53, 1, '扫描Top域名', '0', 'sys_scan_type', '', 'info', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
 	(54, 2, '扫描IP地址', '1', 'sys_scan_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
 	(55, 3, '扫描CT日志', '2', 'sys_scan_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
@@ -389,7 +390,10 @@ INSERT INTO `SYS_DICT_DATA` (`dict_code`, `dict_sort`, `dict_label`, `dict_value
 	(57, 2, 'intermediate', '1', 'sys_cert_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
 	(58, 3, 'root', '3', 'sys_cert_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
 	(59, 1, 'RSA', '0', 'sys_key_type', '', 'info', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
-	(60, 2, 'ECDSA', '1', 'sys_key_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '');
+	(60, 2, 'ECDSA', '1', 'sys_key_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+	(61, 1, 'Unauthorized', '0', 'cert_revocation_status', '', 'warning', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+	(62, 2, 'Good', '1', 'cert_revocation_status', '', 'primary', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+	(63, 3, 'Revoked', '2', 'cert_revocation_status', '', 'danger', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '');
 
 
 -- 导出  表 authbase.SYS_DICT_TYPE 结构
@@ -424,7 +428,8 @@ INSERT INTO `SYS_DICT_TYPE` (`dict_id`, `dict_name`, `dict_type`, `status`, `cre
 	(12, '扫描进程状态', 'sys_scan_status', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL),
 	(13, '扫描类型', 'sys_scan_type', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL),
 	(14, '证书类型', 'sys_cert_type', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL),
-	(15, '密钥类型', 'sys_key_type', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL);
+	(15, '密钥类型', 'sys_key_type', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL),
+	(16, '证书吊销状态', 'cert_revocation_status', '0', 'admin', '2022-06-10 00:28:26', 'admin', '2022-06-10 00:28:26', NULL);
 
 
 -- 导出  表 authbase.SYUSER 结构
@@ -548,6 +553,7 @@ CREATE TABLE IF NOT EXISTS `CERT_STORE_RAW` (
   UNIQUE KEY `UK_cert_id_cert_store_raw` (`CERT_ID`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
 
+
 -- cert_store_content 存储证书本身的数据和解析结果
 CREATE TABLE IF NOT EXISTS `CERT_STORE_CONTENT` (
   `CERT_ID` varchar(64) NOT NULL,
@@ -581,6 +587,17 @@ CREATE TABLE IF NOT EXISTS `CERT_SCAN_METADATA` (
 CREATE INDEX FK_domain_cert_scan_metadata ON `CERT_SCAN_METADATA` (`SCAN_DOMAIN`(255));
 
 
+-- ca_cert_store 存储所有扫描到的CA中间证书和CA根证书
+CREATE TABLE IF NOT EXISTS `CA_CERT_STORE` (
+  `CERT_ID` varchar(64) CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
+  `CERT_RAW` TEXT NOT NULL,
+  `CERT_TYPE` INT DEFAULT 1,
+  PRIMARY KEY (`CERT_ID`) USING BTREE,
+  KEY `FK_ca_cert_store_cert_id` (`CERT_ID`) USING BTREE,
+  CONSTRAINT `FK_ca_cert_store_cert_id` FOREIGN KEY (`CERT_ID`) REFERENCES `CERT_STORE_RAW` (`CERT_ID`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
+
+
 -- 3. 分析数据
 -- cert_stat_result 存储每次扫描的证书分析结果
 CREATE TABLE IF NOT EXISTS `CERT_STAT_RESULT` (
@@ -598,6 +615,30 @@ CREATE TABLE IF NOT EXISTS `CERT_STAT_RESULT` (
   UNIQUE KEY `UK_cert_stat_result_scan_time` (`SCAN_TIME`) USING BTREE,
   UNIQUE KEY `UK_cert_stat_result_scan_id` (`SCAN_ID`) USING BTREE,
   CONSTRAINT `UK_cert_stat_result_scan_id` FOREIGN KEY (`SCAN_ID`) REFERENCES `SCAN_STATUS` (`ID`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
+
+
+-- cert_chain_relation 存储证书在证书链中的父亲（可能不只一个父亲）
+CREATE TABLE IF NOT EXISTS `CERT_CHAIN_RELATION` (
+  `CERT_ID` varchar(64) CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
+  `CERT_PARENT_ID` varchar(64) CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
+  PRIMARY KEY (`CERT_ID`, `CERT_PARENT_ID`) USING BTREE,
+  KEY `FK_cert_id_cert_chain_relation` (`CERT_ID`) USING BTREE,
+  CONSTRAINT `FK_cert_id_cert_chain_relation` FOREIGN KEY (`CERT_ID`) REFERENCES `CERT_STORE_RAW` (`CERT_ID`) ON DELETE RESTRICT,
+  KEY `FK_cert_parent_id_cert_chain_relation` (`CERT_PARENT_ID`) USING BTREE,
+  CONSTRAINT `FK_cert_parent_id_cert_chain_relation` FOREIGN KEY (`CERT_PARENT_ID`) REFERENCES `CA_CERT_STORE` (`CERT_ID`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
+
+
+-- cert_revocation_status_ocsp 存储使用OCSP协议验证证书吊销状态的信息
+CREATE TABLE IF NOT EXISTS `CERT_REVOCATION_STATUS_OCSP` (
+  `CERT_ID` varchar(64) CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
+  `CHECK_TIME` datetime NOT NULL,
+  `AIA_LOCATION` TEXT CHARACTER SET gbk COLLATE gbk_chinese_ci,
+  `REVOCATION_STATUS` INT DEFAULT 0,
+  PRIMARY KEY (`CERT_ID`, `CHECK_TIME`) USING BTREE,
+  KEY `FK_cert_id_cert_revocation_status` (`CERT_ID`) USING BTREE,
+  CONSTRAINT `FK_cert_id_cert_revocation_status` FOREIGN KEY (`CERT_ID`) REFERENCES `CERT_STORE_RAW` (`CERT_ID`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
 
 

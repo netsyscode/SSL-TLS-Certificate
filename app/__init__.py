@@ -1,7 +1,7 @@
 from flask import Flask, render_template
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
-from config.config import config
+from .config.flask_config import flask_config
 from flask_login import LoginManager
 import flask_excel as excel
 from flask_cors import CORS
@@ -33,8 +33,8 @@ def create_app(config_name):
     CORS(app)
     #  替换默认的json编码器
     app.json_encoder = CustomJSONEncoder
-    app.config.from_object(config[config_name])
-    config[config_name].init_app(app)
+    app.config.from_object(flask_config[config_name])
+    flask_config[config_name].init_app(app)
 
     moment.init_app(app)
     db.init_app(app)
