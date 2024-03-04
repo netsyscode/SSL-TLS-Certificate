@@ -21,7 +21,8 @@ from OpenSSL.crypto import dump_certificate, FILETYPE_PEM
 from dataclasses import dataclass
 
 from app import db, app
-from .scan_manager import ScanConfig, ScanType, ScanStatusType
+from ..config.scan_config import ScanConfig
+from ..utils.type import ScanType, ScanStatusType
 from ..logger.logger import my_logger
 from ..analyzer.cert_analyze_base import ScanCertAnalyzer
 from ..models import (
@@ -62,18 +63,18 @@ class Scanner:
 
         # scan settings from scan config
         self.scan_id = scan_id
-        self.input_csv_file = scan_config.input_csv_file
-        self.out_put_dir = scan_config.output_dir
-        self.max_threads = scan_config.max_threads
-        self.save_threshold = scan_config.save_threshold
+        self.input_csv_file = scan_config.INPUT_FILE
+        self.out_put_dir = scan_config.OUTPUT_DIR
+        self.max_threads = scan_config.THREADS_ALLOC
+        self.save_threshold = scan_config.SAVE_CHUNK_SIZE
 
-        self.proxy_host = scan_config.proxy_host
-        self.proxy_port = scan_config.proxy_port
-        self.timeout = scan_config.timeout
+        self.proxy_host = scan_config.PROXY_HOST
+        self.proxy_port = scan_config.PROXY_PORT
+        self.timeout = scan_config.TIMEOUT
         self.max_retries = 3
         
         self.begin_num = begin_num
-        self.end_num = scan_config.scan_domain_num
+        self.end_num = scan_config.NUM_DOMAIN_SCAN
         self.task_queue = PriorityQueue()
         self.load_tasks_into_queue()
 
@@ -115,7 +116,7 @@ class Scanner:
             scan_time = (datetime.now() - self.scan_status_data.start_time).seconds
         elif self.scan_status_data.status == ScanStatusType.COMPLETED:
             scan_time = (self.scan_status_data.end_time - self.scan_status_data.start_time).seconds
-        elif self.scan_status_data.status == ScanStatusType.STOP:
+        elif self.scan_status_data.status == ScanStatusType.KILLED:
             scan_time = (self.scan_status_data.end_time - self.scan_status_data.start_time).seconds
         else:
             scan_time = -1
@@ -326,7 +327,7 @@ class Scanner:
             scan_time = (datetime.utcnow() - self.scan_status_data.start_time).seconds
         elif self.scan_status_data.status == ScanStatusType.COMPLETED:
             scan_time = (self.scan_status_data.end_time - self.scan_status_data.start_time).seconds
-        elif self.scan_status_data.status == ScanStatusType.STOP:
+        elif self.scan_status_data.status == ScanStatusType.KILLED:
             scan_time = (self.scan_status_data.end_time - self.scan_status_data.start_time).seconds
         else:
             scan_time = -1

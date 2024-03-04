@@ -3,12 +3,6 @@ from ..blueprint import base
 from ..models import CertStoreContent, CertScanMeta, CertStoreRaw
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
-from sqlalchemy import func, union
-from flask_sqlalchemy.model import Query
-
-import threading
-from datetime import datetime
-from ..scanner.scan_manager import manager, ScanConfig, ScanType
 from ..parser.cert_parser_base import X509CertParser
 from ..logger.logger import my_logger
 

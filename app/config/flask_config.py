@@ -45,7 +45,7 @@ class ProductionConfig(Config):
                               'sqlite:///' + os.path.join(basedir, 'data.sqlite')
 
 
-config = {
+flask_config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
     'production': ProductionConfig,

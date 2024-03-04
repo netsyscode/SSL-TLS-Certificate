@@ -4,50 +4,17 @@
     Certificate scan manager and register
 '''
 
-import os
 import uuid
-from enum import Enum
 from datetime import datetime
-from dataclasses import dataclass
 from typing import Optional, Dict, Union
 
 from app import db, app
+from .scan_base import Scanner
 from ..logger.logger import my_logger
 from ..models import ScanStatus, ScanData, CertAnalysisStats
+from ..config.scan_config import ScanConfig
+from ..utils.type import ScanType, ScanStatusType
 
-
-class ScanType(Enum):
-    SCAN_BY_DOMAIN = 0
-    SCAN_BY_IP = 1
-    SCAN_BY_CT = 2
-
-class ScanStatusType(Enum):
-    RUNNING = 0
-    COMPLETED = 1
-    STOP = 2
-
-@dataclass
-class ScanConfig():
-    '''
-        Scan Config represents all user-controlled parameters, passing from frontend
-    '''
-    scan_name : str = ""
-    scan_type : ScanType = ScanType.SCAN_BY_DOMAIN
-    input_csv_file : str = os.path.join(os.path.dirname(__file__), r"../data/top-1m.csv")
-    output_dir : str = os.path.join(os.path.dirname(__file__), r"../data")
-    # input_csv_file : str = os.path.join(os.path.dirname(__file__), r"..\data\top-1m.csv")
-    # output_dir : str = os.path.join(os.path.dirname(__file__), r"..\data")
-
-    proxy_host : str = '127.0.0.1'
-    proxy_port : int = 33210
-    timeout : int = 5
-
-    max_threads : int = 100
-    save_threshold : int = 2000
-    scan_domain_num : int = 100
-
-
-from .scan_base import Scanner
 class ScanManager():
 
     def __init__(self) -> None:
@@ -58,11 +25,11 @@ class ScanManager():
         # register entry in ScanStatus db model
         scan_process = ScanStatus()
         scan_process.ID = str(uuid.uuid4())
-        scan_process.NAME = scan_config.scan_name
-        scan_process.TYPE = scan_config.scan_type.value
+        scan_process.NAME = scan_config.SCAN_NAME
+        scan_process.TYPE = scan_config.SCAN_TYPE.value
         scan_process.START_TIME = datetime.utcnow()
         scan_process.STATUS = ScanStatusType.RUNNING.value
-        scan_process.NUM_THREADS = scan_config.max_threads
+        scan_process.NUM_THREADS = scan_config.THREADS_ALLOC
 
         time_to_str = scan_process.START_TIME.strftime("%Y%m%d%H%M%S")
         scan_process.CERT_STORE_TABLE = f"cert_store_{time_to_str}"
