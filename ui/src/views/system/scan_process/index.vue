@@ -178,7 +178,7 @@
 
     <!-- Config for new scan process -->
     <el-dialog :title="title" :visible.sync="open" width="600px" append-to-body>
-      <el-form ref="form" :model="form" :rules="baseRule" label-width="130px">
+      <el-form ref="form" :model="form" :rules="rules" label-width="130px">
         <el-row>
           <el-col :span="50">
             <el-form-item label="扫描进程名称" prop="scanName">
@@ -379,6 +379,7 @@ export default {
         scanThreadNum : 100,
       },
       // 表单校验
+      rules: undefined,
       baseRule: {
         scanName: [
           { required: true, message: "扫描名称不能为空", trigger: "blur" }
@@ -406,6 +407,7 @@ export default {
   },
   created() {
     this.startAutoRefresh();
+    this.rules = this.getScanRules(undefined);
     retriveDictMap(this.dict.type).then(response => {
       this.parseDict = response
       this.parseDict.sys_scan_type.forEach(scanType => {
@@ -424,31 +426,22 @@ export default {
     getMaxValue() {
       return 1000000000;
     },
-    getScanRules() {
-      const rulesMap = {
-        undefined: this.baseRule,
-        0: this.scanDomainRules,
-        1: this.scanIpRules,
-        2: this.scanCtRules,
-      };
-      return rulesMap[this.form.scanType] || null;
-    },
     scanDomainRules() {
-      let targetRules = this.baseRule;
+      let targetRules = { ...this.baseRule };
       targetRules["scanDomainNum"] = [
         { required: true, message: "扫描域名数量不能为空", trigger: "blur" },
       ];
       return targetRules;
     },
     scanIpRules() {
-      let targetRules = this.baseRule;
+      let targetRules = { ...this.baseRule };
       targetRules["scanIpFile"] = [
         { required: true, message: "扫描IP文件不能为空", trigger: "blur" },
       ];
       return targetRules;
     },
     scanCtRules() {
-      let targetRules = this.baseRule;
+      let targetRules = { ...this.baseRule };
       targetRules["ctLog"] = [
         { required: true, message: "扫描日志不能为空", trigger: "blur" },
       ];
@@ -465,8 +458,8 @@ export default {
   },
   watch: {
     'form.scanType': function(newValue, oldValue) {
-      // console.log(`Value changed from ${oldValue} to ${newValue}`);
-      this.baseRule = this.getScanRules;
+      console.log(`Value changed from ${oldValue} to ${newValue}`);
+      this.rules = this.getScanRules(newValue);
     },
   },
   methods: {
@@ -524,6 +517,15 @@ export default {
     },
     sortStatus(a, b) {
       return b - a;
+    },
+    getScanRules(type) {
+      const rulesMap = {
+        undefined: this.baseRule,
+        0: this.scanDomainRules,
+        1: this.scanIpRules,
+        2: this.scanCtRules,
+      };
+      return rulesMap[type] || null;
     },
     validateAddress(rule, value, callback) {
       this.$nextTick(() => {
