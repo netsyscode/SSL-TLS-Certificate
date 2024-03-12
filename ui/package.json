@@ -38,6 +38,7 @@
   "dependencies": {
     "@achrinza/node-ipc": "^10.1.10",
     "@riophae/vue-treeselect": "0.4.0",
+    "@vue/runtime-dom": "^3.4.21",
     "axios": "0.24.0",
     "chart.js": "^4.4.1",
     "clipboard": "2.0.8",
