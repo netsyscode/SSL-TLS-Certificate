@@ -65,7 +65,7 @@ class Organization(db.Model, UserMixin):
 
     # "Show the parent-child relationship explicitly."
     parent = db.relationship('Organization', remote_side=[ID], backref='children', uselist=False)
-    children = db.relationship('Organization', remote_side=[ID], backref='parent', uselist=True)
+    # children = db.relationship('Organization', remote_side=[ID], backref='parent', uselist=True)
 
     def to_json(self):
         return {

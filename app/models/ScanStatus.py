@@ -44,6 +44,9 @@ class ScanStatus(db.Model):
 
     def get_id(self):
         return str(self.ID)
+    
+    def get_type(self):
+        return self.TYPE
 
     def __repr__(self):
         return f"<ScanStatus {self.NAME}>"

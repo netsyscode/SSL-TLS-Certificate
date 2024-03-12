@@ -10,7 +10,8 @@ def generate_scan_data_table(table_name):
 
         # SCAN_TIME = db.Column(db.DateTime, db.ForeignKey('SCAN_STATUS.START_TIME'), index=True, primary_key=True, nullable=False)
         SCAN_TIME = db.Column(db.DateTime, index=True, primary_key=True, nullable=False)
-        DOMAIN = db.Column(db.Text, primary_key=True, nullable=False)
+        DOMAIN = db.Column(db.Text, primary_key=True, index=True)
+        IP = db.Column(db.String(128), primary_key=True, index=True)
         ERROR_MSG = db.Column(db.Text, default=None)
         RECEIVED_CERTS = db.Column(db.JSON, default=[])
 
@@ -18,6 +19,7 @@ def generate_scan_data_table(table_name):
             return {
                 'scan_time' : self.SCAN_TIME,
                 "domain" : self.DOMAIN,
+                "ip" : self.IP,
                 "error_msg" : self.ERROR_MSG,
                 "received_certs" : self.RECEIVED_CERTS
             }
@@ -37,7 +39,8 @@ class ScanData(db.Model):
 
     # SCAN_TIME = db.Column(db.DateTime, db.ForeignKey('SCAN_STATUS.START_TIME'), index=True, primary_key=True, nullable=False)
     SCAN_TIME = db.Column(db.DateTime, index=True, primary_key=True, nullable=False)
-    DOMAIN = db.Column(db.Text, primary_key=True, nullable=False)
+    DOMAIN = db.Column(db.Text, primary_key=True, index=True)
+    IP = db.Column(db.String(128), primary_key=True, index=True)
     ERROR_MSG = db.Column(db.Text, default=None)
     RECEIVED_CERTS = db.Column(db.JSON, default=[])
 
@@ -45,6 +48,7 @@ class ScanData(db.Model):
         return {
             'scan_time' : self.SCAN_TIME,
             "domain" : self.DOMAIN,
+            "ip" : self.IP,
             "error_msg" : self.ERROR_MSG,
             "received_certs" : self.RECEIVED_CERTS
         }
