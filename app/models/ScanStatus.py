@@ -19,7 +19,10 @@ class ScanStatus(db.Model):
     END_TIME = db.Column(db.DateTime, default=None)
     STATUS = db.Column(db.Integer, default=0, comment="see SYS_DICT_DATA")
     SCAN_TIME_IN_SECONDS = db.Column(db.Integer, default=0)
-    SCANNED_DOMIANS = db.Column(db.Integer, default=0)
+    SCANNED_DOMAINS = db.Column(db.Integer, default=0)
+    SCANNED_IPS = db.Column(db.Integer, default=0)
+    CT_LOG_ADDRESS = db.Column(db.String(256, collation='gbk_chinese_ci'))
+    SCANNED_RNTRIES = db.Column(db.Integer, default=0)
     SUCCESSES = db.Column(db.Integer, default=0)
     ERRORS = db.Column(db.Integer, default=0)
     SCANNED_CERTS = db.Column(db.Integer, default=0)
@@ -35,7 +38,10 @@ class ScanStatus(db.Model):
             'endTime': self.END_TIME,
             "scan_time_in_seconds" : self.SCAN_TIME_IN_SECONDS,
             'status': self.STATUS,
-            "scanned_domains" : self.SCANNED_DOMIANS,
+            "scanned_domains" : self.SCANNED_DOMAINS,
+            "scanned_ips" : self.SCANNED_IPS,
+            "scan_log_name" : self.CT_LOG_ADDRESS,
+            "scanned_entries" : self.SCANNED_RNTRIES,
             "successes" : self.SUCCESSES,
             "errors" : self.ERRORS,
             "scanned_certs" : self.SCANNED_CERTS,
@@ -50,4 +56,3 @@ class ScanStatus(db.Model):
 
     def __repr__(self):
         return f"<ScanStatus {self.NAME}>"
-    

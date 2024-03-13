@@ -112,7 +112,11 @@
       
       <el-table-column v-if="scanType.value==0" prop="scanned_domains" label="扫描域名数" align="center" width="100"></el-table-column>
       <el-table-column v-if="scanType.value==1" prop="scanned_ips" label="扫描IP数" align="center" width="100"></el-table-column>
-      <el-table-column v-if="scanType.value==2" prop="scan_log_name" label="扫描CT日志名称" align="center" width="100"></el-table-column>
+      <el-table-column v-if="scanType.value==2" prop="scan_log_name" label="扫描CT日志名称" align="center" width="100">
+        <template slot-scope="scope">
+          <dict-tag :options="dict.type.ct_log_info" :value="scope.row.scan_log_name"/>
+        </template>
+      </el-table-column>
       <el-table-column v-if="scanType.value==2" prop="scanned_entries" label="扫描记录数" align="center" width="100"></el-table-column>
 
       <el-table-column prop="successes" label="获取成功" align="center" width="100"></el-table-column>
@@ -129,6 +133,15 @@
             @click="pauseScan(scope.row)"
             v-hasPermi="['system:scan_process:pause']"
             >暂停进程</el-button>
+
+            <el-button
+            v-if="scope.row.status==3"
+            size="mini"
+            type="text"
+            icon="el-icon-video-play"
+            @click="resumeScan(scope.row)"
+            v-hasPermi="['system:scan_process:resume']"
+            >恢复进程</el-button>
 
           <el-button
             v-if="scope.row.status==0 || scope.row.status==3"
@@ -436,7 +449,7 @@ export default {
     scanIpRules() {
       let targetRules = { ...this.baseRule };
       targetRules["scanIpFile"] = [
-        { required: true, message: "扫描IP文件不能为空", trigger: "blur" },
+        // { required: true, message: "扫描IP文件不能为空", trigger: "blur" },
       ];
       return targetRules;
     },

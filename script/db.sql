@@ -149,8 +149,9 @@ INSERT INTO `SYRESOURCE` (`ID`, `CREATEDATETIME`, `DESCRIPTION`, `ICONCLS`, `NAM
 
 	('smjcgl', '2015-08-25 10:34:53', '管理证书扫描进程', 'tree', '扫描进程管理', 1, '', '2022-05-25 00:48:32', 'scan_process', 'system/scan_process/index', 'system:scan_process:list', 'xtgl', '0', '0'),
 	('tjjc', '2015-08-25 10:34:53', '添加进程', 'ext-icon-bullet_wrench', '添加进程', 1, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!add', 'system:scan_process:add', 'smjcgl', '1', '0'),
-	('ztjc', '2015-08-25 10:34:53', '暂停进程', 'ext-icon-bullet_wrench', '暂停进程', 6, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!pause', 'system:scan_process:pause', 'smjcgl', '1', '0'),
 	('tzjc', '2015-08-25 10:34:53', '终止进程', 'ext-icon-bullet_wrench', '终止进程', 5, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!stop', 'system:scan_process:stop', 'smjcgl', '1', '0'),
+	('ztjc', '2015-08-25 10:34:53', '暂停进程', 'ext-icon-bullet_wrench', '暂停进程', 6, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!pause', 'system:scan_process:pause', 'smjcgl', '1', '0'),
+	('hfjc', '2015-08-25 10:34:53', '恢复进程', 'ext-icon-bullet_wrench', '恢复进程', 7, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!resume', 'system:scan_process:resume', 'smjcgl', '1', '0'),
 	('xgjc', '2015-08-25 10:34:53', '修改进程参数', 'ext-icon-bullet_wrench', '修改进程参数', 4, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!edit', 'system:scan_process:edit', 'smjcgl', '1', '0'),
 	('ckjg', '2015-08-25 10:34:53', '查看扫描结果', 'ext-icon-bullet_wrench', '查看扫描结果', 3, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!view', 'system:scan_process:view', 'smjcgl', '1', '0'),
 	('scjc', '2015-08-25 10:34:53', '删除进程', 'ext-icon-bullet_wrench', '删除进程', 2, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!remove', 'system:scan_process:remove', 'smjcgl', '1', '0'),
@@ -290,6 +291,7 @@ INSERT INTO `SYROLE_SYRESOURCE` (`SYROLE_ID`, `SYRESOURCE_ID`) VALUES
 	('0', 'tjjc'),
 	('0', 'ztjc'),
 	('0', 'tzjc'),
+	('0', 'hfjc'),
 	('0', 'xgjc'),
 	('0', 'ckjg'),
 	('0', 'scjc'),
@@ -520,7 +522,10 @@ CREATE TABLE IF NOT EXISTS `SCAN_STATUS` (
   `END_TIME` datetime DEFAULT NULL,
   `STATUS` INT DEFAULT 0 COMMENT "see SYS_DICT_DATA",
   `SCAN_TIME_IN_SECONDS` INT DEFAULT 0,
-  `SCANNED_DOMIANS` INT DEFAULT 0,
+  `SCANNED_DOMAINS` INT DEFAULT 0,
+  `SCANNED_IPS` INT DEFAULT 0,
+  `CT_LOG_ADDRESS` varchar(256) CHARACTER SET gbk COLLATE gbk_chinese_ci,
+  `SCANNED_RNTRIES` INT DEFAULT 0,
   `SUCCESSES` INT DEFAULT 0,
   `ERRORS` INT DEFAULT 0,
   `SCANNED_CERTS` INT DEFAULT 0,
@@ -532,8 +537,10 @@ CREATE TABLE IF NOT EXISTS `SCAN_STATUS` (
   UNIQUE KEY `FK_scan_status_start_time` (`START_TIME`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
 
-INSERT INTO `SCAN_STATUS` (`ID`, `NAME`, `TYPE`, `START_TIME`, `END_TIME`, `CERT_STORE_TABLE`, `STATUS`, `SCAN_TIME_IN_SECONDS`, `SCANNED_DOMIANS`, `SUCCESSES`, `ERRORS`, `SCANNED_CERTS`) VALUES
-  ('a1c392c2-7f1a-4a50-bc76-1c6495b0e04d', 'ProcessA', '0', '2022-01-27 13:00:00', '2022-01-27 14:30:00', 'CertTableA', '0', '0', '0', '0', '0', '0');
+INSERT INTO `SCAN_STATUS` (`ID`, `NAME`, `TYPE`, `START_TIME`, `END_TIME`, `CERT_STORE_TABLE`, `STATUS`, `SCAN_TIME_IN_SECONDS`, `SCANNED_DOMAINS`, `SCANNED_IPS`, `CT_LOG_ADDRESS`, `SCANNED_RNTRIES`, `SUCCESSES`, `ERRORS`, `SCANNED_CERTS`) VALUES
+  ('a1c392c2-7f1a-4a50-bc76-1c6495b0e04d', 'ProcessA', '0', '2022-01-27 13:00:00', '2022-01-27 14:30:00', 'CertTableA', '0', '0', '0', '0', '', '0', '0', '0', '0'),
+  ('a1c392c2-7f1a-4a50-bc76-1c6495b0e04d', 'ProcessB', '1', '2022-01-27 13:00:00', '2022-01-27 14:30:00', 'CertTableA', '0', '0', '0', '0', '', '0', '0', '0', '0'),
+  ('a1c392c2-7f1a-4a50-bc76-1c6495b0e04d', 'ProcessC', '2', '2022-01-27 13:00:00', '2022-01-27 14:30:00', 'CertTableA', '0', '0', '0', '0', '', '0', '0', '0', '0');
 
 
 -- 2. 证书扫描原始数据

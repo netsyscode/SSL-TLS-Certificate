@@ -25,7 +25,7 @@ class DomainScanConfig(ScanConfig):
 class IPScanConfig(ScanConfig):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.INPUT_IP_LIST_FILE = kwargs.get('INPUT_IP_LIST_FILE', os.path.join(os.path.dirname(__file__), r"../data/ip.csv"))
+        self.INPUT_IP_LIST_FILE = kwargs.get('INPUT_IP_LIST_FILE', "")
 
 
 class CTScanConfig(ScanConfig):
