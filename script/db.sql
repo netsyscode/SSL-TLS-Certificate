@@ -538,9 +538,9 @@ CREATE TABLE IF NOT EXISTS `SCAN_STATUS` (
 ) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
 
 INSERT INTO `SCAN_STATUS` (`ID`, `NAME`, `TYPE`, `START_TIME`, `END_TIME`, `CERT_STORE_TABLE`, `STATUS`, `SCAN_TIME_IN_SECONDS`, `SCANNED_DOMAINS`, `SCANNED_IPS`, `CT_LOG_ADDRESS`, `SCANNED_RNTRIES`, `SUCCESSES`, `ERRORS`, `SCANNED_CERTS`) VALUES
-  ('a1c392c2-7f1a-4a50-bc76-1c6495b0e04d', 'ProcessA', '0', '2022-01-27 13:00:00', '2022-01-27 14:30:00', 'CertTableA', '0', '0', '0', '0', '', '0', '0', '0', '0'),
-  ('a1c392c2-7f1a-4a50-bc76-1c6495b0e04d', 'ProcessB', '1', '2022-01-27 13:00:00', '2022-01-27 14:30:00', 'CertTableA', '0', '0', '0', '0', '', '0', '0', '0', '0'),
-  ('a1c392c2-7f1a-4a50-bc76-1c6495b0e04d', 'ProcessC', '2', '2022-01-27 13:00:00', '2022-01-27 14:30:00', 'CertTableA', '0', '0', '0', '0', '', '0', '0', '0', '0');
+  ('1', 'ProcessA', '0', '2022-01-27 13:00:00', '2022-01-27 14:30:00', 'CertTableA', '0', '0', '0', '0', '', '0', '0', '0', '0'),
+  ('2', 'ProcessB', '1', '2022-01-28 13:00:00', '2022-01-27 14:30:00', 'CertTableA', '0', '0', '0', '0', '', '0', '0', '0', '0'),
+  ('3', 'ProcessC', '2', '2022-01-29 13:00:00', '2022-01-27 14:30:00', 'CertTableA', '0', '0', '0', '0', '', '0', '0', '0', '0');
 
 
 -- 2. 证书扫描原始数据

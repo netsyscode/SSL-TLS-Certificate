@@ -10,9 +10,10 @@ class ScanType(Enum):
 # Status of a particular scan process
 class ScanStatusType(Enum):
     RUNNING = 0
-    COMPLETED = 1
-    SUSPEND = 2
-    KILLED = 3
+    BACKEND_ERROR = 1
+    COMPLETED = 2
+    SUSPEND = 3
+    KILLED = 4
 
 # Identifiers for X509 cert type based on its position in the cert chain
 class CertType(Enum):
