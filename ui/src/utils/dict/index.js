@@ -1,9 +1,10 @@
 import Dict from './Dict'
 import { mergeOptions } from './DictOptions'
 
+// use this.dict in vue to refer to the this.$options.dicts
 export default function(Vue, options) {
   mergeOptions(options)
-  Vue.mixin({
+  Vue.mixin({   // global use
     data() {
       if (this.$options === undefined || this.$options.dicts === undefined || this.$options.dicts === null) {
         return {}

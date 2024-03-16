@@ -149,7 +149,9 @@ INSERT INTO `SYRESOURCE` (`ID`, `CREATEDATETIME`, `DESCRIPTION`, `ICONCLS`, `NAM
 
 	('smjcgl', '2015-08-25 10:34:53', '管理证书扫描进程', 'tree', '扫描进程管理', 1, '', '2022-05-25 00:48:32', 'scan_process', 'system/scan_process/index', 'system:scan_process:list', 'xtgl', '0', '0'),
 	('tjjc', '2015-08-25 10:34:53', '添加进程', 'ext-icon-bullet_wrench', '添加进程', 1, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!add', 'system:scan_process:add', 'smjcgl', '1', '0'),
-	('tzjc', '2015-08-25 10:34:53', '停止进程', 'ext-icon-bullet_wrench', '停止进程', 5, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!stop', 'system:scan_process:stop', 'smjcgl', '1', '0'),
+	('tzjc', '2015-08-25 10:34:53', '终止进程', 'ext-icon-bullet_wrench', '终止进程', 5, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!stop', 'system:scan_process:stop', 'smjcgl', '1', '0'),
+	('ztjc', '2015-08-25 10:34:53', '暂停进程', 'ext-icon-bullet_wrench', '暂停进程', 6, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!pause', 'system:scan_process:pause', 'smjcgl', '1', '0'),
+	('hfjc', '2015-08-25 10:34:53', '恢复进程', 'ext-icon-bullet_wrench', '恢复进程', 7, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!resume', 'system:scan_process:resume', 'smjcgl', '1', '0'),
 	('xgjc', '2015-08-25 10:34:53', '修改进程参数', 'ext-icon-bullet_wrench', '修改进程参数', 4, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!edit', 'system:scan_process:edit', 'smjcgl', '1', '0'),
 	('ckjg', '2015-08-25 10:34:53', '查看扫描结果', 'ext-icon-bullet_wrench', '查看扫描结果', 3, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!view', 'system:scan_process:view', 'smjcgl', '1', '0'),
 	('scjc', '2015-08-25 10:34:53', '删除进程', 'ext-icon-bullet_wrench', '删除进程', 2, '', '2015-08-25 10:34:53', NULL, '/base/scan_process!remove', 'system:scan_process:remove', 'smjcgl', '1', '0'),
@@ -287,7 +289,9 @@ INSERT INTO `SYROLE_SYRESOURCE` (`SYROLE_ID`, `SYRESOURCE_ID`) VALUES
 	('0', 'smjcgl'),
 	('f4e1b151-a171-4705-9154-503a046cb72a', 'smjcgl'),
 	('0', 'tjjc'),
+	('0', 'ztjc'),
 	('0', 'tzjc'),
+	('0', 'hfjc'),
 	('0', 'xgjc'),
 	('0', 'ckjg'),
 	('0', 'scjc'),
@@ -379,21 +383,34 @@ INSERT INTO `SYS_DICT_DATA` (`dict_code`, `dict_sort`, `dict_label`, `dict_value
 	(101, 1, '注销', '0', 'sys_login_type', NULL, 'default', NULL, '0', 'admin', '2022-06-10 00:29:48', NULL, '2022-06-10 00:29:48', NULL),
 
 	-- 在这里添加新的Dict数据
-	(49, 1, '运行中', '0', 'sys_scan_status', '', 'warning', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '正常状态'),
-	(50, 2, '完成', '1', 'sys_scan_status', '', 'primary', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '扫描正常结束'),
-	(51, 3, '暂停', '2', 'sys_scan_status', '', 'warnin', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '扫描暂停'),
-	(52, 4, '终止', '2', 'sys_scan_status', '', 'danger', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '扫描人为中断'),
-	(53, 1, '扫描Top域名', '0', 'sys_scan_type', '', 'info', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+	(48, 1, '扫描中', '0', 'sys_scan_status', '', 'primary', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '正常状态'),
+	(49, 2, '后端出错', '1', 'sys_scan_status', '', 'warning', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '正常状态'),
+	(50, 3, '扫描完成', '2', 'sys_scan_status', '', 'success', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '扫描正常结束'),
+	(51, 4, '暂停', '3', 'sys_scan_status', '', 'warning', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '扫描暂停'),
+	(52, 5, '人为终止', '4', 'sys_scan_status', '', 'danger', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '扫描人为中断'),
+	
+  (53, 1, '扫描Top域名', '0', 'sys_scan_type', '', 'info', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
 	(54, 2, '扫描IP地址', '1', 'sys_scan_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
 	(55, 3, '扫描CT日志', '2', 'sys_scan_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
 	(56, 1, 'leaf', '0', 'sys_cert_type', '', 'info', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
 	(57, 2, 'intermediate', '1', 'sys_cert_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
-	(58, 3, 'root', '3', 'sys_cert_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+	(58, 3, 'root', '2', 'sys_cert_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
 	(59, 1, 'RSA', '0', 'sys_key_type', '', 'info', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
 	(60, 2, 'ECDSA', '1', 'sys_key_type', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
 	(61, 1, 'Unauthorized', '0', 'cert_revocation_status', '', 'warning', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
 	(62, 2, 'Good', '1', 'cert_revocation_status', '', 'primary', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
-	(63, 3, 'Revoked', '2', 'cert_revocation_status', '', 'danger', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '');
+	(63, 3, 'Revoked', '2', 'cert_revocation_status', '', 'danger', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+
+  -- 在这里添加新的CT日志
+  -- Let's Encrypt Oak
+	(200, 1, 'Oak 2023', 'https://oak.ct.letsencrypt.org/2023', 'ct_log_info', '', 'info', 'Y', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+	(201, 2, 'Oak 2024h1', 'https://oak.ct.letsencrypt.org/2024h1', 'ct_log_info', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+	(202, 3, 'Oak 2024h2', 'https://oak.ct.letsencrypt.org/2024h2', 'ct_log_info', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+	(203, 4, 'Oak 2025h1', 'https://oak.ct.letsencrypt.org/2025h1', 'ct_log_info', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, ''),
+	(204, 5, 'Oak 2025h2', 'https://oak.ct.letsencrypt.org/2025h2', 'ct_log_info', '', 'info', 'N', '0', 'admin', '2022-05-14 14:04:20', '', NULL, '');
+
+  -- Google
+
 
 
 -- 导出  表 authbase.SYS_DICT_TYPE 结构
@@ -505,7 +522,10 @@ CREATE TABLE IF NOT EXISTS `SCAN_STATUS` (
   `END_TIME` datetime DEFAULT NULL,
   `STATUS` INT DEFAULT 0 COMMENT "see SYS_DICT_DATA",
   `SCAN_TIME_IN_SECONDS` INT DEFAULT 0,
-  `SCANNED_DOMIANS` INT DEFAULT 0,
+  `SCANNED_DOMAINS` INT DEFAULT 0,
+  `SCANNED_IPS` INT DEFAULT 0,
+  `CT_LOG_ADDRESS` varchar(256) CHARACTER SET gbk COLLATE gbk_chinese_ci,
+  `SCANNED_RNTRIES` INT DEFAULT 0,
   `SUCCESSES` INT DEFAULT 0,
   `ERRORS` INT DEFAULT 0,
   `SCANNED_CERTS` INT DEFAULT 0,
@@ -517,17 +537,21 @@ CREATE TABLE IF NOT EXISTS `SCAN_STATUS` (
   UNIQUE KEY `FK_scan_status_start_time` (`START_TIME`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
 
-INSERT INTO `SCAN_STATUS` (`ID`, `NAME`, `TYPE`, `START_TIME`, `END_TIME`, `CERT_STORE_TABLE`, `STATUS`, `SCAN_TIME_IN_SECONDS`, `SCANNED_DOMIANS`, `SUCCESSES`, `ERRORS`, `SCANNED_CERTS`) VALUES
-  ('a1c392c2-7f1a-4a50-bc76-1c6495b0e04d', 'ProcessA', '0', '2022-01-27 13:00:00', '2022-01-27 14:30:00', 'CertTableA', '0', '0', '0', '0', '0', '0');
+INSERT INTO `SCAN_STATUS` (`ID`, `NAME`, `TYPE`, `START_TIME`, `END_TIME`, `CERT_STORE_TABLE`, `STATUS`, `SCAN_TIME_IN_SECONDS`, `SCANNED_DOMAINS`, `SCANNED_IPS`, `CT_LOG_ADDRESS`, `SCANNED_RNTRIES`, `SUCCESSES`, `ERRORS`, `SCANNED_CERTS`) VALUES
+  ('1', 'ProcessA', '0', '2022-01-27 13:00:00', '2022-01-27 14:30:00', 'CertTableA', '0', '0', '0', '0', '', '0', '0', '0', '0'),
+  ('2', 'ProcessB', '1', '2022-01-28 13:00:00', '2022-01-27 14:30:00', 'CertTableA', '0', '0', '0', '0', '', '0', '0', '0', '0'),
+  ('3', 'ProcessC', '2', '2022-01-29 13:00:00', '2022-01-27 14:30:00', 'CertTableA', '0', '0', '0', '0', '', '0', '0', '0', '0');
 
 
+-- 2. 证书扫描原始数据
 -- scan_data 存储扫描日期（分区）网站域名以及返回的证书链（索引），按照扫描的日期来分区（一个月分一次）
 CREATE TABLE IF NOT EXISTS `SCAN_DATA` (
   `SCAN_TIME` datetime NOT NULL,
-  `DOMAIN` TEXT CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
+  `DOMAIN` TEXT CHARACTER SET gbk COLLATE gbk_chinese_ci,
+  `IP` varchar(128),
   `ERROR_MSG` TEXT,
   `RECEIVED_CERTS` JSON,
-  PRIMARY KEY (`SCAN_TIME`, `DOMAIN`(255)) USING BTREE
+  PRIMARY KEY (`SCAN_TIME`, `DOMAIN`(255), `IP`) USING BTREE
 
 	-- 
 	-- Error Code: 1506. Foreign keys are not yet supported in conjunction with partitioning
@@ -543,7 +567,6 @@ CREATE TABLE IF NOT EXISTS `SCAN_DATA` (
 CREATE INDEX FK_scan_data_domain ON `SCAN_DATA` (`DOMAIN`(255));
 
 
--- 2. 证书原始数据
 -- 由于数据较少，暂时不需要进行分区，所以先使用外键
 -- cert_store_raw 存储证书的原始PEM数据
 CREATE TABLE IF NOT EXISTS `CERT_STORE_RAW` (
@@ -554,11 +577,27 @@ CREATE TABLE IF NOT EXISTS `CERT_STORE_RAW` (
 ) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
 
 
+-- cert_scan_metadata 存储证书的扫描元数据
+-- 由于有大量的修改更新操作，且需保障查询的灵活性和对扫描数据的分析，选择将每个扫描数据存储为单独的行
+CREATE TABLE IF NOT EXISTS `CERT_SCAN_METADATA` (
+  `CERT_ID` varchar(64) NOT NULL,
+  `SCAN_DATE` datetime NOT NULL,
+  `SCAN_DOMAIN` TEXT CHARACTER SET gbk COLLATE gbk_chinese_ci,
+  `SCAN_IP` varchar(128),
+  PRIMARY KEY (`CERT_ID`, `SCAN_DATE`, `SCAN_DOMAIN`(255), `SCAN_IP`) USING BTREE,
+  KEY `FK_cert_id_cert_scan_metadata` (`CERT_ID`) USING BTREE,
+  CONSTRAINT `FK_cert_id_cert_scan_metadata` FOREIGN KEY (`CERT_ID`) REFERENCES `CERT_STORE_RAW` (`CERT_ID`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
+
+CREATE INDEX FK_domain_cert_scan_metadata ON `CERT_SCAN_METADATA` (`SCAN_DOMAIN`(255));
+
+
+-- 3. 证书解析数据
 -- cert_store_content 存储证书本身的数据和解析结果
 CREATE TABLE IF NOT EXISTS `CERT_STORE_CONTENT` (
   `CERT_ID` varchar(64) NOT NULL,
   `CERT_TYPE` INT NOT NULL DEFAULT 0 COMMENT "leaf intermediate or root",
-  `SUBJECT_DOMAIN` varchar(512) CHARACTER SET gbk COLLATE gbk_chinese_ci,
+  `SUBJECT_CN` varchar(512) CHARACTER SET gbk COLLATE gbk_chinese_ci,
   `ISSUER_ORG` varchar(128) CHARACTER SET gbk COLLATE gbk_chinese_ci COMMENT "use orgName",
   `ISSUER_CERT_ID` varchar(64) CHARACTER SET gbk COLLATE gbk_chinese_ci,
   `KEY_SIZE` INT NOT NULL,
@@ -573,20 +612,6 @@ CREATE TABLE IF NOT EXISTS `CERT_STORE_CONTENT` (
 ) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
 
 
--- cert_scan_metadata 存储证书的扫描元数据
--- 由于有大量的修改更新操作，且需保障查询的灵活性和对扫描数据的分析，选择将每个扫描数据存储为单独的行
-CREATE TABLE IF NOT EXISTS `CERT_SCAN_METADATA` (
-  `CERT_ID` varchar(64) NOT NULL,
-  `SCAN_DATE` datetime NOT NULL,
-  `SCAN_DOMAIN` TEXT CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
-  PRIMARY KEY (`CERT_ID`, `SCAN_DATE`, `SCAN_DOMAIN`(255)) USING BTREE,
-  KEY `FK_cert_id_cert_scan_metadata` (`CERT_ID`) USING BTREE,
-  CONSTRAINT `FK_cert_id_cert_scan_metadata` FOREIGN KEY (`CERT_ID`) REFERENCES `CERT_STORE_RAW` (`CERT_ID`) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
-
-CREATE INDEX FK_domain_cert_scan_metadata ON `CERT_SCAN_METADATA` (`SCAN_DOMAIN`(255));
-
-
 -- ca_cert_store 存储所有扫描到的CA中间证书和CA根证书
 CREATE TABLE IF NOT EXISTS `CA_CERT_STORE` (
   `CERT_ID` varchar(64) CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
@@ -598,7 +623,7 @@ CREATE TABLE IF NOT EXISTS `CA_CERT_STORE` (
 ) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
 
 
--- 3. 分析数据
+-- 4. 证书统计分析数据
 -- cert_stat_result 存储每次扫描的证书分析结果
 CREATE TABLE IF NOT EXISTS `CERT_STAT_RESULT` (
   `SCAN_ID` varchar(64) CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,
@@ -642,6 +667,7 @@ CREATE TABLE IF NOT EXISTS `CERT_REVOCATION_STATUS_OCSP` (
 ) ENGINE=InnoDB DEFAULT CHARSET=gbk ROW_FORMAT=DYNAMIC;
 
 
+-- 5. CA统计数据
 -- ca_stat_result 存储每次扫描的CA分析结果
 CREATE TABLE IF NOT EXISTS `CA_STAT_RESULT` (
   `SCAN_ID` varchar(64) CHARACTER SET gbk COLLATE gbk_chinese_ci NOT NULL,

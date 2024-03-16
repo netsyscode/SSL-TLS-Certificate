@@ -68,7 +68,12 @@ def check_local_domain(domain : str) -> bool:
 def check_local_ip(ip : str) -> bool:
     return True
 
-def get_cert_sha256_hex(cert : Certificate) -> str:
+def get_cert_sha256_hex_from_object(cert : Certificate) -> str:
     sha256_hash = hashlib.sha256(cert.public_bytes(Encoding.PEM))
+    sha256_hex = sha256_hash.hexdigest()
+    return sha256_hex
+
+def get_cert_sha256_hex_from_str(cert : str) -> str:
+    sha256_hash = hashlib.sha256(cert.encode())
     sha256_hex = sha256_hash.hexdigest()
     return sha256_hex
