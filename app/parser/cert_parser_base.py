@@ -35,7 +35,7 @@ from ..utils.cert import (
     is_domain_match,
     utc_time_diff_in_days,
     get_name_attribute,
-    get_cert_sha256_hex
+    get_cert_sha256_hex_from_object
 )
 
 from datetime import datetime, timezone
@@ -73,7 +73,7 @@ class X509ParsedInfo():
     sha_256 : str
 
     extension_parsed_info : List[ExtensionResult]
-
+    raw : str
 
 
 # main stuff here
@@ -86,12 +86,11 @@ class X509CertParser():
 
         try:
             self.cert = (load_pem_x509_certificate(cert.encode("utf-8"), default_backend()))
+            self.extension_parser = X509CertExtensionParser(self.cert.extensions)
+            self.parsed_info = self.parse_cert_base()
         except:
-            my_logger.warn("Meet cert ASN.1 format violation")
+            my_logger.warn("Meet cert ASN.1 format violation, skip it")
             raise ParseError
-
-        self.extension_parser = X509CertExtensionParser(self.cert.extensions)
-        self.parsed_info = self.parse_cert_base()
 
 
     def parse_cert_base(self) -> X509ParsedInfo:
@@ -112,7 +111,11 @@ class X509CertParser():
 
 
         pub_key_type = self.cert.public_key()
-        pub_key_size = pub_key_type.key_size
+        try:
+            pub_key_size = pub_key_type.key_size
+        except:
+            # AttributeError: 'cryptography.hazmat.bindings._rust.openssl.ed25519' object has no attribute 'key_size'
+            pub_key_size = -1
 
         try:
             signature_hash_algorithm = self.cert.signature_hash_algorithm
@@ -124,21 +127,25 @@ class X509CertParser():
             '''
             signature_hash_algorithm = None
             signature_hash_algorithm_name = "Unsupported"
+        except AttributeError:
+            signature_hash_algorithm = None
+            signature_hash_algorithm_name = "None"
 
         # SHA256
-        sha256_hex = get_cert_sha256_hex(self.cert)
+        sha256_hex = get_cert_sha256_hex_from_object(self.cert)
 
         # Check cert type
-        cert_type = CertType.LEAF
-        basic_constraints_result = self.cert.extensions.get_extension_for_oid(oid=ExtensionOID.BASIC_CONSTRAINTS)
-
-        if basic_constraints_result:
+        try:
+            basic_constraints_result = self.cert.extensions.get_extension_for_oid(oid=ExtensionOID.BASIC_CONSTRAINTS)
             if basic_constraints_result.value.ca:
                 if subject == issuer:
                     cert_type = CertType.ROOT
                 else:
                     cert_type = CertType.INTERMEDIATE
-
+            else:
+                cert_type = CertType.LEAF
+        except ExtensionNotFound:
+            cert_type = CertType.LEAF
 
         return X509ParsedInfo(
             self.cert.version,
@@ -157,7 +164,8 @@ class X509CertParser():
             signature_hash_algorithm_name,
             cert_type,
             sha256_hex,
-            self.extension_parser.analyzeExtensions()
+            self.extension_parser.analyzeExtensions(),
+            self.cert.public_bytes(Encoding.PEM).decode()
         )
     
 
@@ -166,7 +174,8 @@ class X509CertParser():
             primitive_rsa.RSAPublicKey : 0,
             primitive_ec.EllipticCurvePublicKey : 1,
             cryptography.hazmat.bindings._rust.openssl.rsa.RSAPublicKey : 0,
-            cryptography.hazmat.bindings._rust.openssl.ec.ECPublicKey : 1
+            cryptography.hazmat.bindings._rust.openssl.ec.ECPublicKey : 1,
+            cryptography.hazmat.bindings._rust.openssl.ed25519.Ed25519PublicKey : 2
         }
 
         return {

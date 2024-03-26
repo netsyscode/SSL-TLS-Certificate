@@ -16,8 +16,8 @@ def cert_search_list():
     if 'certID' in request.args:
         filters.append(CertStoreContent.CERT_ID == request.args['certID'])
     if 'certDomain' in request.args:
-        # filters.append(CertStoreContent.SUBJECT_DOMAIN == request.args['certDomain'])
-        filters.append(CertStoreContent.SUBJECT_DOMAIN.like('%' + request.args['certDomain'] + '%'))
+        # filters.append(CertStoreContent.SUBJECT_CN == request.args['certDomain'])
+        filters.append(CertStoreContent.SUBJECT_CN.like('%' + request.args['certDomain'] + '%'))
 
     if 'params[beginNotValidBefore]' in request.args and 'params[endNotValidBefore]' in request.args:
         filters.append(CertStoreContent.NOT_VALID_BEFORE >= request.args['params[beginNotValidBefore]'])

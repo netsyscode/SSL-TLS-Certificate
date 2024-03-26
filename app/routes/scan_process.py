@@ -57,5 +57,5 @@ def scan_process_start():
     scan_type = ScanType(int(request.json['scanType']))
     config = create_scan_config(request, scan_type)
     task_id = manager.register(config)
-    # threading.Thread(target=manager.start, args=(task_id,)).start()
+    threading.Thread(target=manager.start, args=(task_id,)).start()
     return jsonify({'code': 200, 'msg': '操作成功'})
