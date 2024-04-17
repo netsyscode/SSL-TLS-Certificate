@@ -27,3 +27,11 @@ class LeafCertType(Enum):
     IV = 1
     OV = 2
     EV = 3
+
+# User submitted task type
+class TaskType(Enum):
+    TASK_SCAN = 0
+    TASK_ANALYSIS = 1
+    TASK_WRITE_SQL = 2
+    TASK_READ_SQL = 3
+    

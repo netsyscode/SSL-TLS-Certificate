@@ -67,8 +67,8 @@ class DomainScanner(Scanner):
             
             TODO: connect with different VPN nodes to see the data difference
         '''
-        ipv4, ipv6 = resolve_host_dns(host)
-
+        # ipv4, ipv6 = resolve_host_dns(host)
+        ipv4 = []
         '''
             When we resolve DNS records, there might be many as CDN deploys
             TODO: for domain scan, try all ipv4 and ipv6 in the future
@@ -77,12 +77,12 @@ class DomainScanner(Scanner):
             host_ip = ipv4[0]
         else:
             host_ip = ""
-        cert_chain, e = self.fetch_raw_cert_chain(host, host_ip, proxy_host=None, proxy_port=None)
+        cert_chain, e, a, b = self.fetch_raw_cert_chain(host, host_ip, proxy_host=None, proxy_port=None)
 
         # print(len(cert_chain), e)
         if len(cert_chain) == 0:
             # my_logger.warning(f"{host} using VPN proxy data...")
-            cert_chain, e = self.fetch_raw_cert_chain(host, host_ip, proxy_host=self.proxy_host, proxy_port=self.proxy_port)
+            cert_chain, e, a, b = self.fetch_raw_cert_chain(host, host_ip, proxy_host=self.proxy_host, proxy_port=self.proxy_port)
         cert_chain_sha256_hex = [hashlib.sha256(cert.encode()).hexdigest() for cert in cert_chain]
 
         '''
@@ -146,8 +146,10 @@ class DomainScanner(Scanner):
         # Run analysis in background after scanning
         # 
         with app.app_context():
-            self.analyzer = CertScanAnalyzer(self.scan_id, self.cert_data_table_name)
-            self.analyzer.analyze_cert_scan_result()
+            # Update : we have config for this
+            if self.analyze_cert:
+                self.analyzer = CertScanAnalyzer(self.scan_id, self.cert_data_table_name)
+                self.analyzer.analyze_cert_scan_result()
 
 
     def terminate(self):
