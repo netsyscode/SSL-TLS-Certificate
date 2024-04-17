@@ -5,6 +5,7 @@
 '''
 
 import uuid
+from threading import Thread
 from typing import Union, List
 from dataclasses import dataclass
 from ..config.scan_config import DomainScanConfig, IPScanConfig, CTScanConfig
@@ -14,11 +15,6 @@ from ..utils.type import TaskType, ScanType
 
 @dataclass
 class Task():
-
-    task_id : int = uuid.uuid4()
-    '''
-        Random generated 128 bit id
-    '''
 
     task_type : TaskType
     '''
@@ -41,8 +37,13 @@ class Task():
         SqlWriteConfig
     ]
 
+    task_id = uuid.uuid4()
+    '''
+        Random generated 128 bit id
+    '''
+
     parent_task : 'Task' = None
-    child_task : List['Task'] = []
+    child_task = []
     '''
         parent_task and child_task correspond to task tree relationships, stored as pointers
         The parent task can initiate multiple child tasks. For each child task, the parent may or may not count data onto it.

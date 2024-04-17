@@ -83,7 +83,7 @@ class GlobalTaskManager():
         with self.task_lock:
             for task in task_queue:
                 try:
-                    self.manager_map[task.task_type].register_task()    # Register task to certain manager
+                    self.manager_map[task.task_type].register_task(task)    # Register task to certain manager
                     self.submitted_task[task.task_id] = task
                 except RegisterError as e:
                     my_logger.error(e.message)

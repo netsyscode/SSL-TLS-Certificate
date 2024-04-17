@@ -4,9 +4,6 @@
 '''
 from abc import ABC, abstractmethod
 from .task import Task
-from .task_manager import GlobalTaskManager
-
-g_manager = GlobalTaskManager()
 
 class Manager(ABC):
 
@@ -32,3 +29,6 @@ class Manager(ABC):
     @abstractmethod
     def kill_task(self, task_id : int):
         pass
+
+from .task_manager import GlobalTaskManager
+g_manager = GlobalTaskManager()
