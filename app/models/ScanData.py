@@ -14,6 +14,8 @@ def generate_scan_data_table(table_name):
         IP = db.Column(db.String(128), primary_key=True, index=True)
         ERROR_MSG = db.Column(db.Text, default=None)
         RECEIVED_CERTS = db.Column(db.JSON, default=[])
+        TLS_VERSION = db.Column(db.Integer)
+        TLS_CIPHER = db.Column(db.Integer)
 
         def to_json(self):
             return {
@@ -43,6 +45,8 @@ class ScanData(db.Model):
     IP = db.Column(db.String(128), primary_key=True, index=True)
     ERROR_MSG = db.Column(db.Text, default=None)
     RECEIVED_CERTS = db.Column(db.JSON, default=[])
+    TLS_VERSION = db.Column(db.Integer)
+    TLS_CIPHER = db.Column(db.Integer)
 
     def to_json(self):
         return {
@@ -50,7 +54,9 @@ class ScanData(db.Model):
             "domain" : self.DOMAIN,
             "ip" : self.IP,
             "error_msg" : self.ERROR_MSG,
-            "received_certs" : self.RECEIVED_CERTS
+            "received_certs" : self.RECEIVED_CERTS,
+            "tls_version" : self.TLS_VERSION,
+            "tls_cipher" : self.TLS_CIPHER
         }
     
     def get_id(self):

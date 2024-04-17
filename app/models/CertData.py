@@ -1,6 +1,7 @@
 
 from app import db
 from datetime import datetime
+from sqlalchemy import MetaData
 
 def generate_cert_data_table(table_name):
 
@@ -23,8 +24,15 @@ def generate_cert_data_table(table_name):
         def __repr__(self):
             return f"<CertData {self.CERT_ID}>"
 
-    CertData.__table__.create(db.engine)
-    return db.Model.metadata.tables[table_name]
+
+    metadata = MetaData()
+    metadata.reflect(bind=db.engine)
+
+    if table_name not in metadata.tables:
+        CertData.__table__.create(db.engine)
+        metadata.reflect(bind=db.engine)
+
+    return metadata.tables[table_name]
 
 
 class CertStoreRaw(db.Model):
