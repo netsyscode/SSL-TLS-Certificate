@@ -35,7 +35,7 @@ with app.app_context():
         'MAX_RETRY' : 10,
         'CT_LOG_ADDRESS' : log_address,
         'WINDOW_SIZE' : 10,
-        'ENTRY_END' : 1000
+        'ENTRY_END' : 100000
         # 'ENTRY_END' : size
     }
 
