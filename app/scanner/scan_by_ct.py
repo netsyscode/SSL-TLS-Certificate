@@ -59,7 +59,7 @@ class CTScanner(Scanner):
         retry_times = 0
         while retry_times < self.max_retries:
             try:
-                response = requests.get(log_server_request, params=params, verify=True)
+                response = requests.get(log_server_request, params=params, verify=True, timeout=self.timeout)
             except Exception as e:
                 # my_logger.warning(f"Exception {e} when requesting CT entries from {start} to {end}")
                 retry_times += 1
