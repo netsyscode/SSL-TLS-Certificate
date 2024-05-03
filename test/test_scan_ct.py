@@ -1,6 +1,6 @@
 
 import sys
-sys.path.append(r"E:\global_ca_monitor")
+sys.path.append(r"/root/global_ca_monitor")
 
 import json
 import requests
@@ -15,6 +15,7 @@ log_address = "oak.ct.letsencrypt.org/2024h1"
 
 # get the total entry num
 header_request = f"https://{log_address}/ct/v1/get-sth"
+print("start")
 try:
     response = requests.get(header_request, verify=True)
     if response.status_code == 200:
@@ -27,16 +28,19 @@ except Exception as e:
     print(f"{e}")
     exit(0)
 
+print("start")
 with app.app_context():
     scan_type = ScanType(ScanType.SCAN_BY_CT)
     scan_args = {
-        'SCAN_PROCESS_NAME': "oak 2024h1 test1k",
+        'SCAN_PROCESS_NAME': "oak 2024h1 40M-60M",
         'SCAN_TIMEOUT' : 2,
         'MAX_RETRY' : 10,
         'CT_LOG_ADDRESS' : log_address,
-        'WINDOW_SIZE' : 10,
-        'ENTRY_END' : 1000
-        # 'ENTRY_END' : size
+        'WINDOW_SIZE' : 20,
+        'SAVE_CHUNK_SIZE' : 20000,
+        'ENTRY_START' : 40000000,
+        'ENTRY_END' : 60000000
+        #'ENTRY_END' : size
     }
 
     config = CTScanConfig(**scan_args)

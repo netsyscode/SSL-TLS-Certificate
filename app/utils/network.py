@@ -1,14 +1,15 @@
 
+
 import dns.resolver
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 from ..logger.logger import my_logger
 
 
-def get_dns_caa_records(host : str, timeout=5) -> Tuple[list[str], list[str]]:
+def get_dns_caa_records(host : str, timeout=5) -> Tuple[List[str], List[str]]:
     pass
 
 
-def resolve_host_dns(host : str, dns_server="8.8.8.8", timeout=2) -> Tuple[list[str], list[str]]:
+def resolve_host_dns(host : str, dns_server="8.8.8.8", timeout=2) -> Tuple[List[str], List[str]]:
 
     try:
         ipv4 = []

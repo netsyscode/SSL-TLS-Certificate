@@ -30,6 +30,7 @@ class Logger:
         def emit(self, record:logging.LogRecord):
         
             # set color based on the logging level
+            '''
             match record.levelno:
                 case logging.DEBUG:
                     text_color = Fore.GREEN
@@ -43,6 +44,20 @@ class Logger:
                     text_color = Fore.RED
                 case _:
                     text_color = Fore.WHITE
+            '''
+
+            if record.levelno == logging.DEBUG:
+                text_color = Fore.GREEN
+            elif record.levelno== logging.INFO:
+                text_color = Fore.BLUE
+            elif record.levelno == logging.WARNING:
+                text_color = Fore.YELLOW
+            elif record.levelno == logging.ERROR:
+                text_color = Fore.RED
+            elif record.levelno == logging.CRITICAL:
+                text_color = Fore.RED
+            else:
+                text_color = Fore.WHITE
 
             output_msg = self.format(record)
             output_msg = f"{text_color}{output_msg}{Style.RESET_ALL}"
@@ -52,7 +67,7 @@ class Logger:
     # so the return value must be an instance of the class
     def  __new__(self,
                   log_file_extension_name:str = ".log",
-                  log_file_dir_path:str = os.path.join(os.path.dirname(__file__), r"..\data\log"),
+                  log_file_dir_path:str = os.path.join(os.path.dirname(__file__), r"../data/log"),
                   log_file_level_no:int = logging.INFO,
                   log_console_level_no:int = logging.DEBUG):
         
@@ -86,6 +101,7 @@ class Logger:
 
     # @deprecated
     # use logging.debug(msg) directly
+    '''
     def dumpLog(self, level:int, msg:str):
         
         match level:
@@ -102,8 +118,10 @@ class Logger:
             case _:
                 # We can just put 0 into level field
                 print(msg)
+    '''
 
 # The project has only one logger
 # If you want to change its field, do it here
 my_logger = Logger(log_file_level_no=INFO, log_console_level_no=INFO).logger
+
 
