@@ -77,19 +77,20 @@ class DomainScanner(Scanner):
             host_ip = ipv4[0]
         else:
             host_ip = ""
-        cert_chain, e, a, b = self.fetch_raw_cert_chain(host, host_ip, proxy_host=None, proxy_port=None)
+        cert_chain, e, remote_ip, tls_version, tls_cipher = self.fetch_raw_cert_chain(host, host_ip, proxy_host=None, proxy_port=None)
 
         # print(len(cert_chain), e)
         if len(cert_chain) == 0:
             # my_logger.warning(f"{host} using VPN proxy data...")
-            cert_chain, e, a, b = self.fetch_raw_cert_chain(host, host_ip, proxy_host=self.proxy_host, proxy_port=self.proxy_port)
+            cert_chain, e, remote_ip, tls_version, tls_cipher = self.fetch_raw_cert_chain(host, host_ip, proxy_host=self.proxy_host, proxy_port=self.proxy_port)
         cert_chain_sha256_hex = [hashlib.sha256(cert.encode()).hexdigest() for cert in cert_chain]
 
         '''
             Right now, the IP address may not be right as we do not connect to IP address directly
             TODO: solve this problem and make sure the certificate matches IP address
         '''
-        result = {'rank': rank, 'host': host, 'ip': host_ip, 'error': e, 'certificate': cert_chain, 'sha256' : cert_chain_sha256_hex}
+        result = {'rank': rank, 'host': host, 'ip': remote_ip, 'error': e, 'certificate': cert_chain, 'sha256' : cert_chain_sha256_hex,
+                  'tls_version' : tls_version, 'tls_cipher' : tls_cipher}
 
         with self.scan_status_data_lock:
             self.scan_status_data.scanned_domains += 1
@@ -209,7 +210,9 @@ class DomainScanner(Scanner):
                         DOMAIN = result['host'],
                         IP = result['ip'],
                         ERROR_MSG = result['error'],
-                        RECEIVED_CERTS = result['sha256']
+                        RECEIVED_CERTS = result['sha256'],
+                        TLS_VERSION = result['tls_version'],
+                        TLS_CIPHER = result['tls_cipher']
                     )
                 )
 

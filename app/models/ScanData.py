@@ -11,11 +11,11 @@ def generate_scan_data_table(table_name):
         # SCAN_TIME = db.Column(db.DateTime, db.ForeignKey('SCAN_STATUS.START_TIME'), index=True, primary_key=True, nullable=False)
         SCAN_TIME = db.Column(db.DateTime, index=True, primary_key=True, nullable=False)
         DOMAIN = db.Column(db.Text, primary_key=True, index=True)
-        IP = db.Column(db.String(128), primary_key=True, index=True)
+        IP = db.Column(db.String(128), primary_key=True, index=True, nullable=True)
         ERROR_MSG = db.Column(db.Text, default=None)
         RECEIVED_CERTS = db.Column(db.JSON, default=[])
         TLS_VERSION = db.Column(db.Integer)
-        TLS_CIPHER = db.Column(db.Integer)
+        TLS_CIPHER = db.Column(db.String(128))
 
         def to_json(self):
             return {
@@ -42,11 +42,11 @@ class ScanData(db.Model):
     # SCAN_TIME = db.Column(db.DateTime, db.ForeignKey('SCAN_STATUS.START_TIME'), index=True, primary_key=True, nullable=False)
     SCAN_TIME = db.Column(db.DateTime, index=True, primary_key=True, nullable=False)
     DOMAIN = db.Column(db.Text, primary_key=True, index=True)
-    IP = db.Column(db.String(128), primary_key=True, index=True)
+    IP = db.Column(db.String(128), primary_key=True, index=True, nullable=True)
     ERROR_MSG = db.Column(db.Text, default=None)
     RECEIVED_CERTS = db.Column(db.JSON, default=[])
     TLS_VERSION = db.Column(db.Integer)
-    TLS_CIPHER = db.Column(db.Integer)
+    TLS_CIPHER = db.Column(db.String(128))
 
     def to_json(self):
         return {
