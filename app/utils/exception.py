@@ -27,3 +27,8 @@ class UnknownError(Exception):
     def __init__(self, message="Should not appear") -> None:
         self.message = message
         super().__init__(self.message)
+
+class UnknownTableError(Exception):
+    def __init__(self, table_name=""):
+        self.message = f"Cannot find table {table_name} in the database."
+        super().__init__(self.message)

@@ -9,17 +9,13 @@ from datetime import datetime
 from queue import PriorityQueue
 from rich.progress import Progress, BarColumn, TextColumn, TimeRemainingColumn
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from concurrent.futures import ProcessPoolExecutor, Future
 from sqlalchemy import insert
-from sqlalchemy.exc import IntegrityError
 
 from app import db, app
 from .scan_base import Scanner, ScanStatusData
 from ..config.scan_config import IPScanConfig
 from ..utils.type import ScanType, ScanStatusType
-from ..utils.network import resolve_host_dns
 from ..logger.logger import my_logger
-from ..analyzer.cert_analyze_base import CertScanAnalyzer
 from ..models import (
     ScanStatus, ScanData, CertScanMeta, CertStoreContent, CertStoreRaw
 )
@@ -116,7 +112,7 @@ class IPScanner(Scanner):
             with ThreadPoolExecutor(max_workers=self.max_threads) as executor:
                 while not self.task_queue.empty():
                     index, host = self.task_queue.get()
-                    executor.submit(self.scan_thread, index, host)
+                    executor.submit(self.scan_thread, index, host).result()
                 # 等待所有线程完成
                 executor.shutdown(wait=True)
                 my_logger.info("All threads finished.")
@@ -129,15 +125,6 @@ class IPScanner(Scanner):
             self.scan_status_data.end_time = datetime.utcnow()
             self.scan_status_data.status = ScanStatusType.COMPLETED
         self.sync_update_scan_process_info()
-
-        # 
-        # Run analysis in background after scanning
-        # 
-        with app.app_context():
-            # Update : we have config for this
-            if self.analyze_cert:
-                self.analyzer = CertScanAnalyzer(self.scan_id, self.cert_data_table_name)
-                self.analyzer.analyze_cert_scan_result()
 
 
     def terminate(self):

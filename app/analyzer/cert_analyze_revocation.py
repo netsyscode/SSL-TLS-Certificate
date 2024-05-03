@@ -6,7 +6,7 @@ import chardet
 from enum import Enum
 
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from urllib.parse import urlparse
 from typing import Dict, Tuple
 
@@ -161,7 +161,7 @@ class CertRevocationAnalyzer():
 
             data = {
                 'CERT_ID' : get_cert_sha256_hex_from_object(cert.to_cryptography()),
-                'CHECK_TIME' : datetime.now(),
+                'CHECK_TIME' : datetime.now(timezone.utc),
                 'AIA_LOCATION' : url,
                 'REVOCATION_STATUS' : status
             }

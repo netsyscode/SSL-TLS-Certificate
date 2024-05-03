@@ -4,21 +4,17 @@ import time
 import hashlib
 import threading
 
-from datetime import datetime
+from datetime import datetime, timezone
 from queue import PriorityQueue
 from rich.progress import Progress, BarColumn, TextColumn, TimeRemainingColumn
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from concurrent.futures import ProcessPoolExecutor, Future
 from sqlalchemy import insert
-from sqlalchemy.exc import IntegrityError
 
 from app import db, app
 from .scan_base import Scanner, ScanStatusData
 from ..config.scan_config import DomainScanConfig
 from ..utils.type import ScanType, ScanStatusType
-from ..utils.network import resolve_host_dns
 from ..logger.logger import my_logger
-from ..analyzer.cert_analyze_base import CertScanAnalyzer
 from ..models import (
     ScanStatus, ScanData, CertScanMeta, CertStoreContent, CertStoreRaw
 )
@@ -90,7 +86,7 @@ class DomainScanner(Scanner):
             TODO: solve this problem and make sure the certificate matches IP address
         '''
         result = {'rank': rank, 'host': host, 'ip': remote_ip, 'error': e, 'certificate': cert_chain, 'sha256' : cert_chain_sha256_hex,
-                  'tls_version' : tls_version, 'tls_cipher' : tls_cipher}
+                  'tls_version' : tls_version, 'tls_cipher' : tls_cipher, 'scan_time' : datetime.now(timezone.utc)}
 
         with self.scan_status_data_lock:
             self.scan_status_data.scanned_domains += 1
@@ -103,8 +99,8 @@ class DomainScanner(Scanner):
 
         with self.cached_results_lock:
             self.cached_results.append(result)
-            if len(self.cached_results) >= self.save_threshold:
-                self.save_results()
+        if len(self.cached_results) >= self.save_threshold:
+            self.save_results()
 
         self.progress.update(self.progress_task, description=f"[green]Completed: {self.scan_status_data.success_count}, [red]Errors: {self.scan_status_data.error_count}")
         self.progress.advance(self.progress_task)
@@ -134,23 +130,12 @@ class DomainScanner(Scanner):
                 executor.shutdown(wait=True)
                 my_logger.info("All threads finished.")
 
-        if self.cached_results:
-            self.save_results()
-        
+        self.save_results()
         my_logger.info(f"Scan Completed")
         with self.scan_status_data_lock:
             self.scan_status_data.end_time = datetime.utcnow()
             self.scan_status_data.status = ScanStatusType.COMPLETED
         self.sync_update_scan_process_info()
-
-        # 
-        # Run analysis in background after scanning
-        # 
-        with app.app_context():
-            # Update : we have config for this
-            if self.analyze_cert:
-                self.analyzer = CertScanAnalyzer(self.scan_id, self.cert_data_table_name)
-                self.analyzer.analyze_cert_scan_result()
 
 
     def terminate(self):
@@ -195,55 +180,55 @@ class DomainScanner(Scanner):
 
 
     def save_results(self):
+        with self.cached_results_lock:
+            with app.app_context():
+                my_logger.info(f"Saving {len(self.cached_results)} results...")
 
-        with app.app_context():
-            my_logger.info(f"Saving {len(self.cached_results)} results...")
+                scan_status_data_to_insert = []
+                cert_data_to_insert = {}
+                cert_metadata_to_insert = []
 
-            scan_status_data_to_insert = []
-            cert_data_to_insert = {}
-            cert_metadata_to_insert = []
-
-            for result in self.cached_results:
-                scan_status_data_to_insert.append(
-                    ScanData(
-                        SCAN_TIME = self.scan_status_data.start_time,
-                        DOMAIN = result['host'],
-                        IP = result['ip'],
-                        ERROR_MSG = result['error'],
-                        RECEIVED_CERTS = result['sha256'],
-                        TLS_VERSION = result['tls_version'],
-                        TLS_CIPHER = result['tls_cipher']
+                for result in self.cached_results:
+                    scan_status_data_to_insert.append(
+                        ScanData(
+                            SCAN_TIME = result['scan_time'],
+                            DOMAIN = result['host'],
+                            IP = result['ip'],
+                            ERROR_MSG = result['error'],
+                            RECEIVED_CERTS = result['sha256'],
+                            TLS_VERSION = result['tls_version'],
+                            TLS_CIPHER = result['tls_cipher']
+                        )
                     )
-                )
 
-                for i in range(len(result['sha256'])):
-                    cert_data_to_insert[result['sha256'][i]] = result['certificate'][i]
-                    cert_metadata_to_insert.append(
-                        {
-                            'CERT_ID' : result['sha256'][i],
-                            'SCAN_DATE' : self.scan_status_data.start_time,
-                            'SCAN_DOMAIN' : result['host'],
-                            'SCAN_IP' : result['ip']
-                        }
-                    )
-            
-            cert_data_to_insert = [{'CERT_ID' : key, 'CERT_RAW' : value} for key, value in cert_data_to_insert.items()]
-            with db.session.begin():
-                db.session.expunge_all()
-                db.session.add_all(scan_status_data_to_insert)
+                    for i in range(len(result['sha256'])):
+                        cert_data_to_insert[result['sha256'][i]] = result['certificate'][i]
+                        cert_metadata_to_insert.append(
+                            {
+                                'CERT_ID' : result['sha256'][i],
+                                'SCAN_DATE' : result['scan_time'],
+                                'SCAN_DOMAIN' : result['host'],
+                                'SCAN_IP' : result['ip']
+                            }
+                        )
+                
+                cert_data_to_insert = [{'CERT_ID' : key, 'CERT_RAW' : value} for key, value in cert_data_to_insert.items()]
+                with db.session.begin():
+                    db.session.expunge_all()
+                    db.session.add_all(scan_status_data_to_insert)
 
-                # only template model, can not use insert(Model) here
-                insert_cert_data_statement = insert(self.cert_data_table).values(cert_data_to_insert).prefix_with('IGNORE')
-                db.session.execute(insert_cert_data_statement)
+                    # only template model, can not use insert(Model) here
+                    insert_cert_data_statement = insert(self.cert_data_table).values(cert_data_to_insert).prefix_with('IGNORE')
+                    db.session.execute(insert_cert_data_statement)
 
-                # many many primary key dupliates...
-                # need to deal with Integrity Error with duplicate primary key pair with bulk_insert_mappings
-                insert_cert_raw_statement = insert(CertStoreRaw).values(cert_data_to_insert).prefix_with('IGNORE')
-                db.session.execute(insert_cert_raw_statement)
+                    # many many primary key dupliates...
+                    # need to deal with Integrity Error with duplicate primary key pair with bulk_insert_mappings
+                    insert_cert_raw_statement = insert(CertStoreRaw).values(cert_data_to_insert).prefix_with('IGNORE')
+                    db.session.execute(insert_cert_raw_statement)
 
-                # db.session.bulk_insert_mappings(CertScanMeta, cert_metadata_to_insert)
-                insert_cert_scan_metadata_statement = insert(CertScanMeta).values(cert_metadata_to_insert).prefix_with('IGNORE')
-                db.session.execute(insert_cert_scan_metadata_statement)
+                    # db.session.bulk_insert_mappings(CertScanMeta, cert_metadata_to_insert)
+                    insert_cert_scan_metadata_statement = insert(CertScanMeta).values(cert_metadata_to_insert).prefix_with('IGNORE')
+                    db.session.execute(insert_cert_scan_metadata_statement)
 
-        self.cached_results = []
+            self.cached_results = []
 

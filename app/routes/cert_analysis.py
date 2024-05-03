@@ -4,14 +4,7 @@ from ..models import CertAnalysisStats
 
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
-
-from ..analyzer.cert_analyze_base import CertScanAnalyzer
 from ..logger.logger import my_logger
-
-from .. import db
-from datetime import datetime
-import uuid
-from sqlalchemy import select
 
 
 @base.route('/system/cert_analysis/list', methods=['GET'])

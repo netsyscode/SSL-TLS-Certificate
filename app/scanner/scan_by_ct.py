@@ -13,12 +13,9 @@ import threading
 from OpenSSL import crypto
 from cryptography.hazmat.primitives.serialization import Encoding
 from datetime import datetime
-from urllib3.exceptions import SSLError
 from rich.progress import Progress, BarColumn, TextColumn, TimeRemainingColumn
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from concurrent.futures import ProcessPoolExecutor, Future
 from sqlalchemy import insert
-from sqlalchemy.exc import IntegrityError
 
 from app import db, app
 from ..parser.ct_parser import *
@@ -27,10 +24,6 @@ from ..config.scan_config import CTScanConfig
 from ..utils.type import ScanType, ScanStatusType
 from ..utils.cert import get_cert_sha256_hex_from_str
 from ..logger.logger import my_logger
-from ..analyzer.cert_analyze_base import CertScanAnalyzer
-from ..models import (
-    ScanStatus, ScanData, CertScanMeta, CertStoreContent, CertStoreRaw
-)
 
 class CTScanner(Scanner):
 
@@ -103,8 +96,8 @@ class CTScanner(Scanner):
 
         with self.cached_results_lock:
             self.cached_results += result
-            if len(self.cached_results) >= self.save_threshold:
-                self.save_results()
+        if len(self.cached_results) >= self.save_threshold:
+            self.save_results()
 
         self.progress.update(self.progress_task, description=f"[green]Completed: {self.scan_status_data.success_count}, [red]Errors: {self.scan_status_data.error_count}")
         self.progress.advance(self.progress_task)
@@ -131,9 +124,9 @@ class CTScanner(Scanner):
                 while start < self.end_entry:
                     end = start + self.window_size
                     if end < self.end_entry:
-                        executor.submit(self.scan_thread, start, end - 1)
+                        executor.submit(self.scan_thread, start, end - 1).result()
                     else:
-                        executor.submit(self.scan_thread, start, self.end_entry - 1)
+                        executor.submit(self.scan_thread, start, self.end_entry - 1).result()
                     start = end
 
                 executor.shutdown(wait=True)
@@ -187,27 +180,27 @@ class CTScanner(Scanner):
 
 
     def save_results(self):
+        with self.cached_results_lock:
+            with app.app_context():
+                my_logger.info(f"Saving {len(self.cached_results)} results...")
 
-        with app.app_context():
-            my_logger.info(f"Saving {len(self.cached_results)} results...")
+                cert_data_to_insert = []
+                for result in self.cached_results:
+                    cert_data_to_insert.append(
+                        {
+                            'CERT_ID' : get_cert_sha256_hex_from_str(result),
+                            'CERT_RAW' : result
+                        }
+                    )
 
-            cert_data_to_insert = []
-            for result in self.cached_results:
-                cert_data_to_insert.append(
-                    {
-                        'CERT_ID' : get_cert_sha256_hex_from_str(result),
-                        'CERT_RAW' : result
-                    }
-                )
+                with db.session.begin():
+                    # only template model, can not use insert(Model) here
+                    insert_cert_data_statement = insert(self.cert_data_table).values(cert_data_to_insert).prefix_with('IGNORE')
+                    db.session.execute(insert_cert_data_statement)
 
-            with db.session.begin():
-                # only template model, can not use insert(Model) here
-                insert_cert_data_statement = insert(self.cert_data_table).values(cert_data_to_insert).prefix_with('IGNORE')
-                db.session.execute(insert_cert_data_statement)
+                    # many many primary key dupliates...
+                    # need to deal with Integrity Error with duplicate primary key pair with bulk_insert_mappings
+                    # insert_cert_raw_statement = insert(CertStoreRaw).values(cert_data_to_insert).prefix_with('IGNORE')
+                    # db.session.execute(insert_cert_raw_statement)
 
-                # many many primary key dupliates...
-                # need to deal with Integrity Error with duplicate primary key pair with bulk_insert_mappings
-                # insert_cert_raw_statement = insert(CertStoreRaw).values(cert_data_to_insert).prefix_with('IGNORE')
-                # db.session.execute(insert_cert_raw_statement)
-
-        self.cached_results = []
+            self.cached_results = []

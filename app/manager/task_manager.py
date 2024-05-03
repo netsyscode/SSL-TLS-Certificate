@@ -3,11 +3,12 @@
     Backend process manager
     Created on 03/27/24
 '''
-
+import multiprocessing
 from time import sleep
 from threading import Thread, Lock, RLock
 from typing import List, Dict
 
+from . import g_process_executor, g_thread_executor
 from .task import Task
 from ..io.sql_io_manager import SqlIoManager
 from ..scanner.scan_manager import ScanManager
@@ -63,14 +64,10 @@ class GlobalTaskManager():
         '''
 
         self.max_running_task = 100
-        self.task_scheduler_thread = Thread(target=self.task_scheduler, args=())
-        self.task_scheduler_thread.start()
-        '''
-            An idle thread to continously check and start submitted tasks
-        '''
 
 
     def task_scheduler(self):
+        my_logger.info("Starting task scheduler...")
         while True:
             try:
                 sleep(5)
@@ -80,26 +77,42 @@ class GlobalTaskManager():
 
 
     def submit_task(self, task_queue : List[Task]):
-        with self.task_lock:
-            for task in task_queue:
-                try:
-                    self.manager_map[task.task_type].register_task(task)    # Register task to certain manager
+        my_logger.info("Submitting tasks...")
+        for task in task_queue:
+            try:
+                '''
+                    In submit_task, the process in blocking,
+                    the submitted task dict can be only modified after the task
+                    is registered, so we do not use multi-threading
+                '''
+                self.manager_map[task.task_type].register_task(task)    # Register task to certain manager
+                with self.task_lock:
                     self.submitted_task[task.task_id] = task
-                except RegisterError as e:
-                    my_logger.error(e.message)
+            except RegisterError as e:
+                my_logger.error(e.message)
 
 
     def start_submitted_tasks(self):
+        # my_logger.info("Starting submitted tasks...")
         if len(self.running_task.keys()) >= self.max_running_task:
             my_logger.warning("Full task running slots, please wait for some running task finishes")
             return
 
+        '''
+            We may have multiple tasks to start, so we cannot use 
+            blocking mechanism to block the other tasks, so 
+            we allocate a single thread to each task to run (shared g_executor however)
+        '''
         for task_id in list(self.submitted_task.keys()):
             # if the task has parent, check its parent's status
             try:
                 parent = self.submitted_task.get(task_id).parent_task
                 if not parent or parent.task_id in self.running_task:
-                    self.start_task(task_id)
+                    print("hello")
+                    # g_process_executor.submit(self.start_task, task_id).result()
+                    g_thread_executor.submit(self.start_task, task_id).result()
+                    # start_thread = Thread(target=self.start_task, args=(task_id,))
+                    # start_thread.start()
                 else:
                     my_logger.warning(f"Task {task_id} parent is not running, cannot start it.")
             except AttributeError:
@@ -110,16 +123,23 @@ class GlobalTaskManager():
         if len(self.running_task.keys()) >= self.max_running_task:
             my_logger.warning("Full task running slots, please wait for some running task finishes")
             return
-        
+
+        '''
+            Since the execution time for start_task can be really long,
+            need to add to running task before execution
+        '''
         with self.task_lock:
-            try:
-                my_logger.info(f"Staring task {task_id}...")
-                self.manager_map[self.submitted_task.get(task_id).task_type].start_task(task_id)
-                self.running_task[task_id] = self.submitted_task.get(task_id)
-                self.submitted_task.pop(task_id)
-            except ResourceInsufficientError as e:
-                my_logger.error(e.message)
-    
+            self.running_task[task_id] = self.submitted_task.get(task_id)
+            self.submitted_task.pop(task_id)
+        try:
+            my_logger.info(f"Staring task {task_id}...")
+            self.manager_map[self.running_task[task_id].task_type].start_task(task_id)
+        except ResourceInsufficientError as e:
+            my_logger.error(e.message)
+
+        with self.task_lock:
+            self.running_task.pop(task_id)
+
 
     def suspend_task(self, task_id : int):
         '''

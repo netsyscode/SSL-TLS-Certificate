@@ -61,33 +61,12 @@ class ScanManager(Manager):
         db.session.add(scan_process)
         db.session.commit()
 
-        # register entry in CertAnalysisStats db model
-        cert_analysis_store = CertAnalysisStats()
-        cert_analysis_store.SCAN_ID = scan_process.ID
-        cert_analysis_store.SCAN_TIME = scan_process.START_TIME
-        cert_analysis_store.SCAN_TYPE = scan_process.TYPE
-        cert_analysis_store.SCANNED_CERT_NUM = 0
-        cert_analysis_store.ISSUER_ORG_COUNT = {}
-        cert_analysis_store.KEY_SIZE_COUNT = {}
-        cert_analysis_store.KEY_TYPE_COUNT = {}
-        cert_analysis_store.SIG_ALG_COUNT = {}
-        cert_analysis_store.VALIDATION_PERIOD_COUNT = {}
-        cert_analysis_store.EXPIRED_PERCENT = 0
-
-        db.session.add(cert_analysis_store)
-        db.session.commit()
-
-        # register entry in CaAnalysis db model
-        '''
-        '''
-
         self.registry[task.task_id] = self.scan_config_to_scanner.get(task.task_config.__class__)(
             scan_process.ID, scan_process.START_TIME, task.task_config, scan_process.CERT_STORE_TABLE
         )
 
         r = scan_process.ID
         db.session.expunge(scan_process)
-        db.session.expunge(cert_analysis_store)
         my_logger.info(f"New scan process registered")
         return r
 
