@@ -12,7 +12,8 @@ from app.config.analysis_config import CaAnalysisConfig
 with app.app_context():
     analyze_args = {
         # 'SCAN_ID' : '62b10ef7-ef79-442f-8b6e-0599de728ebb',
-        'SCAN_ID' : 'e323cab1-567b-489e-8bac-0789690150ca',
+        # 'SCAN_ID' : 'e323cab1-567b-489e-8bac-0789690150ca',
+        'SCAN_ID' : '95dc7748-7490-4d84-8d67-4b2193953ffb',
         'SAVE_CHUNK_SIZE': 10000,
         'MAX_THREADS_ALLOC': 5
     }

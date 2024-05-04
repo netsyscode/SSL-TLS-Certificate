@@ -4,8 +4,8 @@ from app import app, db
 from typing import Dict, List, Set
 from dataclasses import dataclass, field
 from threading import Lock, Thread
-# from sqlalchemy.dialects.mysql import insert
-from sqlalchemy import insert
+from sqlalchemy.dialects.mysql import insert
+# from sqlalchemy import insert
 from datetime import datetime, timezone
 import cryptography.hazmat.bindings
 from cryptography.hazmat.primitives.asymmetric import dsa as primitive_dsa, rsa as primitive_rsa, ec as primitive_ec, dh as primitive_dh
@@ -213,8 +213,10 @@ class CaParseAnalyzer():
                 }
                 with app.app_context():
                     insert_ca_data_statement = insert(self.storage_table).values(ca_store_data)
-                    db.session.execute(insert_ca_data_statement)
-                    # db.session.commit()
+                    update_values = {key: insert_ca_data_statement.inserted[key] for key in ca_store_data.keys()}
+                    on_duplicate_key_statement = insert_ca_data_statement.on_duplicate_key_update(**update_values)
+                    db.session.execute(on_duplicate_key_statement)
+                    db.session.commit()
 
             # self.cert_stat_entry.SCANNED_CERT_NUM = self.num_cert
             # self.cert_stat_entry.ISSUER_ORG_COUNT = self.issuer_org_dict

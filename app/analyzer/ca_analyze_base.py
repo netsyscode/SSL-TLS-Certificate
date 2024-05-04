@@ -45,6 +45,7 @@ class CaMetricAnalyzer():
                     if self.parse_analyzer:
                         my_logger.info("Allocate one thread for ca parse analyzer")
                         # use .result() to show exception info
-                        executor.submit(self.parse_analyzer.analyze_ca_parse, rows).result()
+                        # but will become single thread
+                        executor.submit(self.parse_analyzer.analyze_ca_parse, rows)
 
                 executor.shutdown(wait=True)
