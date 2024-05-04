@@ -1,7 +1,7 @@
 
 from app import app, db
 from threading import Lock, Thread
-from sqlalchemy import insert, MetaData, Table
+from sqlalchemy.dialects.mysql import insert
 from datetime import datetime, timezone
 import cryptography.hazmat.bindings
 from cryptography.hazmat.primitives.asymmetric import dsa as primitive_dsa, rsa as primitive_rsa, ec as primitive_ec, dh as primitive_dh

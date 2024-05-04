@@ -10,7 +10,7 @@ from app.config.scan_config import DomainScanConfig
 
 if __name__ == "__main__":
     with app.app_context():
-        scan_args = {'SCAN_PROCESS_NAME': "test_scan_20240430"}
+        scan_args = {'SCAN_PROCESS_NAME': "test_scan_20240504"}
         scan_task = TaskBatchTemplate.create_scan_task(DomainScanConfig(**scan_args))
         g_manager.submit_task([scan_task])
         g_manager.start_submitted_tasks()

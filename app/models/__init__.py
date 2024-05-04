@@ -12,5 +12,5 @@ from .ScanStatus import ScanStatus
 from .ScanData import generate_scan_data_table, ScanData
 from .CertData import generate_cert_data_table, CertStoreContent, CertScanMeta, CertStoreRaw, CaCertStore
 from .CertStatResult import CertAnalysisStats, CertChainRelation
-from .CaAnalysis import generate_ca_analysis_table
+from .CaData import generate_ca_analysis_table
 from .CertRevocation import CertRevocationStatusOCSP

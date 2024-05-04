@@ -1,6 +1,6 @@
 
 from app import app, db
-from sqlalchemy import insert, MetaData, Table
+from sqlalchemy import MetaData
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from ..manager import g_thread_executor
@@ -58,8 +58,8 @@ class CertScanAnalyzer():
                     if self.parse_analyzer:
                         print(len(rows))
                         my_logger.info("Allocate one thread for parse analyzer")
-                        executor.submit(self.parse_analyzer.analyze_cert_parse, rows).result()
-                        # g_thread_executor.submit(self.parse_analyzer.analyze_cert_parse, rows).result()
+                        executor.submit(self.parse_analyzer.analyze_cert_parse, rows)
+                        # g_thread_executor.submit(self.parse_analyzer.analyze_cert_parse, rows)
                         # _thread = Thread(target=self.parse_analyzer.analyze_cert_parse, args=(rows,))
                         # _thread.start()
 

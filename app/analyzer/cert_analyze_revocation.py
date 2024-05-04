@@ -39,7 +39,8 @@ from cryptography.x509.ocsp import (
     load_der_ocsp_response
 )
 from threading import Lock
-from sqlalchemy import insert, Table
+from sqlalchemy.dialects.mysql import insert
+from sqlalchemy import Table
 from ..models import CertAnalysisStats, CertStoreContent, CertStoreRaw, CaCertStore, CertRevocationStatusOCSP
 
 from sqlalchemy.exc import IntegrityError

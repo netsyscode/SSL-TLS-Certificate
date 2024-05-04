@@ -57,6 +57,7 @@ class ExtensionResult():
 class AIAResult(ExtensionResult):
     has_ocsp_server_url : bool
     ocsp_url_list : List[str]
+    issuer_url_list : List[str]
 
 @dataclass
 class BasicConstraintsResult(ExtensionResult):
@@ -123,6 +124,7 @@ class AIAParser(SingleExtensionParser):
     def analyze(self, extension : Extension) -> AIAResult:
         has_ocsp_server = False
         ocsp_server_url = []
+        issuer_server_url = []
         value = extension.value
         if isinstance(value, AuthorityInformationAccess):
             for access_description in value:
@@ -130,7 +132,10 @@ class AIAParser(SingleExtensionParser):
                     and (access_description.access_location is not None):
                     has_ocsp_server = True
                     ocsp_server_url.append(access_description.access_location.value)
-            return AIAResult(extension.critical, has_ocsp_server, ocsp_server_url)
+                if (access_description.access_method == AuthorityInformationAccessOID.CA_ISSUERS) \
+                    and (access_description.access_location is not None):
+                    issuer_server_url.append(access_description.access_location.value)
+            return AIAResult(extension.critical, has_ocsp_server, ocsp_server_url, issuer_server_url)
         return None
 
 

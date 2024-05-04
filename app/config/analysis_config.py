@@ -25,7 +25,13 @@ class CertAnalysisConfig:
 
 
 class CaAnalysisConfig:
-    pass
+
+    def __init__(self, **kwargs):
+
+        self.SCAN_ID  = kwargs.get('SCAN_ID', None)
+        self.SAVE_CHUNK_SIZE = kwargs.get('SAVE_CHUNK_SIZE', 2000)
+        self.MAX_THREADS_ALLOC = kwargs.get('MAX_THREADS_ALLOC', 100)
+
 
 def create_analyze_config(request : Request, analyze_type : int):
 

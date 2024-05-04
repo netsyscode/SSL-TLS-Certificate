@@ -15,7 +15,7 @@ from cryptography.hazmat.primitives.serialization import Encoding
 from datetime import datetime
 from rich.progress import Progress, BarColumn, TextColumn, TimeRemainingColumn
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from sqlalchemy import insert
+from sqlalchemy.dialects.mysql import insert
 
 from app import db, app
 from ..parser.ct_parser import *

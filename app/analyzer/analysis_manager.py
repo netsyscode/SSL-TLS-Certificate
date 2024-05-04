@@ -1,8 +1,7 @@
 
-from app import db, app
 from typing import Optional, Dict, Union
 from .cert_analyze_base import CertScanAnalyzer
-# from .ca_analyze_base import CAMetricAnalyzer
+from .ca_analyze_base import CaMetricAnalyzer
 
 from ..logger.logger import my_logger
 from ..models import ScanStatus, CertAnalysisStats
@@ -15,12 +14,12 @@ class AnalysisManager(Manager):
 
     analyze_config_to_analyzer = {
         CertAnalysisConfig : CertScanAnalyzer,
-        CaAnalysisConfig : None
+        CaAnalysisConfig : CaMetricAnalyzer
     }
 
     def __init__(self) -> None:
         super().__init__()
-        self.registry : Dict[int, Union[CertScanAnalyzer, None]] = {}
+        self.registry : Dict[int, Union[CertScanAnalyzer, CaMetricAnalyzer]] = {}
 
     def register_task(self, task : Task):
 

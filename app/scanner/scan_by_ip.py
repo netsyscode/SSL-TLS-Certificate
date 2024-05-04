@@ -9,7 +9,7 @@ from datetime import datetime
 from queue import PriorityQueue
 from rich.progress import Progress, BarColumn, TextColumn, TimeRemainingColumn
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from sqlalchemy import insert
+from sqlalchemy.dialects.mysql import insert
 
 from app import db, app
 from .scan_base import Scanner, ScanStatusData
