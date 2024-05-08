@@ -15,7 +15,7 @@ from app.manager.task import TaskBatchTemplate
 with app.app_context():
     scan_type = ScanType(ScanType.SCAN_BY_DOMAIN)
     scan_args = {
-        'SCAN_PROCESS_NAME': "20240430 0-1M",
+        'SCAN_PROCESS_NAME': "20240507 0-1M",
         'SCAN_TIMEOUT' : 2,
         'MAX_RETRY' : 2,
         'NUM_DOMAIN_SCAN' : 1000000

@@ -14,6 +14,20 @@ from cryptography.x509 import (
     ExtendedKeyUsage,
     ExtensionNotFound
 )
+from ..parser.cert_parser_extension import (
+    AIAResult,
+    KeyUsageResult,
+    CertPoliciesResult,
+    BasicConstraintsResult,
+    ExtendedKeyUsageResult,
+    CRLResult
+)
+from app.parser.cert_parser_base import X509CertParser, X509ParsedInfo
+from ..utils.exception import ParseError, UnknownTableError
+from ..models import CertAnalysisStats, CertStoreContent, ScanStatus, CaCertStore, generate_ca_analysis_table
+from ..parser.cert_parser_base import X509ParsedInfo
+from ..logger.logger import my_logger
+
 
 from cryptography.x509.oid import NameOID
 from webPKIScanner.certAnalyzer.x509CertUtils import (
@@ -21,9 +35,8 @@ from webPKIScanner.certAnalyzer.x509CertUtils import (
     getNameAttribute
 )
 from webPKIScanner.commonHelpers.pathHelpers.pathLocate import convertRelativePathToAbsPath
-from webPKIScanner.logger.logger import my_logger, DEBUG, ERROR, INFO
 from sklearn.cluster import KMeans, MiniBatchKMeans
-
+from typing import Dict, List
 import concurrent.futures
 import threading
 import numpy as np
@@ -31,85 +44,17 @@ import configparser
 import os
 
 
-class X509CertInfo:
-
-    def __init__(self, cert : Certificate) -> None:
-
-        self.cert = cert
-        self.issuer = getNameAttribute(cert.issuer, NameOID.COMMON_NAME, "error")
-        self.extension_set = set()
-        for extension in cert.extensions._extensions:
-            self.extension_set.add(extension.oid)
-        self.policy_set = self.buildCertPolicySet(cert)
-        self.aia_set = self.buildAIAInfoSet(cert)
-        self.subject = getNameAttribute(cert.subject, NameOID.COMMON_NAME, "error")
-        self.crl_set = self.buildCRLInfoSet(cert)
-        self.ext_set = self.buildExtendedKeyUsageSet(cert)
-        self.cert_period = utcTimeDifferenceInDays(cert.not_valid_after, cert.not_valid_before)
-
-    def buildCertPolicySet(self, cert : Certificate) -> set:
-        _set = set()
-        try:
-            cert_policies = cert.extensions.get_extension_for_oid(ExtensionOID.CERTIFICATE_POLICIES)
-            for policy in cert_policies.value:
-                if isinstance(policy, PolicyInformation):
-                    policy_oid = policy.policy_identifier.dotted_string
-                    _set.add(policy_oid)
-        except ExtensionNotFound:
-            pass
-        finally:
-            return _set
-    
-    def buildAIAInfoSet(self, cert : Certificate) -> set:
-        _set = set()
-        try:
-            aia_info = cert.extensions.get_extension_for_oid(ExtensionOID.AUTHORITY_INFORMATION_ACCESS)
-            for access_description in aia_info.value:
-                if isinstance(access_description, AccessDescription):
-                    _set.add(access_description.access_location.value)
-        except ExtensionNotFound:
-            pass
-        finally:
-            return _set
-
-    def buildCRLInfoSet(self, cert : Certificate) -> set:
-        _set = set()
-        try:
-            crl_info = cert.extensions.get_extension_for_oid(ExtensionOID.CRL_DISTRIBUTION_POINTS)
-            for crl_point in crl_info.value:
-                if isinstance(crl_point, DistributionPoint):
-                    name_list = crl_point.full_name
-                    for name in name_list:
-                        _set.add(name.value)
-        except ExtensionNotFound:
-            pass
-        finally:
-            return _set
-
-    def buildExtendedKeyUsageSet(self, cert : Certificate) -> set:
-        _set = set()
-        try:
-            usages = cert.extensions.get_extension_for_oid(ExtensionOID.EXTENDED_KEY_USAGE)
-            for usage in usages.value:
-                _set.add(usage.dotted_string)
-        except ExtensionNotFound:
-            pass
-        finally:
-            return _set
-
-
 class X509CertCluster:
 
     def __init__(
             self,
-            input_cert_list : list[Certificate],
             config_path : str = r"config\clusterConfig.cfg"
         ) -> None:
         
         try:
             parser = configparser.ConfigParser()
             config_path = convertRelativePathToAbsPath(__file__, config_path)
-            my_logger.dumpLog(DEBUG, f"Reading cluster config file: {config_path}")
+            my_logger.debug(f"Reading cluster config file: {config_path}")
             parser.read(config_path)
 
             # cluster distance weight
@@ -142,22 +87,105 @@ class X509CertCluster:
             self.extension_score_weight = float(parser.get("score_metric", "extension"))
 
         except FileNotFoundError as e:
-            my_logger.dumpLog(ERROR, "Cluster config file does not exist")
+            my_logger.error("Cluster config file does not exist")
 
         except (configparser.MissingSectionHeaderError, configparser.ParsingError, configparser.NoSectionError) as e:
-            my_logger.dumpLog(ERROR, f"Error reading cluster config file: {e}")
+            my_logger.error(f"Error reading cluster config file: {e}")
 
-        self.cert_list = [X509CertInfo(cert) for cert in input_cert_list]
-        self.size = len(self.cert_list)
-        self.distance_matrix = np.zeros((self.size, self.size))
-        self.cluster_result = {}    # Key is the cluster index, value is the index of the certificate
-        self.medoids = []   # contain index
+
+        self.cert_dict_based_on_issuer : Dict[(str,str,str), List[Certificate]]= {}
+
+
+
+    def analyze_ca_profiling(self, rows):
+        '''
+            Each row in rows has the following structure:
+                'sha256_id': self.CERT_ID,
+                'raw': self.CERT_RAW
+        '''
+        for row in rows:
+            try:
+                single_cert_parser = X509CertParser(row[1])
+                cert_parse_result = single_cert_parser.parse_cert_base()
+
+                identity = (cert_parse_result.issuer_cn, cert_parse_result.issuer_org, cert_parse_result.issuer_country)
+                if identity not in self.cert_dict_based_on_issuer.keys():
+                    with self.ca_id_lock:
+                        self.cert_dict_based_on_issuer[identity] = []
+
+                with self.result_list_lock:
+                    self.cert_dict_based_on_issuer[identity].append(cert_parse_result)
+
+            except ParseError:
+                pass
+
+        for k, v in self.cert_dict_based_on_issuer.items():
+
+            self.size = len(self.cert_list)
+            self.distance_matrix = np.zeros((self.size, self.size))
+            self.cluster_result = {}    # Key is the cluster index, value is the index of the certificate
+            self.medoids = []   # contain index
+
+            m = self.buildDistanceMatrix()
+            self.kMedoidsWithKMeansPP(m)
+
+        self.dump()
+
+
+    def sync_update_info(self, identity, cert_parse_result : X509ParsedInfo):
+
+        with self.result_list_lock:
+            stat_result : CaStatResult = self.result_list[identity]
+
+            stat_result.signed_cert_num += 1
+
+            current_utc_time = datetime.now(timezone.utc)
+            time_end_utc = cert_parse_result.not_valid_after.replace(tzinfo=timezone.utc)
+            stat_result.expired_num += (current_utc_time > time_end_utc)
+            
+            def update_dict(dict, key):
+                if key in dict:
+                    dict[key] += 1
+                else:
+                    dict[key] = 1
+
+            update_dict(stat_result.serial_len_count, (cert_parse_result.serial_number.bit_length() + 7) // 8)  # byte length
+            update_dict(stat_result.subject_country_count, cert_parse_result.subject_country)
+            update_dict(stat_result.signed_day_count, cert_parse_result.not_valid_before.strftime("%Y%m%d"))
+            update_dict(stat_result.validity_period_count, cert_parse_result.validation_period)
+            update_dict(stat_result.key_size_count, cert_parse_result.subject_pub_key_size)
+            update_dict(stat_result.key_type_count, cert_parse_result.subject_pub_key_algo.__class__.__name__)
+            update_dict(stat_result.sig_type_count, cert_parse_result.cert_signature_hash_algorithm)
+
+            for ext_result in cert_parse_result.extension_parsed_info:
+                if type(ext_result) == AIAResult:
+                    for issuer_url in ext_result.issuer_url_list:
+                        stat_result.ca_cert_server.add(issuer_url)
+                    for ocsp_url in ext_result.ocsp_url_list:
+                        stat_result.ocsp_server.add(ocsp_url)
+                if type(ext_result) == CRLResult:
+                    for crl_url in ext_result.crl_url_list:
+                        stat_result.crl_server.add(crl_url)
+                if type(ext_result) == BasicConstraintsResult:
+                    update_dict(stat_result.basic_constraint_count, ext_result.ca_bit)
+                if type(ext_result) == KeyUsageResult:
+                    stat_result.crypto_use_count['digital_sig'] += ext_result.digital_sig
+                    stat_result.crypto_use_count['key_encipherment'] += ext_result.key_encipherment
+                    stat_result.crypto_use_count['data_encipherment'] += ext_result.data_encipherment
+                    stat_result.crypto_use_count['key_agreement'] += ext_result.key_agreement
+                    stat_result.crypto_use_count['others'] += ext_result.others
+                if type(ext_result) == ExtendedKeyUsageResult:
+                    for usage in ext_result.ext_usage_list:
+                        update_dict(stat_result.eku_count, usage.__str__())
+                if type(ext_result) == CertPoliciesResult:
+                    update_dict(stat_result.issued_policy_count, ext_result.issuer_policy)
+
 
 
     '''
         Distance calculation
     '''
-    def calculateCertDistance(self, cert1 : X509CertInfo, cert2 : X509CertInfo) -> float:
+    def calculateCertDistance(self, cert1 : X509ParsedInfo, cert2 : X509ParsedInfo) -> float:
         distance = 0
         high = 0
         med = 0

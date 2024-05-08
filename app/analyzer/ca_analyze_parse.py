@@ -119,8 +119,6 @@ class CaParseAnalyzer():
             try:
                 single_cert_parser = X509CertParser(row[1])
                 cert_parse_result = single_cert_parser.parse_cert_base()
-                single_cert_ext_parser = X509CertExtensionParser((load_pem_x509_certificate(row[1].encode("utf-8"), default_backend())).extensions)
-                cert_ext_parse_result = single_cert_ext_parser.analyzeExtensions()
 
                 identity = (cert_parse_result.issuer_cn, cert_parse_result.issuer_org, cert_parse_result.issuer_country)
                 if identity not in self.result_list.keys():
@@ -128,13 +126,13 @@ class CaParseAnalyzer():
                         self.result_list[identity] = CaStatResult(id=self.ca_id, cn=identity[0], org=identity[1], country=identity[2])
                         self.ca_id += 1
 
-                self.sync_update_info(identity, cert_parse_result, cert_ext_parse_result)
+                self.sync_update_info(identity, cert_parse_result)
             except ParseError:
                 pass
         self.dump()
 
 
-    def sync_update_info(self, identity, cert_parse_result : X509ParsedInfo, cert_ext_parse_result : List[ExtensionResult]):
+    def sync_update_info(self, identity, cert_parse_result : X509ParsedInfo):
 
         with self.result_list_lock:
             stat_result : CaStatResult = self.result_list[identity]
@@ -159,7 +157,7 @@ class CaParseAnalyzer():
             update_dict(stat_result.key_type_count, cert_parse_result.subject_pub_key_algo.__class__.__name__)
             update_dict(stat_result.sig_type_count, cert_parse_result.cert_signature_hash_algorithm)
 
-            for ext_result in cert_ext_parse_result:
+            for ext_result in cert_parse_result.extension_parsed_info:
                 if type(ext_result) == AIAResult:
                     for issuer_url in ext_result.issuer_url_list:
                         stat_result.ca_cert_server.add(issuer_url)
