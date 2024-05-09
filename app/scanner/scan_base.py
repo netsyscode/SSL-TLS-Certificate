@@ -43,6 +43,13 @@ class ScanStatusData():
     error_count : int = 0
 
 
+tls_version_map = {
+    SSL.SSL3_VERSION : 0,
+    SSL.TLS1_1_VERSION : 1,
+    SSL.TLS1_2_VERSION : 2,
+    SSL.TLS1_3_VERSION : 3
+}
+
 class Scanner(ABC):
 
     def __init__(
@@ -80,6 +87,7 @@ class Scanner(ABC):
         self.cert_data_table_name = cert_data_table_name
         self.cert_data_table = generate_cert_data_table(cert_data_table_name)
 
+        self.analyze_cert = scan_config.IS_ANALYZE
 
     '''
         @Methods used for IP and Domain scan
@@ -95,6 +103,40 @@ class Scanner(ABC):
     def fetch_raw_cert_chain(self, host : str, host_ip : str, port=443, proxy_host="127.0.0.1", proxy_port=33210):
 
         try:
+
+            # import requests
+            # headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36'}
+
+            # if proxy_host and proxy_port:
+            #     proxies = {
+            #         'http': f'http://{proxy_host}:{proxy_port}',
+            #         'https': f'http://{proxy_host}:{proxy_port}'
+            #     }
+            # else:
+            #     proxies = None
+
+            # try:
+            #     url = f'https://{host}:{port}'
+            #     print(url)
+            #     response = requests.get(url, headers=headers, proxies=proxies, stream=True)
+            #     # response = requests.get(url)
+            #     response : requests.Response
+
+            #     # print(response.raw)
+            #     # print("Response:", response.headers)
+
+            #     import urllib3
+            #     raw : urllib3.response.HTTPResponse = response.raw
+
+            #     # print(raw._fp.getheaders())
+            #     raw_socket = response.raw._fp.fp.raw._sock
+            #     remote_ip = raw_socket.getpeername()[0]
+            #     print("Remote IP address:", remote_ip)
+                
+            # except requests.exceptions.RequestException as e:
+            #     print("Error:", e)
+
+
             '''
                 Well, OPENSSL.SSL.Connection only accepts socket.socket,
                 we can not use socks.socksocket() from "socks" PySocks to set up proxy
@@ -119,12 +161,17 @@ class Scanner(ABC):
 
             proxy_conn.connect()
             proxy_socket = proxy_conn.sock
+            remote_ip = proxy_conn.sock.getpeername()[0]
 
             '''
                 TODO: handle various SSL/TLS context types
             '''
             ctx = SSL.Context(SSL.TLS_CLIENT_METHOD)
             ctx.set_verify(SSL.VERIFY_NONE)
+            ctx.set_options(SSL.OP_NO_RENEGOTIATION)
+            ctx.set_options(SSL.OP_IGNORE_UNEXPECTED_EOF)
+            ctx.set_max_proto_version(SSL.TLS1_3_VERSION)
+            ctx.set_min_proto_version(SSL.SSL3_VERSION)
 
             # my_logger.info(f"Getting certs from {host}...")
             sock_ssl = SSL.Connection(ctx, proxy_socket)
@@ -152,24 +199,35 @@ class Scanner(ABC):
                     retry_count += 1
                     time.sleep(0.5)
                     continue
+                # except SSL.Error as e:
+                #     time.sleep(5)
+                #     if 'tlsv1 alert protocol version' in str(e):
+                #         my_logger.warning("TLS版本不兼容")
+                #         return self.tls_connection(host, proxy_socket, SSL.TLSv1_1_METHOD)
+                #     else:
+                #         my_logger.error(f"Error fetching certificate for {host}: {e} {e.__class__}")
+                #         return self.tls_connection(host, proxy_socket, SSL.TLSv1_METHOD)
 
             # Retrieve the peer certificate
             certs = sock_ssl.get_peer_cert_chain()
             cert_pem = [dump_certificate(FILETYPE_PEM, cert).decode('utf-8') for cert in certs]
             # my_logger.info(f"Success fetching certificate for {host} : {len(certs)}")
+
+            tls_version = tls_version_map[sock_ssl.get_protocol_version()]
+            tls_cipher = sock_ssl.get_cipher_name()
             proxy_socket.close()
-            return cert_pem, None
+            return cert_pem, None, remote_ip, tls_version, tls_cipher
         
         except RetriveError as e:
             # my_logger.error(f"Error fetching certificate for {host}: {last_error} {last_error.__class__}")
             proxy_socket.close()
             # print("ERROR")
-            return [], f"{last_error} {last_error.__class__}"
+            return [], f"{last_error} {last_error.__class__}", "", None, None
 
         except Exception as e:
             # my_logger.error(f"Error fetching certificate for {host}: {e} {e.__class__}")
             # proxy_socket.close()
-            return [], f"{e} {e.__class__}"
+            return [], f"{e} {e.__class__}", "", None, None
 
 
     '''

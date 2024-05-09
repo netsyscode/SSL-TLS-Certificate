@@ -6,7 +6,7 @@ import chardet
 from enum import Enum
 
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from urllib.parse import urlparse
 from typing import Dict, Tuple
 
@@ -39,7 +39,8 @@ from cryptography.x509.ocsp import (
     load_der_ocsp_response
 )
 from threading import Lock
-from sqlalchemy import insert, Table
+from sqlalchemy.dialects.mysql import insert
+from sqlalchemy import Table
 from ..models import CertAnalysisStats, CertStoreContent, CertStoreRaw, CaCertStore, CertRevocationStatusOCSP
 
 from sqlalchemy.exc import IntegrityError
@@ -161,7 +162,7 @@ class CertRevocationAnalyzer():
 
             data = {
                 'CERT_ID' : get_cert_sha256_hex_from_object(cert.to_cryptography()),
-                'CHECK_TIME' : datetime.now(),
+                'CHECK_TIME' : datetime.now(timezone.utc),
                 'AIA_LOCATION' : url,
                 'REVOCATION_STATUS' : status
             }

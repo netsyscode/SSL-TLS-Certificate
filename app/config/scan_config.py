@@ -12,6 +12,7 @@ class ScanConfig:
         self.PROXY_PORT = kwargs.get('PROXY_PORT', 33210)
         self.SCAN_TIMEOUT = kwargs.get('SCAN_TIMEOUT', 5)
         self.MAX_RETRY = kwargs.get('MAX_RETRY', 3)
+        self.IS_ANALYZE = kwargs.get('IS_ANALYZE', False)
 
 
 class DomainScanConfig(ScanConfig):
@@ -34,6 +35,7 @@ class CTScanConfig(ScanConfig):
         self.CT_LOG_ADDRESS = kwargs.get('CT_LOG_ADDRESS', "")
         self.ENTRY_START = kwargs.get('ENTRY_START', 0)
         self.ENTRY_END = kwargs.get('ENTRY_END', 1000)
+        self.WINDOW_SIZE = kwargs.get('WINDOW_SIZE', 1000)
 
 
 def create_scan_config(request : Request, scan_type : ScanType):
@@ -43,6 +45,7 @@ def create_scan_config(request : Request, scan_type : ScanType):
         'MAX_THREADS_ALLOC': int(request.json.get('scanThreadNum')),
         'SCAN_TIMEOUT': int(request.json.get('timeout')),
         'MAX_RETRY': int(request.json.get('retryTimes')),
+        'IS_ANALYZE' : bool(request.json.get('analyze_cert')),
     }
 
     if request.json.get('proxyAddress'):

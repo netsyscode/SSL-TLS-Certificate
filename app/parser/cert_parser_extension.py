@@ -41,15 +41,7 @@ from ..utils.cert import (
     check_local_ip
 )
 
-from webPKIScanner.logger.logger import (
-    DEBUG,
-    INFO,
-    WARNING,
-    ERROR,
-    my_logger
-)
-
-from typing import Optional, Dict, Union
+from typing import Optional, Dict, Union, List
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
@@ -64,7 +56,8 @@ class ExtensionResult():
 @dataclass
 class AIAResult(ExtensionResult):
     has_ocsp_server_url : bool
-    ocsp_url_list : list[str]
+    ocsp_url_list : List[str]
+    issuer_url_list : List[str]
 
 @dataclass
 class BasicConstraintsResult(ExtensionResult):
@@ -73,7 +66,7 @@ class BasicConstraintsResult(ExtensionResult):
 
 @dataclass
 class ExtendedKeyUsageResult(ExtensionResult):
-    ext_usage_list : list[ExtendedKeyUsageOID]
+    ext_usage_list : List[ExtendedKeyUsageOID]
 
 @dataclass
 class KeyUsageResult(ExtensionResult):
@@ -87,12 +80,12 @@ class KeyUsageResult(ExtensionResult):
 @dataclass
 class CRLResult(ExtensionResult):
     has_crl_url : bool
-    crl_url_list : list[str]
+    crl_url_list : List[str]
 
 @dataclass
 class SANResult(ExtensionResult):
-    name_list : list[str]
-    ip_list : list[str]
+    name_list : List[str]
+    ip_list : List[str]
     has_other_name_type : bool
     has_local_domain : bool
     has_local_ip : bool
@@ -107,7 +100,7 @@ class X509CertExtensionParser():
     def __init__(self, input_extensions : Extensions) -> None:
         self.extensions = input_extensions
 
-    def analyzeExtensions(self) -> list[ExtensionResult]:
+    def analyzeExtensions(self) -> List[ExtensionResult]:
         output_list = []
         for extension in self.extensions:
             # do not want static method here right now...
@@ -131,6 +124,7 @@ class AIAParser(SingleExtensionParser):
     def analyze(self, extension : Extension) -> AIAResult:
         has_ocsp_server = False
         ocsp_server_url = []
+        issuer_server_url = []
         value = extension.value
         if isinstance(value, AuthorityInformationAccess):
             for access_description in value:
@@ -138,7 +132,10 @@ class AIAParser(SingleExtensionParser):
                     and (access_description.access_location is not None):
                     has_ocsp_server = True
                     ocsp_server_url.append(access_description.access_location.value)
-            return AIAResult(extension.critical, has_ocsp_server, ocsp_server_url)
+                if (access_description.access_method == AuthorityInformationAccessOID.CA_ISSUERS) \
+                    and (access_description.access_location is not None):
+                    issuer_server_url.append(access_description.access_location.value)
+            return AIAResult(extension.critical, has_ocsp_server, ocsp_server_url, issuer_server_url)
         return None
 
 
