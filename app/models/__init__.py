@@ -14,3 +14,4 @@ from .CertData import generate_cert_data_table, CertStoreContent, CertScanMeta, 
 from .CertStatResult import CertAnalysisStats, CertChainRelation
 from .CaData import generate_ca_analysis_table
 from .CertRevocation import CertRevocationStatusOCSP
+from .CaProfiling import generate_ca_profiling_table

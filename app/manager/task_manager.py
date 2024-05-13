@@ -115,7 +115,8 @@ class GlobalTaskManager():
                     # start_thread.start()
                 else:
                     my_logger.warning(f"Task {task_id} parent is not running, cannot start it.")
-            except AttributeError:
+            except AttributeError as e:
+                print(e)
                 my_logger.warning(f"Trying to start task {task_id} that has been killed manually")
 
 

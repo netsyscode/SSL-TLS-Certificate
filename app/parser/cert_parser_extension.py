@@ -217,7 +217,7 @@ class SANParser(SingleExtensionParser):
                     if check_local_domain(name.value):
                         has_local_domain = True
                 elif isinstance(name, IPAddress):
-                    ip_names.append(name.value)
+                    ip_names.append(str(name.value))
                     if check_local_ip(name.value):
                         has_local_ip = True
                 else:
