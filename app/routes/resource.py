@@ -9,7 +9,7 @@ from ..models import ResourceType
 from flask import render_template, request
 from .. import  db
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import desc
 from sqlalchemy import asc
 from flask_login import login_required  
@@ -44,7 +44,7 @@ def syresource_getById(id):
 def syresource_update():
     res = Resource.query.get(request.json['menuId'])
 
-    res.UPDATEDATETIME = datetime.now()
+    res.UPDATEDATETIME = datetime.now(timezone.utc)
     if 'icon' in request.json: res.ICONCLS = request.json['icon']
     if 'component' in request.json: res.URL = request.json['component']
     if 'path' in request.json: res.PATH = request.json['path']

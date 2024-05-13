@@ -1,6 +1,6 @@
 import re
 import hashlib
-from datetime import datetime
+from datetime import datetime, timezone
 from urllib.parse import urlparse
 from ..logger.logger import my_logger
 

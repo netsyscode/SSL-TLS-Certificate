@@ -1,6 +1,6 @@
 from app import db
 from flask_login import UserMixin, AnonymousUserMixin
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import jsonify
 
 
@@ -10,8 +10,8 @@ class Resource(db.Model, UserMixin):
      #"order_by": 'SEQ'
     }
     ID = db.Column(db.String(36), primary_key=True)
-    CREATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now)
-    UPDATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now)
+    CREATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now(timezone.utc))
+    UPDATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now(timezone.utc))
     NAME = db.Column(db.String(100))
     URL = db.Column(db.String(200))
     PATH = db.Column(db.String(200))

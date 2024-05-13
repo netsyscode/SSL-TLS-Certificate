@@ -8,7 +8,7 @@ from ..models import Role, Resource, User
 from flask import render_template, request
 from flask_login import current_user
 from flask import jsonify
-from datetime import datetime
+from datetime import datetime, timezone
 from .. import  db
 import uuid
 from sqlalchemy import desc
@@ -85,7 +85,7 @@ def syrole_getById(id):
 def syrole_update():
     role = Role.query.get(request.json['roleId'])
 
-    role.UPDATEDATETIME = datetime.now()
+    role.UPDATEDATETIME = datetime.now(timezone.utc)
     role.NAME = request.json['roleName']
     role.DESCRIPTION = request.json['remark']
     role.SEQ = request.json['roleSort']

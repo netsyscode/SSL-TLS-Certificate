@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 class DictData(db.Model):
     __tablename__ = 'SYS_DICT_DATA'
@@ -13,9 +13,9 @@ class DictData(db.Model):
     is_default = db.Column(db.Integer)
     status = db.Column(db.Integer)
     create_by = db.Column(db.String(64))
-    create_time = db.Column(db.DATETIME, default=datetime.now)
+    create_time = db.Column(db.DATETIME, default=datetime.now(timezone.utc))
     update_by = db.Column(db.String(64))
-    update_time = db.Column(db.DATETIME, default=datetime.now)
+    update_time = db.Column(db.DATETIME, default=datetime.now(timezone.utc))
     remark = db.Column(db.String(500))
 
     def to_json(self):

@@ -133,7 +133,7 @@ class DomainScanner(Scanner):
         self.save_results()
         my_logger.info(f"Scan Completed")
         with self.scan_status_data_lock:
-            self.scan_status_data.end_time = datetime.utcnow()
+            self.scan_status_data.end_time = datetime.now(timezone.utc)
             self.scan_status_data.status = ScanStatusType.COMPLETED
         self.sync_update_scan_process_info()
 
@@ -159,7 +159,7 @@ class DomainScanner(Scanner):
 
         my_logger.info(f"Updating...")
         if self.scan_status_data.status == ScanStatusType.RUNNING:
-            scan_time = (datetime.utcnow() - self.scan_status_data.start_time).seconds
+            scan_time = (datetime.now(timezone.utc) - self.scan_status_data.start_time).seconds
         elif self.scan_status_data.status == ScanStatusType.COMPLETED:
             scan_time = (self.scan_status_data.end_time - self.scan_status_data.start_time).seconds
         elif self.scan_status_data.status == ScanStatusType.KILLED:

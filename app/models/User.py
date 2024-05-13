@@ -1,6 +1,6 @@
 from app import db, loginmanager
 from flask_login import UserMixin, AnonymousUserMixin
-from datetime import datetime
+from datetime import datetime, timezone
 
 @loginmanager.user_loader
 def load_user(user_id):
@@ -17,15 +17,15 @@ user_role_table = db.Table('SYUSER_SYROLE', db.Model.metadata
 class User(db.Model, UserMixin):
     __tablename__ = 'SYUSER'
     ID = db.Column(db.String(36), primary_key=True)
-    CREATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now)
-    UPDATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now)
+    CREATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now(timezone.utc))
+    UPDATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now(timezone.utc))
     LOGINNAME = db.Column(db.String(100), unique=True, index=True)
     PWD = db.Column(db.String(100))
     NAME = db.Column(db.String(100))
     SEX = db.Column(db.String(1))
     AGE = db.Column(db.Integer)
     PHOTO = db.Column(db.String(200))
-    EMPLOYDATE = db.Column(db.DATETIME, default=datetime.now)
+    EMPLOYDATE = db.Column(db.DATETIME, default=datetime.now(timezone.utc))
     EMAIL = db.Column(db.String(50))
     PHONENUMBER = db.Column(db.String(11))
     STATUS = db.Column(db.String(10))

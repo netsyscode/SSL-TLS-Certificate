@@ -24,3 +24,5 @@ with app.app_context():
     config = DomainScanConfig(**scan_args)
     task_id = g_manager.submit_task([TaskBatchTemplate.create_scan_task_without_analysis(config)])
     g_manager.start_submitted_tasks()
+
+datetime.now(timezone.utc)

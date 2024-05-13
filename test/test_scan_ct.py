@@ -4,7 +4,7 @@ sys.path.append(r"/root/global_ca_monitor")
 
 import json
 import requests
-from datetime import datetime
+from datetime import datetime, timezone
 from app import app
 from app.config.scan_config import CTScanConfig
 from app.utils.type import ScanType

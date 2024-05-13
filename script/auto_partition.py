@@ -1,5 +1,5 @@
 import mysql.connector
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 # 连接数据库
 conn = mysql.connector.connect(
@@ -13,7 +13,7 @@ cursor = conn.cursor()
 
 try:
     # 获取当前日期的前一个月的年月份字符串，例如202203
-    last_month = (datetime.now() - timedelta(days=30)).strftime('%Y%m')
+    last_month = (datetime.now(timezone.utc) - timedelta(days=30)).strftime('%Y%m')
 
     # 创建临时表
     create_temp_table_query = f"CREATE TABLE TmpDeviceData LIKE DeviceData;"

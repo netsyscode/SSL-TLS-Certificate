@@ -7,7 +7,7 @@
     Remove representative logger API
 '''
 
-import datetime
+from datetime import datetime, timezone
 import os
 import colorama
 from colorama import Fore, Style
@@ -74,7 +74,7 @@ class Logger:
         instance = super().__new__(self)
         
         colorama.init(autoreset=True)
-        current_datetime = datetime.datetime.now()
+        current_datetime = datetime.now(timezone.utc)
 
         log_file_name = str(current_datetime.date()) + "_" + str(current_datetime.time())
         log_file_name = log_file_name.replace(":", "_").replace(".", "_") + log_file_extension_name

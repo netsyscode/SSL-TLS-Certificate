@@ -56,8 +56,8 @@ class X509ParsedInfo():
     issuer_org : str
     issuer_country : str
 
-    not_valid_before : datetime
-    not_valid_after : datetime
+    not_valid_before_utc : datetime
+    not_valid_after_utc : datetime
     validation_period : int     # in days
 
     subject_cn : str             # only for subject_cn field
@@ -184,8 +184,8 @@ class X509CertParser():
             "issuer_cn" : self.parsed_info.issuer_cn,
             "issuer_org" : self.parsed_info.issuer_org,
             "issuer_country" : self.parsed_info.issuer_country,
-            "not_valid_before" : self.parsed_info.not_valid_before,
-            "not_valid_after" : self.parsed_info.not_valid_after,
+            "not_valid_before_utc" : self.parsed_info.not_valid_before_utc,
+            "not_valid_after_utc" : self.parsed_info.not_valid_after_utc,
             "validation_period" : self.parsed_info.validation_period,
             "subject_cn" : self.parsed_info.subject_cn,
             "subject_org" : self.parsed_info.subject_org,

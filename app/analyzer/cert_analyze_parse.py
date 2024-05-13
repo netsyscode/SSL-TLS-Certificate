@@ -111,7 +111,7 @@ class CertParseAnalyzer():
                     current_utc_time = datetime.now(timezone.utc)
 
                     # 通过添加时区信息确保 time_end 也是 UTC 时间
-                    time_end_utc = result.not_valid_after.replace(tzinfo=timezone.utc)
+                    time_end_utc = result.not_valid_after_utc.replace(tzinfo=timezone.utc)
                     has_expired = (current_utc_time > time_end_utc)
 
                     try:
@@ -128,8 +128,8 @@ class CertParseAnalyzer():
                         'ISSUER_CERT_ID' : "",
                         'KEY_SIZE' : result.subject_pub_key_size,
                         'KEY_TYPE' : key_type,
-                        'NOT_VALID_BEFORE' : result.not_valid_before,
-                        'NOT_VALID_AFTER' : result.not_valid_after,
+                        'NOT_VALID_BEFORE' : result.not_valid_before_utc,
+                        'NOT_VALID_AFTER' : result.not_valid_after_utc,
                         'VALIDATION_PERIOD' : result.validation_period,
                         'EXPIRED' : has_expired
                     }

@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 class DictType(db.Model):
     __tablename__ = 'SYS_DICT_TYPE'
@@ -8,9 +8,9 @@ class DictType(db.Model):
     dict_type = db.Column(db.String(100))
     status = db.Column(db.Integer)
     create_by = db.Column(db.String(64))
-    create_time = db.Column(db.DATETIME, default=datetime.now)
+    create_time = db.Column(db.DATETIME, default=datetime.now(timezone.utc))
     update_by = db.Column(db.String(64))
-    update_time = db.Column(db.DATETIME, default=datetime.now)
+    update_time = db.Column(db.DATETIME, default=datetime.now(timezone.utc))
     remark = db.Column(db.String(500))
 
     data_list =  db.relationship('DictData', backref='type', lazy='dynamic')

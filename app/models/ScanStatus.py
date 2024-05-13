@@ -4,7 +4,7 @@
 '''
 
 from app import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 class ScanStatus(db.Model):
     __tablename__ = 'SCAN_STATUS'
@@ -15,7 +15,7 @@ class ScanStatus(db.Model):
     ID = db.Column(db.String(36), primary_key=True, nullable=False, unique=True, index=True)
     NAME = db.Column(db.String(20, collation='gbk_chinese_ci'), nullable=False)
     TYPE = db.Column(db.Integer, default=0, comment="see SYS_DICT_DATA")
-    START_TIME = db.Column(db.DateTime, index=True, default=datetime.now)
+    START_TIME = db.Column(db.DateTime, index=True, default=datetime.now(timezone.utc))
     END_TIME = db.Column(db.DateTime, default=None)
     STATUS = db.Column(db.Integer, default=0, comment="see SYS_DICT_DATA")
     SCAN_TIME_IN_SECONDS = db.Column(db.Integer, default=0)

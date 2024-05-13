@@ -1,13 +1,13 @@
 from app import db
 from flask_login import UserMixin, AnonymousUserMixin
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class ResourceType(db.Model, UserMixin):
     __tablename__ = 'SYRESOURCETYPE'
     ID = db.Column(db.String(36), primary_key=True)
-    CREATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now)
-    UPDATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now)
+    CREATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now(timezone.utc))
+    UPDATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now(timezone.utc))
     NAME = db.Column(db.String(100))
     DESCRIPTION = db.Column(db.String(200))
 

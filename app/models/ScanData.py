@@ -1,6 +1,6 @@
 
 from app import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 def generate_scan_data_table(table_name):
 

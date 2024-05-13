@@ -140,7 +140,7 @@ class CaParseAnalyzer():
             stat_result.signed_cert_num += 1
 
             current_utc_time = datetime.now(timezone.utc)
-            time_end_utc = cert_parse_result.not_valid_after.replace(tzinfo=timezone.utc)
+            time_end_utc = cert_parse_result.not_valid_after_utc.replace(tzinfo=timezone.utc)
             stat_result.expired_num += (current_utc_time > time_end_utc)
             
             def update_dict(dict, key):
@@ -151,7 +151,7 @@ class CaParseAnalyzer():
 
             update_dict(stat_result.serial_len_count, (cert_parse_result.serial_number.bit_length() + 7) // 8)  # byte length
             update_dict(stat_result.subject_country_count, cert_parse_result.subject_country)
-            update_dict(stat_result.signed_day_count, cert_parse_result.not_valid_before.strftime("%Y%m%d"))
+            update_dict(stat_result.signed_day_count, cert_parse_result.not_valid_before_utc.strftime("%Y%m%d"))
             update_dict(stat_result.validity_period_count, cert_parse_result.validation_period)
             update_dict(stat_result.key_size_count, cert_parse_result.subject_pub_key_size)
             update_dict(stat_result.key_type_count, cert_parse_result.subject_pub_key_algo.__class__.__name__)

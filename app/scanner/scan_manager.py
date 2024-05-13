@@ -5,7 +5,7 @@
 '''
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Dict, Union
 
 from app import db, app
@@ -49,7 +49,7 @@ class ScanManager(Manager):
         scan_process.ID = str(task.task_id)
         scan_process.NAME = task.task_config.SCAN_PROCESS_NAME
         scan_process.TYPE = self.scan_config_to_type.get(task.task_config.__class__)
-        scan_process.START_TIME = datetime.utcnow()
+        scan_process.START_TIME = datetime.now(timezone.utc)
         scan_process.STATUS = ScanStatusType.RUNNING.value
         scan_process.NUM_THREADS = task.task_config.MAX_THREADS_ALLOC
 

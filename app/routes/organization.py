@@ -8,7 +8,7 @@ from flask_login import current_user, login_required
 import json
 from .. import db
 from flask import render_template
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 @base.route('/system/dept/list', methods=['GET'])
@@ -51,7 +51,7 @@ def syorganization_getById(id):
 def syorganization_update():
     org = Organization.query.get(request.json['deptId'])
 
-    org.UPDATEDATETIME = datetime.now()
+    org.UPDATEDATETIME = datetime.now(timezone.utc)
     if 'deptName' in request.json:  org.NAME = request.json['deptName']
     if 'email' in request.json: org.EMAIL = request.json['email']
     if 'leader' in request.json: org.LEADER = request.json['leader']

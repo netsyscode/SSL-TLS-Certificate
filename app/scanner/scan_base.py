@@ -10,7 +10,7 @@ from threading import Lock
 from rich.progress import Progress, BarColumn, TextColumn, TimeRemainingColumn, TaskID
 from rich.console import Console
 
-from datetime import datetime
+from datetime import datetime, timezone
 from OpenSSL import SSL
 from OpenSSL.crypto import dump_certificate, FILETYPE_PEM
 from dataclasses import dataclass
@@ -30,7 +30,7 @@ class ScanStatusData():
         use this soly for updating ScanStatus model
     '''
 
-    start_time : datetime = datetime.utcnow()
+    start_time : datetime = datetime.now(timezone.utc)
     end_time : datetime = None
     status : ScanStatusType = ScanStatusType.RUNNING
 

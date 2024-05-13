@@ -1,6 +1,6 @@
 
 from app import db
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import MetaData
 
 def generate_cert_data_table(table_name):
@@ -81,8 +81,8 @@ class CertStoreContent(db.Model):
             'issuer_cert_id': self.ISSUER_CERT_ID,
             'key_size': self.KEY_SIZE,
             'key_type': self.KEY_TYPE,
-            'not_valid_before': self.NOT_VALID_BEFORE,
-            'not_valid_after': self.NOT_VALID_AFTER,
+            'not_valid_before_utc': self.NOT_VALID_BEFORE,
+            'not_valid_after_utc': self.NOT_VALID_AFTER,
             'validation_period': self.VALIDATION_PERIOD,
             'expired': self.EXPIRED
         }

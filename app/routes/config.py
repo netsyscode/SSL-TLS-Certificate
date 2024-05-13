@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from distutils.command.config import config
 
 from flask_login import current_user
@@ -60,7 +60,7 @@ def sysconfig_add():
     if 'configValue' in request.json: config.config_value = request.json['configValue']
     if 'remark' in request.json: config.remark = request.json['remark']
     
-    config.create_time = datetime.now()
+    config.create_time = datetime.now(timezone.utc)
     config.create_by = current_user.NAME
 
     db.session.add(config)
@@ -78,7 +78,7 @@ def sysconfig_update():
     if 'configValue' in request.json: config.config_value = request.json['configValue']
     if 'remark' in request.json: config.remark = request.json['remark']
 
-    config.UPDATEDATETIME = datetime.now()
+    config.UPDATEDATETIME = datetime.now(timezone.utc)
     config.update_by = current_user.NAME
 
     db.session.add(config)
