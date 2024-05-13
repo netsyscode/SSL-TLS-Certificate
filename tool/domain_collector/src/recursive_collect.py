@@ -8,7 +8,7 @@ from .retrieve_ca_domain_from_cert import get_domain
 import re
 from typing import List
 from threading import Lock
-from datetime import datetime
+from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 ipv6_pattern = r"^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$"
@@ -22,7 +22,7 @@ def retrieve_domain(org : str, domain_list : set):
             
     lock = Lock()
     visited = set()
-    scanner = DomainScanner("", datetime.now(), DomainScanConfig(), "cert_store_test")
+    scanner = DomainScanner("", datetime.now(timezone.utc), DomainScanConfig(), "cert_store_test")
 
     def recursive_retrieve_domain(base_domain : str, base_ip : str, visited : set):
         if base_domain and base_domain in visited: return
