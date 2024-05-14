@@ -45,11 +45,12 @@ class ScanManager(Manager):
             use join() or is_alive()???
         '''
         # register entry in ScanStatus db model
+        start_time = datetime.now(timezone.utc)
         scan_process = ScanStatus()
         scan_process.ID = str(task.task_id)
         scan_process.NAME = task.task_config.SCAN_PROCESS_NAME
         scan_process.TYPE = self.scan_config_to_type.get(task.task_config.__class__)
-        scan_process.START_TIME = datetime.now(timezone.utc)
+        scan_process.START_TIME = start_time
         scan_process.STATUS = ScanStatusType.RUNNING.value
         scan_process.NUM_THREADS = task.task_config.MAX_THREADS_ALLOC
 
@@ -62,7 +63,7 @@ class ScanManager(Manager):
         db.session.commit()
 
         self.registry[task.task_id] = self.scan_config_to_scanner.get(task.task_config.__class__)(
-            scan_process.ID, scan_process.START_TIME, task.task_config, scan_process.CERT_STORE_TABLE
+            scan_process.ID, start_time, task.task_config, scan_process.CERT_STORE_TABLE
         )
 
         r = scan_process.ID
