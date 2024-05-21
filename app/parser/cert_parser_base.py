@@ -73,7 +73,8 @@ class X509ParsedInfo():
     sha_256 : str
 
     extension_parsed_info : List[ExtensionResult]
-    raw : str
+    cert_raw : str
+    pub_key_raw : str
 
 
 # main stuff here
@@ -88,7 +89,8 @@ class X509CertParser():
             self.cert = (load_pem_x509_certificate(cert.encode("utf-8"), default_backend()))
             self.extension_parser = X509CertExtensionParser(self.cert.extensions)
             self.parsed_info = self.parse_cert_base()
-        except:
+        except Exception as e:
+            my_logger.warn(e)
             my_logger.warn("Meet cert ASN.1 format violation, skip it")
             raise ParseError
 
@@ -165,7 +167,8 @@ class X509CertParser():
             cert_type,
             sha256_hex,
             self.extension_parser.analyzeExtensions(),
-            self.cert.public_bytes(Encoding.PEM).decode()
+            self.cert.public_bytes(Encoding.PEM).decode(),
+            self.cert.public_key().public_bytes(Encoding.PEM, PublicFormat.SubjectPublicKeyInfo).decode()
         )
     
 

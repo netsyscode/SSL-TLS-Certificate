@@ -19,7 +19,10 @@ from cryptography.x509 import (
     AuthorityInformationAccess,
     BasicConstraints,
     SubjectAlternativeName,
-    CertificatePolicies    
+    CertificatePolicies,
+    SubjectKeyIdentifier,
+    AuthorityKeyIdentifier,
+    PrecertificateSignedCertificateTimestamps
 )
 
 from cryptography.x509.oid import (
@@ -41,6 +44,7 @@ from ..utils.cert import (
     check_local_ip
 )
 
+import binascii
 from typing import Optional, Dict, Union, List
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -94,6 +98,29 @@ class SANResult(ExtensionResult):
 class CertPoliciesResult(ExtensionResult):
     issuer_policy : str
 
+@dataclass
+class SubjectKeyIdentifierResult(ExtensionResult):
+    key_identifier : str
+
+@dataclass
+class AuthorityKeyIdentifierResult(ExtensionResult):
+    key_identifier : str
+
+@dataclass
+class PrecertificateSignedCertificateTimestampsResult(ExtensionResult):
+    sct_length : int
+
+class ExtensionResultWarpper():
+    def __init__(self, extension_result_list : List[ExtensionResult]) -> None:
+        self.ext_result_list = extension_result_list
+
+    def get_result_by_type(self, result_type):
+        for result in self.ext_result_list:
+            if type(result) == result_type:
+                return result
+        return None
+
+# TODO: Apply this new result class to the system
 
 class X509CertExtensionParser():
 
@@ -101,14 +128,20 @@ class X509CertExtensionParser():
         self.extensions = input_extensions
 
     def analyzeExtensions(self) -> List[ExtensionResult]:
-        output_list = []
+        self.ext_result_list = []
         for extension in self.extensions:
             # do not want static method here right now...
             if extension.value.__class__ in EXTENSIONTOEXTENSIONPARSER.keys():
                 result = EXTENSIONTOEXTENSIONPARSER[extension.value.__class__]().analyze(extension)
-                output_list.append(result)
-        return output_list
+                self.ext_result_list.append(result)
+        # TODO: Change the return result to ExtensionResultWarpper
+        return self.ext_result_list
 
+    def get_result_by_type(self, result_type):
+        for result in self.ext_result_list:
+            if type(result) == result_type:
+                return result
+        return None
 
 '''
     Extension Parser derived from an abstract class
@@ -245,6 +278,38 @@ class CertPoliciesParser(SingleExtensionParser):
         return None
 
 
+class SubjectKeyIdentifierParser(SingleExtensionParser):
+
+    def analyze(self, extension: Extension) -> SubjectKeyIdentifierResult:
+        value = extension.value
+        if isinstance(value, SubjectKeyIdentifier):
+            kid = value.key_identifier
+            if kid:
+                return SubjectKeyIdentifierResult(extension.critical, binascii.hexlify(kid).decode('utf-8'))
+        return None
+
+
+class AuthorityKeyIdentifierParser(SingleExtensionParser):
+
+    def analyze(self, extension: Extension) -> AuthorityKeyIdentifierResult:
+        value = extension.value
+        if isinstance(value, AuthorityKeyIdentifier):
+            kid = value.key_identifier
+            if kid:
+                return AuthorityKeyIdentifierResult(extension.critical, binascii.hexlify(kid).decode('utf-8'))
+        return None
+
+
+class PrecertificateSignedCertificateTimestampsParser(SingleExtensionParser):
+
+    def analyze(self, extension: Extension) -> PrecertificateSignedCertificateTimestampsResult:
+        value = extension.value
+        if isinstance(value, PrecertificateSignedCertificateTimestamps):
+            list_scts = value._signed_certificate_timestamps
+            return PrecertificateSignedCertificateTimestampsResult(extension.critical, len(list_scts))
+        return None
+
+
 EXTENSIONTOEXTENSIONPARSER : Dict[Extension, SingleExtensionParser] = {
     AuthorityInformationAccess : AIAParser,
     BasicConstraints : BasicConstraintParser,
@@ -252,7 +317,10 @@ EXTENSIONTOEXTENSIONPARSER : Dict[Extension, SingleExtensionParser] = {
     KeyUsage : KeyUsageParser,
     CRLDistributionPoints : CRLParser,
     SubjectAlternativeName : SANParser,
-    CertificatePolicies : CertPoliciesParser
+    CertificatePolicies : CertPoliciesParser,
+    SubjectKeyIdentifier : SubjectKeyIdentifierParser,
+    AuthorityKeyIdentifier : AuthorityKeyIdentifierParser,
+    PrecertificateSignedCertificateTimestamps : PrecertificateSignedCertificateTimestampsParser
 }
 
 LEAFCERTTYPEMAPPING : Dict[str, LeafCertType] = {
