@@ -9,7 +9,8 @@ class CertRevocationStatusOCSP(db.Model):
     CERT_ID = db.Column(db.String(64, collation='gbk_chinese_ci'), db.ForeignKey('CERT_STORE_RAW.CERT_ID'), primary_key=True, nullable=False, index=True)
     CHECK_TIME = db.Column(db.DateTime, primary_key=True, nullable=False)
     AIA_LOCATION = db.Column(db.Text, nullable=False)
-    REVOCATION_STATUS = db.Column(db.Integer, default=0, nullable=False)
+    ISSUER_ID = db.Column(db.String(64, collation='gbk_chinese_ci'), nullable=False)
+    REVOCATION_STATUS = db.Column(db.Integer)
     REVOCATION_TIME = db.Column(db.DateTime, nullable=True)
     REVOCATION_REASON = db.Column(db.Integer, nullable=True)
 
@@ -18,6 +19,7 @@ class CertRevocationStatusOCSP(db.Model):
             'cert_id': self.CERT_ID,
             'check_time': self.CHECK_TIME,
             'aia_location': self.AIA_LOCATION,
+            'issuer_id' : self.ISSUER_ID,
             'revocation_status' : self.REVOCATION_STATUS,
             'revocation_time' : self.REVOCATION_TIME,
             'revocation_reason' : self.REVOCATION_REASON
@@ -36,7 +38,7 @@ class CertRevocationStatusCRL(db.Model):
     CERT_ID = db.Column(db.String(64, collation='gbk_chinese_ci'), db.ForeignKey('CERT_STORE_RAW.CERT_ID'), primary_key=True, nullable=False, index=True)
     CHECK_TIME = db.Column(db.DateTime, primary_key=True, nullable=False)
     CRL_POSITION = db.Column(db.Text, nullable=False)
-    REVOCATION_STATUS = db.Column(db.Integer, default=0, nullable=False)
+    REVOCATION_STATUS = db.Column(db.Integer)
     REVOCATION_TIME = db.Column(db.DateTime, nullable=True)
     REVOCATION_REASON = db.Column(db.Integer, nullable=True)
 
@@ -62,7 +64,7 @@ class CRLArchive(db.Model):
 
     CRL_POSITION = db.Column(db.Text, primary_key=True, nullable=False)
     STORE_TIME = db.Column(db.DateTime, primary_key=True, nullable=False)
-    FINGERPRINT = db.Column(db.String(64, collation='gbk_chinese_ci'), db.ForeignKey('CERT_STORE_RAW.CERT_ID'), nullable=False)
+    FINGERPRINT = db.Column(db.String(64, collation='gbk_chinese_ci'), nullable=False)
     CRL_DATA = db.Column(db.LargeBinary, nullable=False)
 
     def to_json(self):

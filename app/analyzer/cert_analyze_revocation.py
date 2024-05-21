@@ -319,10 +319,9 @@ class CertRevocationAnalyzer():
                         if b'-----BEGIN CERTIFICATE-----' in raw_response.content:
                             start_index = raw_response.content.find(b'-----BEGIN CERTIFICATE-----')
                             certificate_content = raw_response.content[start_index:]
-                            issuer = load_pem_x509_certificate(certificate_content, default_backend())
+                            issuer = self.load_certificate(certificate_content)
                         else:
-                            issuer = load_der_x509_certificate(raw_response.content, default_backend())
-
+                            issuer = self.load_certificate(raw_response.content)
                         issuers.append(issuer)
                         break  # 如果成功获取和加载了证书，则退出循环
                     except RequestException as e:
@@ -332,6 +331,19 @@ class CertRevocationAnalyzer():
                         my_logger.error(f"An unexpected error occurred: {e}")
 
         return issuers
+
+
+    def load_certificate(self, raw_content: bytes) -> Certificate:
+        try:
+            return load_pem_x509_certificate(raw_content, default_backend())
+        except ValueError:
+            pass  # 如果是 PEM 格式加载失败，尝试加载 DER 格式
+        try:
+            return load_der_x509_certificate(raw_content, default_backend())
+        except ValueError as e:
+            # 记录错误信息或者采取其他适当的措施
+            my_logger.error(f"Error loading certificate: {e}")
+            raise
 
 
     def sync_update_info(self):

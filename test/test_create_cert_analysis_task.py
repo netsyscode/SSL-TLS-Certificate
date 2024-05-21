@@ -22,10 +22,12 @@ if __name__ == "__main__":
 
     with app.app_context():
         analyze_args = {
-            'SCAN_ID' : 'e323cab1-567b-489e-8bac-0789690150ca',
-            'SUBTASK_FLAG': 0b0001,
-            'SAVE_CHUNK_SIZE': 10000,
-            'MAX_THREADS_ALLOC': 5
+            # 'SCAN_ID' : '0',
+            # 'SCAN_ID' : '19e938d4-a6e2-4924-a9d7-0e1184e2bc58',
+            'SCAN_ID' : '09a97bc9-a03f-46ad-ab2f-1763701d64c1',
+            'SUBTASK_FLAG': 0b0100,
+            'SAVE_CHUNK_SIZE': 1000,
+            'MAX_THREADS_ALLOC': 10
         }
         analyze_task = TaskBatchTemplate.create_analysis_task(CertAnalysisConfig(**analyze_args))
         g_manager.submit_task([analyze_task])
