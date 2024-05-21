@@ -145,6 +145,7 @@ class CertScanChainAnalyzer():
             }
             insert_cert_store_statement = insert(CertChainRelation).values(cert_chain_data_to_insert).prefix_with('IGNORE')
             db.session.execute(insert_cert_store_statement)
+            db.session.commit()
 
 
     # do not use now

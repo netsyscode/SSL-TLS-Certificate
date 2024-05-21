@@ -67,29 +67,3 @@ def generate_ca_analysis_table(table_name):
 
     return metadata.tables[table_name]
 
-
-class CACryptoStore(db.Model):
-    __tablename__ = "CA_CRYPTO_STORE"
-
-    CA_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    CA_COMMON_NAME = db.Column(db.String(128, collation='gbk_chinese_ci'))
-    CA_ORG_NAME = db.Column(db.String(128, collation='gbk_chinese_ci'))
-    CA_COUNTRY_NAME = db.Column(db.String(16, collation='gbk_chinese_ci'))
-    CA_ISSUING_CERTS = db.Column(db.JSON, comment='use sha256')
-    CA_ISSUING_KEYS = db.Column(db.JSON, comment='store both key ID and PEM value')
-
-    def to_json(self):
-        return {
-            'ca_id': self.CA_ID,
-            'ca_common_name': self.CA_COMMON_NAME,
-            'ca_org_name': self.CA_ORG_NAME,
-            'ca_country_name': self.CA_COUNTRY_NAME,
-            'ca_issuing_certs': self.CA_ISSUING_CERTS,
-            'ca_issuing_keys': self.CA_ISSUING_KEYS
-        }
-
-    def get_id(self):
-        return str(self.CA_ID)
-
-    def __repr__(self):
-        return f"<CACryptoStore CA ID: {self.CA_ID}, Common Name: {self.CA_COMMON_NAME}, Org Name: {self.CA_ORG_NAME}, Country Name: {self.CA_COUNTRY_NAME}>"

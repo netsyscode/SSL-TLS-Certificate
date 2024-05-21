@@ -37,7 +37,7 @@ class CertScanAnalyzer():
         # Parse analysis flag to choose to build analyzer
         self.parse_analyzer = CertParseAnalyzer(analysis_config.SCAN_ID, self.save_scan_chunk_size) if analysis_config.SUBTASK_FLAG & CertAnalysisConfig.PARSE_SUBTASK else None
         self.chain_analyzer = CertScanChainAnalyzer() if analysis_config.SUBTASK_FLAG & CertAnalysisConfig.CHAIN_SUBTASK else None
-        self.revoke_analyzer = CertRevocationAnalyzer() if analysis_config.SUBTASK_FLAG & CertAnalysisConfig.REVOKE_SUBTASK else None
+        self.revoke_analyzer = CertRevocationAnalyzer(self.save_scan_chunk_size) if analysis_config.SUBTASK_FLAG & CertAnalysisConfig.REVOKE_SUBTASK else None
         self.ca_analyzer = None if analysis_config.SUBTASK_FLAG & CertAnalysisConfig.CA_SUBTASK else None
 
 
@@ -56,7 +56,6 @@ class CertScanAnalyzer():
 
                     from threading import Thread
                     if self.parse_analyzer:
-                        print(len(rows))
                         my_logger.info("Allocate one thread for parse analyzer")
                         executor.submit(self.parse_analyzer.analyze_cert_parse, rows)
                         # g_thread_executor.submit(self.parse_analyzer.analyze_cert_parse, rows)
@@ -69,7 +68,7 @@ class CertScanAnalyzer():
 
                     if self.revoke_analyzer:
                         my_logger.info("Allocate one thread for revocation analyzer")
-                        pass
+                        executor.submit(self.revoke_analyzer.analyze_cert_revocation, rows)
                     
                     if self.ca_analyzer:
                         my_logger.info("Allocate one thread for ca analyzer")

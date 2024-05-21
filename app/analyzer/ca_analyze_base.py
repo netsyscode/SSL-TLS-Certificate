@@ -25,6 +25,8 @@ class CaMetricAnalyzer():
             self.scan_input_table = reflected_tables[scan_input_table_name]
         else:
             raise UnknownTableError(scan_input_table_name)
+        
+        self.cert_store_content_table = reflected_tables["cert_store_content"]
         self.save_scan_chunk_size = analysis_config.SAVE_CHUNK_SIZE
         self.max_threads = analysis_config.MAX_THREADS_ALLOC
         self.parse_analyzer = CaParseAnalyzer(analysis_config.SCAN_ID) if analysis_config.SUBTASK_FLAG & CaAnalysisConfig.PARSE_SUBTASK else None
@@ -32,10 +34,10 @@ class CaMetricAnalyzer():
 
 
     def start(self):
-        my_logger.info(f"Starting {self.scan_input_table.name} CA analysis...")
+        my_logger.info(f"Starting {self.cert_store_content_table.name} CA analysis...")
         
         with app.app_context():
-            query = self.scan_input_table.select()
+            query = self.cert_store_content_table.select()
             result_proxy = db.session.execute(query)
             
             with ThreadPoolExecutor(max_workers=self.max_threads) as executor:
@@ -44,14 +46,14 @@ class CaMetricAnalyzer():
                     if not rows:
                         break
 
-                    if self.parse_analyzer:
-                        my_logger.info("Allocate one thread for ca parse analyzer")
+                    # if self.parse_analyzer:
+                        # my_logger.info("Allocate one thread for ca parse analyzer")
                         # use .result() to show exception info
                         # but will become single thread
-                        executor.submit(self.parse_analyzer.analyze_ca_parse, rows)
+                        # executor.submit(self.parse_analyzer.analyze_ca_parse, rows)
 
                     if self.profiling_analyzer:
                         my_logger.info("Allocate one thread for ca profiling analyzer")
-                        executor.submit(self.profiling_analyzer.analyze_ca_profiling, rows).result()
+                        executor.submit(self.profiling_analyzer.analyze_ca_fp_track, rows)
 
                 executor.shutdown(wait=True)

@@ -10,8 +10,8 @@ from .DictType import DictType
 from .Config import Config
 from .ScanStatus import ScanStatus
 from .ScanData import generate_scan_data_table, ScanData
-from .CertData import generate_cert_data_table, CertStoreContent, CertScanMeta, CertStoreRaw, CaCertStore
+from .CertData import generate_cert_data_table, CertStoreContent, CertScanMeta, CertStoreRaw, CaCertStore, CaKeyStore
 from .CertStatResult import CertAnalysisStats, CertChainRelation
-from .CaData import generate_ca_analysis_table, CACryptoStore
+from .CaData import generate_ca_analysis_table
 from .CertRevocation import CertRevocationStatusOCSP, CertRevocationStatusCRL, CRLArchive
-from .CaProfiling import generate_ca_profiling_table
+from .CaProfiling import generate_ca_fp_table
