@@ -24,6 +24,7 @@ from ..config.scan_config import CTScanConfig
 from ..utils.type import ScanType, ScanStatusType
 from ..utils.cert import get_cert_sha256_hex_from_str
 from ..logger.logger import my_logger
+from ..models import CertStoreRaw
 
 class CTScanner(Scanner):
 
@@ -193,14 +194,19 @@ class CTScanner(Scanner):
                         }
                     )
 
-                with db.session.begin():
-                    # only template model, can not use insert(Model) here
-                    insert_cert_data_statement = insert(self.cert_data_table).values(cert_data_to_insert).prefix_with('IGNORE')
-                    db.session.execute(insert_cert_data_statement)
+                # with db.session.begin():
+                # only template model, can not use insert(Model) here
+                # insert_cert_data_statement = insert(self.cert_data_table).values(cert_data_to_insert).prefix_with('IGNORE')
+                # db.session.execute(insert_cert_data_statement)
+                # db.session.commit()
 
-                    # many many primary key dupliates...
-                    # need to deal with Integrity Error with duplicate primary key pair with bulk_insert_mappings
-                    # insert_cert_raw_statement = insert(CertStoreRaw).values(cert_data_to_insert).prefix_with('IGNORE')
-                    # db.session.execute(insert_cert_raw_statement)
+                # many many primary key dupliates...
+                # need to deal with Integrity Error with duplicate primary key pair with bulk_insert_mappings
+                try:
+                    insert_cert_raw_statement = insert(CertStoreRaw).values(cert_data_to_insert).prefix_with('IGNORE')
+                    db.session.execute(insert_cert_raw_statement)
+                    db.session.commit()
+                except Exception as e:
+                    my_logger.error(f"Error insertion CT Scan data: {e} \n {e.with_traceback()}")
 
             self.cached_results = []

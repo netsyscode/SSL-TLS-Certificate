@@ -211,24 +211,29 @@ class DomainScanner(Scanner):
                                 'SCAN_IP' : result['ip']
                             }
                         )
-                
-                cert_data_to_insert = [{'CERT_ID' : key, 'CERT_RAW' : value} for key, value in cert_data_to_insert.items()]
-                with db.session.begin():
+                try:
+                    cert_data_to_insert = [{'CERT_ID' : key, 'CERT_RAW' : value} for key, value in cert_data_to_insert.items()]
                     db.session.expunge_all()
                     db.session.add_all(scan_status_data_to_insert)
+                    db.session.commit()
 
                     # only template model, can not use insert(Model) here
                     insert_cert_data_statement = insert(self.cert_data_table).values(cert_data_to_insert).prefix_with('IGNORE')
                     db.session.execute(insert_cert_data_statement)
+                    db.session.commit()
 
                     # many many primary key dupliates...
                     # need to deal with Integrity Error with duplicate primary key pair with bulk_insert_mappings
                     insert_cert_raw_statement = insert(CertStoreRaw).values(cert_data_to_insert).prefix_with('IGNORE')
                     db.session.execute(insert_cert_raw_statement)
+                    db.session.commit()
 
                     # db.session.bulk_insert_mappings(CertScanMeta, cert_metadata_to_insert)
                     insert_cert_scan_metadata_statement = insert(CertScanMeta).values(cert_metadata_to_insert).prefix_with('IGNORE')
                     db.session.execute(insert_cert_scan_metadata_statement)
+                    db.session.commit()
+                except Exception as e:
+                    my_logger.error(f"Error insertion domain Scan data: {e} \n {e.with_traceback()}")
 
             self.cached_results = []
 
