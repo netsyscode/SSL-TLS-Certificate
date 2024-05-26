@@ -5,21 +5,17 @@ import time
 import hashlib
 import threading
 
-from datetime import datetime
+from datetime import datetime, timezone
 from queue import PriorityQueue
 from rich.progress import Progress, BarColumn, TextColumn, TimeRemainingColumn
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from concurrent.futures import ProcessPoolExecutor, Future
-from sqlalchemy import insert
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.dialects.mysql import insert
 
 from app import db, app
 from .scan_base import Scanner, ScanStatusData
 from ..config.scan_config import IPScanConfig
 from ..utils.type import ScanType, ScanStatusType
-from ..utils.network import resolve_host_dns
 from ..logger.logger import my_logger
-from ..analyzer.cert_analyze_base import CertScanAnalyzer
 from ..models import (
     ScanStatus, ScanData, CertScanMeta, CertStoreContent, CertStoreRaw
 )
@@ -116,7 +112,7 @@ class IPScanner(Scanner):
             with ThreadPoolExecutor(max_workers=self.max_threads) as executor:
                 while not self.task_queue.empty():
                     index, host = self.task_queue.get()
-                    executor.submit(self.scan_thread, index, host)
+                    executor.submit(self.scan_thread, index, host).result()
                 # 等待所有线程完成
                 executor.shutdown(wait=True)
                 my_logger.info("All threads finished.")
@@ -126,18 +122,9 @@ class IPScanner(Scanner):
         
         my_logger.info(f"Scan Completed")
         with self.scan_status_data_lock:
-            self.scan_status_data.end_time = datetime.utcnow()
+            self.scan_status_data.end_time = datetime.now(timezone.utc)
             self.scan_status_data.status = ScanStatusType.COMPLETED
         self.sync_update_scan_process_info()
-
-        # 
-        # Run analysis in background after scanning
-        # 
-        with app.app_context():
-            # Update : we have config for this
-            if self.analyze_cert:
-                self.analyzer = CertScanAnalyzer(self.scan_id, self.cert_data_table_name)
-                self.analyzer.analyze_cert_scan_result()
 
 
     def terminate(self):
@@ -161,7 +148,7 @@ class IPScanner(Scanner):
 
         my_logger.info(f"Updating...")
         if self.scan_status_data.status == ScanStatusType.RUNNING:
-            scan_time = (datetime.utcnow() - self.scan_status_data.start_time).seconds
+            scan_time = (datetime.now(timezone.utc) - self.scan_status_data.start_time).seconds
         elif self.scan_status_data.status == ScanStatusType.COMPLETED:
             scan_time = (self.scan_status_data.end_time - self.scan_status_data.start_time).seconds
         elif self.scan_status_data.status == ScanStatusType.KILLED:
@@ -213,22 +200,29 @@ class IPScanner(Scanner):
                     )
             
             cert_data_to_insert = [{'CERT_ID' : key, 'CERT_RAW' : value} for key, value in cert_data_to_insert.items()]
-            with db.session.begin():
+
+            try:
                 db.session.expunge_all()
                 db.session.add_all(scan_status_data_to_insert)
+                db.session.commit()
 
                 # only template model, can not use insert(Model) here
                 insert_cert_data_statement = insert(self.cert_data_table).values(cert_data_to_insert).prefix_with('IGNORE')
                 db.session.execute(insert_cert_data_statement)
+                db.session.commit()
 
                 # many many primary key dupliates...
                 # need to deal with Integrity Error with duplicate primary key pair with bulk_insert_mappings
                 insert_cert_raw_statement = insert(CertStoreRaw).values(cert_data_to_insert).prefix_with('IGNORE')
                 db.session.execute(insert_cert_raw_statement)
+                db.session.commit()
 
                 # db.session.bulk_insert_mappings(CertScanMeta, cert_metadata_to_insert)
                 insert_cert_scan_metadata_statement = insert(CertScanMeta).values(cert_metadata_to_insert).prefix_with('IGNORE')
                 db.session.execute(insert_cert_scan_metadata_statement)
+                db.session.commit()
+            except Exception as e:
+                my_logger.error(f"Error insertion ip Scan data: {e} \n {e.with_traceback()}")
 
         self.cached_results = []
 

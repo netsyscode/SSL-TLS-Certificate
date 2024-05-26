@@ -6,7 +6,7 @@ from flask import g, jsonify
 import hashlib
 from flask_login import login_user, logout_user, login_required, \
     current_user
-from datetime import datetime
+from datetime import datetime, timezone
 from .. import  db
 import uuid
 from sqlalchemy import asc, true
@@ -126,7 +126,7 @@ def syuser_update():
 
     user = User.query.get(id)
 
-    user.UPDATEDATETIME = datetime.now()
+    user.UPDATEDATETIME = datetime.now(timezone.utc)
     if 'nickName' in request.json: user.NAME = request.json['nickName'] 
     if 'sex' in request.json: user.SEX = request.json['sex']
     if 'email' in request.json: user.EMAIL = request.json['email']
@@ -236,7 +236,7 @@ def syuser_update_profile():
     userName = request.json['userName']
     user = User.query.get(id)
 
-    user.UPDATEDATETIME = datetime.now()
+    user.UPDATEDATETIME = datetime.now(timezone.utc)
     if 'nickName' in request.json: user.NAME = request.json['nickName'] 
     if 'sex' in request.json: user.SEX = request.json['sex']
     if 'email' in request.json: user.EMAIL = request.json['email']

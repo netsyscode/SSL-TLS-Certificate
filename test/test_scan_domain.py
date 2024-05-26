@@ -4,7 +4,7 @@ sys.path.append(r"E:\global_ca_monitor")
 
 import socket
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 from app import app
 from app.scanner.scan_by_domain import DomainScanner
 from app.config.scan_config import DomainScanConfig
@@ -15,7 +15,7 @@ from app.manager.task import TaskBatchTemplate
 with app.app_context():
     scan_type = ScanType(ScanType.SCAN_BY_DOMAIN)
     scan_args = {
-        'SCAN_PROCESS_NAME': "20240424 0-1M",
+        'SCAN_PROCESS_NAME': "20240521 0-1M",
         'SCAN_TIMEOUT' : 2,
         'MAX_RETRY' : 2,
         'NUM_DOMAIN_SCAN' : 1000000

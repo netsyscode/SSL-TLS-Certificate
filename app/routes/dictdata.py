@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask_login import current_user
 from ..blueprint import base
@@ -56,7 +56,7 @@ def sysdict_data_add():
     if 'listClass' in request.json: dictData.list_class = request.json['listClass']
     if 'status' in request.json: dictData.status = request.json['status']
 
-    dictData.create_time = datetime.now()
+    dictData.create_time = datetime.now(timezone.utc)
     dictData.create_by = current_user.NAME
 
     db.session.add(dictData)
@@ -77,7 +77,7 @@ def sysdict_data_update():
     if 'remark' in request.json: dictData.remark = request.json['remark']
     if 'isDefault' in request.json: dictData.is_default = request.json['isDefault']
 
-    dictData.update_time = datetime.now()
+    dictData.update_time = datetime.now(timezone.utc)
     dictData.update_by = current_user.NAME
 
     db.session.add(dictData)

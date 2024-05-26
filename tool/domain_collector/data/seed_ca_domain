@@ -1,0 +1,66 @@
+// DigiCert Inc
+one.digicert.com
+crl.one.digicert.com
+ocsp.one.digicert.com
+cacerts.one.digicert.com
+one.digicert.co.jp
+crl.one.digicert.co.jp
+ocsp.one.digicert.co.jp
+one.ch.digicert.com
+crl.one.ch.digicert.com
+ocsp.one.ch.digicert.com
+cacerts.one.ch.digicert.com
+one.nl.digicert.com
+crl.one.nl.digicert.com
+ocsp.one.nl.digicert.com
+cacerts.one.nl.digicert.com
+demo.one.digicert.com
+crl.demo.one.digicert.com
+ocsp.demo.one.digicert.com
+cacerts.demo.one.digicert.com
+demo.one.digicert.co.jp
+crl.demo.one.digicert.co.jp
+ocsp.demo.one.digicert.co.jp
+demo.one.ch.digicert.com
+crl.demo.one.ch.digicert.com
+ocsp.demo.one.ch.digicert.com
+cacerts.demo.one.ch.digicert.com
+demo.one.nl.digicert.com
+crl.demo.one.nl.digicert.com
+ocsp.demo.one.nl.digicert.com
+cacerts.demo.one.nl.digicert.com
+clientauth.one.digicert.com
+clientauth.demo.one.digicert.com
+directory.one.digicert.com
+directory.demo.one.digicert.com
+// Let's Encrypt
+acme-v02.api.letsencrypt.org
+ocsp.root-x1.letsencrypt.org
+e1.o.lencr.org 
+e2.o.lencr.org 
+r3.o.lencr.org 
+r4.o.lencr.org 
+acme-staging-v02.api.letsencrypt.org
+ocsp.staging-x1.letsencrypt.org
+oak.ct.letsencrypt.org
+sapling.ct.letsencrypt.org
+acme-v01.api.letsencrypt.org/directory
+acme-staging.api.letsencrypt.org/directory
+// ZeroSSL
+acme.zerossl.com/v2/DV90
+// Buypass AS-983163327
+api.buypass.com/acme/directory
+api.test4.buypass.no/acme/directory
+// Sectigo Limited
+acme.sectigo.com/v2/DV
+acme.sectigo.com/v2/OV
+acme.sectigo.com/v2/EV
+// Internet2
+acme.sectigo.com/v2/InCommonRSAOV
+acme.sectigo.com/v2/InCommonECCO
+// SSL Corporation
+acme.ssl.com/sslcom-dv-rsa
+acme.ssl.com/sslcom-dv-ecc
+// Google Trust Services
+dv.acme-v02.api.pki.goog/directory
+dv.acme-v02.test-api.pki.goog/directory

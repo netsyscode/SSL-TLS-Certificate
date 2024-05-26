@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 class Config(db.Model):
     __tablename__ = 'SYS_CONFIG'
@@ -9,9 +9,9 @@ class Config(db.Model):
     config_value = db.Column(db.String(500))
     config_type = db.Column(db.Integer)
     create_by = db.Column(db.String(64))
-    create_time = db.Column(db.DATETIME, default=datetime.now)
+    create_time = db.Column(db.DATETIME, default=datetime.now(timezone.utc))
     update_by = db.Column(db.String(64))
-    update_time = db.Column(db.DATETIME, default=datetime.now)
+    update_time = db.Column(db.DATETIME, default=datetime.now(timezone.utc))
     remark = db.Column(db.String(500))
 
     def to_json(self):

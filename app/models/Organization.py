@@ -1,6 +1,6 @@
 from app import db
 from flask_login import UserMixin, AnonymousUserMixin
-from datetime import datetime
+from datetime import datetime, timezone
 
 organization_resource_table = db.Table('SYORGANIZATION_SYRESOURCE', db.metadata,
                                        db.Column('SYRESOURCE_ID', db.String, db.ForeignKey('SYRESOURCE.ID')),
@@ -10,8 +10,8 @@ organization_resource_table = db.Table('SYORGANIZATION_SYRESOURCE', db.metadata,
 class Organization(db.Model, UserMixin):
     __tablename__ = 'SYORGANIZATION'
     ID = db.Column(db.String(36), primary_key=True)
-    CREATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now)
-    UPDATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now)
+    CREATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now(timezone.utc))
+    UPDATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now(timezone.utc))
     NAME = db.Column(db.String(200))
     ADDRESS = db.Column(db.String(200))
     CODE = db.Column(db.String(200))

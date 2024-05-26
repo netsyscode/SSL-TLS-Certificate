@@ -1,36 +1,25 @@
 
-import re
-import hashlib
 import requests
-import chardet
-from enum import Enum
+from requests.exceptions import RequestException
+from datetime import datetime, timezone
+from typing import Dict, Tuple, List, Optional
 
-from typing import Optional
-from datetime import datetime
-from urllib.parse import urlparse
-from typing import Dict, Tuple
-
-from ..logger.logger import my_logger
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.hazmat.primitives.hashes import SHA256, SHA1
 from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.x509 import (
-    Version,
-    Name,
-    DNSName,
     Certificate,
     ReasonFlags,
-    ObjectIdentifier,
-    AttributeNotFound,
+    CRLReason,
     ExtensionNotFound,
     CertificateRevocationList,
+    load_pem_x509_certificate,
+    load_der_x509_certificate,
     load_pem_x509_crl,
     load_der_x509_crl
 )
-from cryptography.x509.oid import NameOID, ExtensionOID, SignatureAlgorithmOID, ExtendedKeyUsageOID
-from ..utils.type import CertType
-
+from cryptography.x509.oid import ExtensionOID, AuthorityInformationAccessOID
 from cryptography.x509.ocsp import (
     OCSPRequestBuilder,
     OCSPResponseStatus,
@@ -38,136 +27,193 @@ from cryptography.x509.ocsp import (
     OCSPResponse,
     load_der_ocsp_response
 )
-from threading import Lock
-from sqlalchemy import insert, Table
-from ..models import CertAnalysisStats, CertStoreContent, CertStoreRaw, CaCertStore, CertRevocationStatusOCSP
 
-from sqlalchemy.exc import IntegrityError
-from ..parser.cert_parser_base import X509ParsedInfo
 from app import app, db
-from OpenSSL import crypto
+from threading import Lock
+from sqlalchemy.dialects.mysql import insert
+from ..models import CertRevocationStatusOCSP, CertRevocationStatusCRL, CRLArchive
+from ..logger.logger import my_logger
+from ..utils.exception import ParseError
 from ..utils.cert import (
-    domain_extract,
-    is_domain_match,
-    utc_time_diff_in_days,
-    get_name_attribute,
     get_cert_sha256_hex_from_object,
     get_cert_sha256_hex_from_str
 )
-
-# class data():
-#     # cert_signature_verified : bool
-
-#     '''
-#         Revocation analysis: CRL and OCSP
-#         1. CRL:
-#             is_revoked_from_CRL:
-#                 Check from CRL, has None if:
-#                     the CRL server does not respond
-#                     the cert does not support CRL (CRL Distribution Points) extension
-#         2. OCSP:
-#             ocsp_response_status:
-#                 Check OCSP server status, has None if:
-#                     the server does not respond
-#                     the cert has no AIA (Authority Information Access) extension
-#     '''
-#     # is_revoked_from_CRL : Optional[bool]
-#     # ocsp_response_status : Optional[OCSPResponseStatus]
-#     # ocsp_cert_status : Optional[OCSPCertStatus]
-#     # revocation_time : Optional[datetime]
-#     # revocation_reason : Optional[ReasonFlags]
 
 
 class CertRevocationAnalyzer():
 
     def __init__(
             self,
-            scan_id : str,
-            scan_input_table : Table,
+            scan_chunk_size : int = 5000
         ) -> None:
 
-        self.scan_id = scan_id
-        self.result_list = []
-        self.result_list_lock = Lock()
-        self.save_scan_chunk_size = 5000
-        self.scan_input_table = scan_input_table
+        self.scan_chunk_size = scan_chunk_size
+
+        # Revocation result cache
+        self.ocsp_result_list = []
+        self.ocsp_result_list_lock = Lock()
+
+        self.crl_result_list = []
+        self.crl_result_list_lock = Lock()
+
         # Cache for CRL file
-        self.crl_cache : Dict[str, CertificateRevocationList] = {}
-        self.cert_store = crypto.X509Store()
+        self.crl_cache : Dict[str, Tuple[datetime, CertificateRevocationList]] = {}
+        self.crl_cache_lock = Lock()
 
 
-    def analyze_cert_revocation(self):
-        my_logger.info(f"Starting {self.scan_input_table.name} revocation analysis...")
-        
-        with app.app_context():
-            # Prepare root store
-            ca_certs = CaCertStore.query.filter()
-            ca_certs = [cert.get_raw() for cert in ca_certs]
+    def analyze_cert_revocation(self, rows):
+        for row in rows:
+            try:
+                cert = load_pem_x509_certificate(row[1].encode('utf-8'), default_backend())
+                crl_result = self.check_revocation_status_from_crl(cert)
+                with self.crl_result_list_lock:
+                    self.crl_result_list += crl_result
 
-            for cert in ca_certs:
-                root_cert = crypto.load_certificate(crypto.FILETYPE_PEM, cert)
-                self.cert_store.add_cert(root_cert)
+                issuers = self.get_issuer(cert)
+                for issuer in issuers:
+                    ocsp_result = self.check_revocation_status_from_ocsp(cert, issuer)
+                    with self.ocsp_result_list_lock:
+                        self.ocsp_result_list += ocsp_result
 
-            # Analyze
-            query = self.scan_input_table.select()
-            result_proxy = db.session.execute(query)
+                if len(self.crl_result_list) > self.scan_chunk_size or len(self.ocsp_result_list) > self.scan_chunk_size:
+                    self.sync_update_info()
+            except ParseError:
+                pass
+            except Exception as e:
+                my_logger.error(f"Error analyze revocation: {e}")
+
+        self.sync_update_info()
+
+
+    def check_revocation_status_from_crl(self, cert : Certificate) -> List[Tuple[str, datetime, str, int, datetime, ReasonFlags]]:
+        '''
+            'cert_id': self.CERT_ID,
+            'check_time': self.CHECK_TIME,
+            'crl_position': self.CRL_POSITION,
+            'revocation_status' : self.REVOCATION_STATUS,
+            'revocation_time' : self.REVOCATION_TIME,
+            'revocation_reason' : self.REVOCATION_REASON
+        '''
+        '''
+            Warning: return False does not always mean the cert is not revoked
             
-            while True:
-                rows = result_proxy.fetchmany(self.save_scan_chunk_size)
-                if not rows:
-                    # self.sync_update_info()
-                    break
-
-                for row in rows:
-                    try:
-                        cert = crypto.load_certificate(crypto.FILETYPE_PEM, row[1])
-                        issuer = self.get_issuer(cert)
-                        if issuer:
-                            res, url = self.checkRevocationStatusFromOCSP(cert.to_cryptography(), issuer.to_cryptography())
-                            self.sync_update_info(cert, res, url)
-                    except ValueError:
-                        continue
-
-        my_logger.info("Cert chain revocation completed")
-
-
-    def get_issuer(self, cert):
+            Sometimes, the CA might remove the cert from CRL after a period of time of expiration to reduce the CRL size
+            So make sure to check whether the cert is expired in the caller
+        '''
         try:
-            store_ctx = crypto.X509StoreContext(self.cert_store, cert)
-            chain = store_ctx.get_verified_chain()
-            if len(chain) == 1:
-                return chain[0]
+            result_list = []
+            crl_distribution_points = cert.extensions.get_extension_for_oid(ExtensionOID.CRL_DISTRIBUTION_POINTS)
+            crl_distribution_points = crl_distribution_points.value
+        except ExtensionNotFound as e:
+            # my_logger.warn(f"Cert extension {e.oid} not found")
+            return []
+
+        for crl_distribution_point in crl_distribution_points:
+            crl_url = crl_distribution_point.full_name[0].value
+            crl_response = self.request_crl_response(crl_url)
+
+            if crl_response[1]:
+                crl_entry = crl_response[1].get_revoked_certificate_by_serial_number(cert.serial_number)
+                if crl_entry:
+                    result_list.append((get_cert_sha256_hex_from_object(cert), crl_response[0], crl_url, 0, crl_entry.revocation_date_utc, crl_entry.extensions.get_extension_for_class(CRLReason).value.reason))
+                else:
+                    result_list.append((get_cert_sha256_hex_from_object(cert), crl_response[0], crl_url, 1, None, None))
             else:
-                return chain[1]
+                # No CRL response
+                result_list.append((get_cert_sha256_hex_from_object(cert), crl_response[0], crl_url, 2, None, None))
+        return result_list
         
-        except crypto.X509StoreContextError as e:
-            # my_logger.error(f"Cert chain analysis failed for cert {get_cert_sha256_hex_from_object(e.certificate.to_cryptography())}...")
-            return None
 
+    def request_crl_response(
+            self,
+            crl_url : str,
+            retry_times : int = 2
+        ) -> Tuple[datetime, CertificateRevocationList]:
 
-    def sync_update_info(self, cert : crypto.X509, res, url):
-        # with app.app_context():
-            OCSP_STATUS_MAPPING = {
-                None : 0,
-                OCSPCertStatus.GOOD : 1,
-                OCSPCertStatus.REVOKED : 2,
-                OCSPCertStatus.UNKNOWN : 3
+        if retry_times <= 0:
+            # my_logger.error(f"Can not retrieve CRL after retrying several times...")
+            return (datetime.now(timezone.utc), None)
+
+        # Check cache hit
+        if crl_url in self.crl_cache.keys():
+            return self.crl_cache[crl_url]
+        
+        try:
+            my_logger.debug(f"Requesting CRL from {crl_url}...")
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
             }
+            request_time = datetime.now(timezone.utc)
+            crl_response : requests.Response = requests.get(crl_url, headers=headers, timeout=3)
+            if not crl_response.status_code == 200:
+                my_logger.warn(f"Server {crl_url} rejected CRL reqeust")
+                return (request_time, None)
 
-            if res:
-                status = OCSP_STATUS_MAPPING[res[1]]
-            else:
-                status = 0
+            crl = load_pem_x509_crl(crl_response.content, default_backend())
+            with self.crl_cache_lock:
+                self.crl_cache[crl_url] = (request_time, crl)
+            return (request_time, crl)
 
-            data = {
-                'CERT_ID' : get_cert_sha256_hex_from_object(cert.to_cryptography()),
-                'CHECK_TIME' : datetime.now(),
-                'AIA_LOCATION' : url,
-                'REVOCATION_STATUS' : status
-            }
-            insert_cert_store_statement = insert(CertRevocationStatusOCSP).values(data)
-            db.session.execute(insert_cert_store_statement)
+        except requests.exceptions.RequestException:
+            return self.request_crl_response(crl_url, retry_times - 1)
+        except ValueError:
+            try:
+                crl = load_der_x509_crl(crl_response.content, default_backend())
+                my_logger.warn("CRL response is encoded with DER")
+                with self.crl_cache_lock:
+                    self.crl_cache[crl_url] = (request_time, crl)
+                return (request_time, crl)
+            except:
+                return self.request_crl_response(crl_url, retry_times - 1)
 
+
+    def check_revocation_status_from_ocsp(
+            self,
+            cert : Certificate,
+            issuer_cert : Certificate
+        )-> List[Tuple[str, datetime, str, str, OCSPResponseStatus, Optional[OCSPCertStatus], Optional[datetime], Optional[ReasonFlags]]]:
+        '''
+            'cert_id': self.CERT_ID,
+            'check_time': self.CHECK_TIME,
+            'aia_location': self.AIA_LOCATION,
+            'issuer_id' : self.ISSUER_ID,
+            'revocation_status' : self.REVOCATION_STATUS,
+            'revocation_time' : self.REVOCATION_TIME,
+            'revocation_reason' : self.REVOCATION_REASON
+        '''
+
+        if issuer_cert is None: return []
+        try:
+            result_list = []
+            ocsp_server_url = None
+            ocsp_info = cert.extensions.get_extension_for_oid(ExtensionOID.AUTHORITY_INFORMATION_ACCESS)
+        except ExtensionNotFound as e:
+            # my_logger.warn(f"Cert extension {e.oid} not found")
+            return []
+        
+        for access_description in ocsp_info.value:
+            if access_description.access_method._name == "OCSP":
+                ocsp_server_url = access_description.access_location.value
+
+                ocsp_response = self.request_ocsp_response(cert, issuer_cert, ocsp_server_url)
+                if not ocsp_response[1]:
+                    # my_logger.warn(f"OCSP server for certificate {cert.serial_number} does not respond")
+                    result_list.append((get_cert_sha256_hex_from_object(cert), ocsp_response[0], ocsp_server_url, get_cert_sha256_hex_from_object(issuer_cert), None, None, None, None))
+                    continue
+                
+                ocsp_status : OCSPResponseStatus = ocsp_response[1].response_status
+                cert_status : OCSPCertStatus = None
+                revocation_time = None
+                revocation_reason = None
+                if ocsp_status == OCSPResponseStatus.SUCCESSFUL:
+                    cert_status = ocsp_response[1].certificate_status
+                    if cert_status == OCSPCertStatus.REVOKED:
+                        revocation_time = ocsp_response[1].revocation_time
+                        revocation_reason = ocsp_response[1].revocation_reason
+
+                result_list.append((get_cert_sha256_hex_from_object(cert), ocsp_response[0], ocsp_server_url, get_cert_sha256_hex_from_object(issuer_cert), ocsp_status, cert_status, revocation_time, revocation_reason))
+        return result_list
+        
 
     '''
         Create OCSP request:
@@ -185,14 +231,18 @@ class CertRevocationAnalyzer():
                 OCSP Nonce: 
                     0410CE52A9CC9405C6B438E23DB7607410A9
     '''
-    def requestOCSPResponse(
+    def request_ocsp_response(
             self,
             cert : Certificate,
             issuer : Certificate,
             server_url : str,
-            hash : hashes = SHA1(),
-            retry_times : int = 4
-        ) -> Optional[OCSPResponse]:
+            hash : hashes = SHA256(),
+            retry_times : int = 2
+        ) -> Tuple[datetime, OCSPResponse]:
+
+        if retry_times <= 0:
+            # my_logger.error(f"OCSP server {server_url} does not respond after retrying several times...")
+            return (datetime.now(timezone.utc), None)
 
         '''
             From doc:
@@ -204,6 +254,9 @@ class CertRevocationAnalyzer():
             So we do the following:
             Use SHA1 first, if return status is OCSPResponseStatus.UNAUTHORIZED,
             we switch to SHA256 next
+
+            Update on 24/05/21:
+            Skip SHA1, use SHA256 directly to save time
         '''
         builder = OCSPRequestBuilder()
         builder = builder.add_certificate(cert, issuer, hash)
@@ -212,158 +265,173 @@ class CertRevocationAnalyzer():
         try:
             try:
                 my_logger.debug(f"Requesting OCSP response from {server_url}...")
+                request_time = datetime.now(timezone.utc)
                 raw_response = requests.post(
                     server_url,
                     data=request.public_bytes(serialization.Encoding.DER),
                     headers={"Content-Type": "application/ocsp-request"},
-                    timeout=5
+                    timeout=2
                 )
-            except requests.exceptions.RequestException as e:
-                '''
-                    10/19/23 update:
-                    To avoid OCSP server not responding, we retry serveral times
-                '''
-                if retry_times <= 0:
-                    my_logger.error(f"OCSP server {server_url} does not respond after retrying several times...")
-                    return None
-                else:
-                    return self.requestOCSPResponse(cert, issuer, server_url, hash, retry_times - 1)
+                if not raw_response.status_code == 200:
+                    my_logger.warn(f"Server {server_url} rejected OCSP reqeust")
+                    return (request_time, None)
 
+            except requests.exceptions.RequestException as e:
+                return self.request_ocsp_response(cert, issuer, server_url, hash, retry_times - 1)
 
             response = load_der_ocsp_response(raw_response.content)
-            if hash == SHA1() and response.response_status == OCSPResponseStatus.UNAUTHORIZED:
-                return self.requestOCSPResponse(cert, issuer, SHA256())
-            return response
+            return (request_time, response)
 
         # Sometimes, the response may not complete...
         except ValueError as e:
-            my_logger.warn(f"OCSP response from {server_url} is not complete, retrying...")
-            return self.requestOCSPResponse(cert, issuer, server_url, hash, retry_times - 1)
+            # my_logger.warn(f"OCSP response from {server_url} is not complete, retrying...")
+            return self.request_ocsp_response(cert, issuer, server_url, hash, retry_times - 1)
         except Exception as e:
             my_logger.error(f"Error when getting OCSP response: {e}")
-            return None
+            return (request_time, None)
 
 
-    def requestCRLResponse(
-            self,
-            crl_url : str,
-            retry_times : int = 4
-        ) -> Optional[CertificateRevocationList]:
-
-        # Check cache hit
-        if crl_url in self.crl_cache.keys():
-            return self.crl_cache[crl_url]
-        
+    def get_issuer(self, cert: Certificate) -> List[Certificate]:
+        '''
+            Three steps to get issuer:
+            1. Try to get the issuer in AIA extension
+            2. Try to get the issuer with the help of cert_chain Table (No implementation right now TODO:)
+            3. Manually find issuer in the CaCertStore (No implementation right now TODO:)
+        '''
+        issuers = []
         try:
-            my_logger.debug(f"Requesting CRL from {crl_url}...")
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
-            }
-            crl_response = requests.get(crl_url, headers=headers)
-            if not crl_response.status_code == 200:
-                my_logger.warn(f"Server {crl_url} rejected CRL reqeust")
-                return None
-            crl = load_pem_x509_crl(crl_response.content, default_backend())
-            self.crl_cache[crl_url] = crl
-            return crl
-
-        except requests.exceptions.RequestException:
-            if retry_times <= 0:
-                my_logger.error(f"Can not retrieve CRL after retrying several times...")
-                return None
-            else:
-                return self.requestCRLResponse(crl_url, retry_times - 1)
-
-        except ValueError:
-            my_logger.debug("CRL response is encoded with DER")
-            return load_der_x509_crl(crl_response.content, default_backend())
-
-
-    def checkRevocationStatusFromOCSP(
-            self,
-            cert : Certificate,
-            issuer_cert : Certificate
-        )-> Tuple[Tuple[Optional[OCSPResponseStatus], Optional[OCSPCertStatus], Optional[datetime], Optional[ReasonFlags]], str]:
-
-        if issuer_cert is None: return None, None
-        try:
-            ocsp_server_url = None
             ocsp_info = cert.extensions.get_extension_for_oid(ExtensionOID.AUTHORITY_INFORMATION_ACCESS)
-            if ocsp_info:
-                for access_description in ocsp_info.value:
-                    if access_description.access_method._name == "OCSP":
-                        ocsp_server_url = access_description.access_location.value
-
-            ocsp_response = self.requestOCSPResponse(cert, issuer_cert, ocsp_server_url)
-            if not ocsp_response:
-                my_logger.warn(f"OCSP server for certificate {cert.serial_number} does not respond")
-                return None, ocsp_server_url
-            
-            ocsp_status = ocsp_response.response_status
-            cert_status = None
-            revocation_time = None
-            revocation_reason = None
-            if ocsp_status == OCSPResponseStatus.SUCCESSFUL:
-                cert_status = ocsp_response.certificate_status
-                if cert_status == OCSPCertStatus.REVOKED:
-                    revocation_time = ocsp_response.revocation_time
-                    revocation_reason = ocsp_response.revocation_reason
-
-            return (ocsp_status, cert_status, revocation_time, revocation_reason), ocsp_server_url
-        
         except ExtensionNotFound as e:
-            my_logger.warn(f"Cert extension {e.oid} not found")
-            return None, None
+            # my_logger.warn(f"Cert extension {e.oid} not found")
+            return []
+        
+        for access_description in ocsp_info.value:
+            if (access_description.access_method == AuthorityInformationAccessOID.CA_ISSUERS) \
+                    and (access_description.access_location is not None):
+                issuer_url = access_description.access_location.value
+
+                for i in range(2):  # 限制最大重试次数
+                    try:
+                        raw_response : requests.Response = requests.get(issuer_url, timeout=2)
+                        raw_response.raise_for_status()
+                        
+                        # 检查是否成功获取了证书内容
+                        if b'-----BEGIN CERTIFICATE-----' in raw_response.content:
+                            start_index = raw_response.content.find(b'-----BEGIN CERTIFICATE-----')
+                            certificate_content = raw_response.content[start_index:]
+                            issuer = self.load_certificate(certificate_content)
+                        else:
+                            issuer = self.load_certificate(raw_response.content)
+                        issuers.append(issuer)
+                        break  # 如果成功获取和加载了证书，则退出循环
+                    except RequestException as e:
+                        # my_logger.warn(f"Request failed: {e}")
+                        continue
+                    except Exception as e:
+                        my_logger.error(f"An unexpected error occurred: {e}")
+
+        return issuers
 
 
-    def checkRevocationStatusFromCRL(self) -> Optional[bool]:
-
-        '''
-            Warning: return False does not always mean the cert is not revoked
-            
-            Sometimes, the CA might remove the cert from CRL after a period of time of expiration to reduce the CRL size
-            So make sure to check whether the cert is expired in the caller
-        '''
+    def load_certificate(self, raw_content: bytes) -> Certificate:
         try:
-            crl_distribution_points = self.cert.extensions.get_extension_for_oid(ExtensionOID.CRL_DISTRIBUTION_POINTS)
-            crl_distribution_points = crl_distribution_points.value
-
-            crl_url = crl_distribution_points[0].full_name[0].value
-            crl = self.requestCRLResponse(crl_url)
-
-            if crl:
-                crl_entry = crl.get_revoked_certificate_by_serial_number(self.cert.serial_number)
-                if crl_entry: return True
-                else: return False
-
-            # No CRL response
-            return None
-        
-        except ExtensionNotFound as e:
-            my_logger.warn(f"Cert extension {e.oid} not found")
-            return None
+            return load_pem_x509_certificate(raw_content, default_backend())
+        except ValueError:
+            pass  # 如果是 PEM 格式加载失败，尝试加载 DER 格式
+        try:
+            return load_der_x509_certificate(raw_content, default_backend())
+        except ValueError as e:
+            # 记录错误信息或者采取其他适当的措施
+            my_logger.error(f"Error loading certificate: {e}")
+            raise
 
 
-# class certTmep():
-#     def __init__(
-#             self,
-#             host_name: str,
-#             cert_type: CertType,
-#             cert: Certificate,
-#             issuer_cert: Optional[Certificate],
-#         ) -> None:
+    def sync_update_info(self):
+        with app.app_context():
+            my_logger.info(f"Updating cert revocation data...")
 
-#         self.host_name = host_name
-#         self.cert_type = cert_type
-#         self.cert = cert
-#         self.issuer_cert = issuer_cert
+            REASONFLAG_MAPPING = {
+                None : None,
+                ReasonFlags.key_compromise: 1,
+                ReasonFlags.ca_compromise: 2,
+                ReasonFlags.affiliation_changed: 3,
+                ReasonFlags.superseded: 4,
+                ReasonFlags.cessation_of_operation: 5,
+                ReasonFlags.certificate_hold: 6,
+                ReasonFlags.privilege_withdrawn: 7,
+                ReasonFlags.aa_compromise: 8,
+            }
 
-#         # Check CRL
-#         # crl_revoked = self.checkRevocationStatusFromCRL()
-#         crl_revoked = None
-#         # Check OCSP:
-#         ocsp_status, cert_status, revocation_time, revocation_reason = None, None, None, None
-#         # ocsp_result = self.checkRevocationStatusFromOCSP()
-#         # if ocsp_result is not None:
-#             # ocsp_status, cert_status, revocation_time, revocation_reason = ocsp_result
-        
+            OCSP_STATUS_MAPPING = {
+                None : 0,   # Unauthorized
+                OCSPCertStatus.GOOD : 1,
+                OCSPCertStatus.REVOKED : 2,
+                OCSPCertStatus.UNKNOWN : 3
+            }
+
+            with self.crl_result_list_lock:
+                try:
+                    crl_data = []
+                    my_logger.info(f"Converting crl {len(self.crl_result_list)} data...")
+                    for res in self.crl_result_list:
+                        crl_data.append({
+                            'CERT_ID' :  res[0],
+                            'CHECK_TIME' : res[1],
+                            'CRL_POSITION' : res[2],
+                            'REVOCATION_STATUS' : res[3],
+                            'REVOCATION_TIME' : res[4],
+                            'REVOCATION_REASON' : REASONFLAG_MAPPING[res[5]]
+                        })
+                    insert_crl_store_statement = insert(CertRevocationStatusCRL).values(crl_data).prefix_with('IGNORE')
+                    db.session.execute(insert_crl_store_statement)
+                    db.session.commit()
+                except Exception as e:
+                    my_logger.error(f"Error insertion CRL data: {e} \n {e.with_traceback()}")
+                finally:
+                    self.crl_result_list = []
+
+            with self.ocsp_result_list_lock:
+                try:
+                    ocsp_data = []
+                    my_logger.info(f"Converting ocsp {len(self.ocsp_result_list)} data...")
+                    for res in self.ocsp_result_list:
+                        if res[4]:
+                            if res[4] == OCSPResponseStatus.UNAUTHORIZED:
+                                status = 0
+                            elif res[4] == OCSPResponseStatus.SUCCESSFUL:
+                                status = OCSP_STATUS_MAPPING[res[5]]
+                            else:
+                                status = None
+                        else:
+                            status = None
+
+                        ocsp_data.append({
+                            'CERT_ID' : res[0],
+                            'CHECK_TIME' : res[1],
+                            'AIA_LOCATION' : res[2],
+                            'ISSUER_ID' : res[3],
+                            'REVOCATION_STATUS' : status,
+                            'REVOCATION_TIME' : res[6],
+                            'REVOCATION_REASON' : REASONFLAG_MAPPING[res[7]]
+                        })
+                    insert_ocsp_store_statement = insert(CertRevocationStatusOCSP).values(ocsp_data).prefix_with('IGNORE')
+                    db.session.execute(insert_ocsp_store_statement)
+                    db.session.commit()
+                except Exception as e:
+                    my_logger.error(f"Error insertion OCSP data: {e} \n {e.with_traceback()}")
+                finally:
+                    self.ocsp_result_list = []
+
+            my_logger.info(f"Converting crl_cache data...")
+            with self.crl_cache_lock:
+                for entry in self.crl_cache:
+                    a : CertificateRevocationList = self.crl_cache[entry][1]
+                    data = {
+                        'CRL_POSITION' : entry,
+                        'STORE_TIME' : self.crl_cache[entry][0],
+                        'FINGERPRINT' : a.fingerprint(SHA256()).hex(),
+                        'CRL_DATA' : a.public_bytes(Encoding.PEM)
+                    }
+                    insert_crl_archive_statement = insert(CRLArchive).values([data]).prefix_with('IGNORE')
+                    db.session.execute(insert_crl_archive_statement)
+                    db.session.commit()

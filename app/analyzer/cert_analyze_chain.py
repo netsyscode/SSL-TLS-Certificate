@@ -59,7 +59,8 @@ import os
 
 
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import insert, Table
+from sqlalchemy import Table
+from sqlalchemy.dialects.mysql import insert
 from ..models import CertAnalysisStats, CertStoreContent, CertStoreRaw, CaCertStore, CertChainRelation
 from ..parser.cert_parser_base import X509ParsedInfo
 from app import app, db
@@ -144,6 +145,7 @@ class CertScanChainAnalyzer():
             }
             insert_cert_store_statement = insert(CertChainRelation).values(cert_chain_data_to_insert).prefix_with('IGNORE')
             db.session.execute(insert_cert_store_statement)
+            db.session.commit()
 
 
     # do not use now

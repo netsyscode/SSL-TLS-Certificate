@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask_login import current_user
 from ..blueprint import base
@@ -51,9 +51,9 @@ def sysdict_type_add():
     if 'remark' in request.json: dictType.remark = request.json['remark']
     if 'dictType' in request.json: dictType.dict_type = request.json['dictType']
 
-    dictType.create_time = datetime.now()
+    dictType.create_time = datetime.now(timezone.utc)
     dictType.create_by = current_user.NAME
-    dictType.update_time = datetime.now()
+    dictType.update_time = datetime.now(timezone.utc)
     dictType.update_by = current_user.NAME
 
     db.session.add(dictType)
@@ -70,7 +70,7 @@ def sysdict_type_update():
     if 'remark' in request.json: dictType.remark = request.json['remark']
     if 'dictType' in request.json: dictType.dict_type = request.json['dictType']
 
-    dictType.update_time = datetime.now()
+    dictType.update_time = datetime.now(timezone.utc)
     dictType.update_by = current_user.NAME
 
     db.session.add(dictType)

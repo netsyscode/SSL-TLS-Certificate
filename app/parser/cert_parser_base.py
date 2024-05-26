@@ -56,8 +56,8 @@ class X509ParsedInfo():
     issuer_org : str
     issuer_country : str
 
-    not_valid_before : datetime
-    not_valid_after : datetime
+    not_valid_before_utc : datetime
+    not_valid_after_utc : datetime
     validation_period : int     # in days
 
     subject_cn : str             # only for subject_cn field
@@ -73,7 +73,8 @@ class X509ParsedInfo():
     sha_256 : str
 
     extension_parsed_info : List[ExtensionResult]
-    raw : str
+    cert_raw : str
+    pub_key_raw : str
 
 
 # main stuff here
@@ -88,7 +89,8 @@ class X509CertParser():
             self.cert = (load_pem_x509_certificate(cert.encode("utf-8"), default_backend()))
             self.extension_parser = X509CertExtensionParser(self.cert.extensions)
             self.parsed_info = self.parse_cert_base()
-        except:
+        except Exception as e:
+            my_logger.warn(e)
             my_logger.warn("Meet cert ASN.1 format violation, skip it")
             raise ParseError
 
@@ -165,7 +167,8 @@ class X509CertParser():
             cert_type,
             sha256_hex,
             self.extension_parser.analyzeExtensions(),
-            self.cert.public_bytes(Encoding.PEM).decode()
+            self.cert.public_bytes(Encoding.PEM).decode(),
+            self.cert.public_key().public_bytes(Encoding.PEM, PublicFormat.SubjectPublicKeyInfo).decode()
         )
     
 
@@ -184,8 +187,8 @@ class X509CertParser():
             "issuer_cn" : self.parsed_info.issuer_cn,
             "issuer_org" : self.parsed_info.issuer_org,
             "issuer_country" : self.parsed_info.issuer_country,
-            "not_valid_before" : self.parsed_info.not_valid_before,
-            "not_valid_after" : self.parsed_info.not_valid_after,
+            "not_valid_before_utc" : self.parsed_info.not_valid_before_utc,
+            "not_valid_after_utc" : self.parsed_info.not_valid_after_utc,
             "validation_period" : self.parsed_info.validation_period,
             "subject_cn" : self.parsed_info.subject_cn,
             "subject_org" : self.parsed_info.subject_org,

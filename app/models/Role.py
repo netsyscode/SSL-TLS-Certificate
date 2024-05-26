@@ -1,7 +1,7 @@
 # coding:utf-8
 from app import db
 from flask_login import UserMixin, AnonymousUserMixin
-from datetime import datetime
+from datetime import datetime, timezone
 
 #角色资源关联表
 role_resource_table = db.Table('SYROLE_SYRESOURCE', db.metadata,
@@ -15,8 +15,8 @@ role_organization_table = db.Table('SYROLE_SYORGANIZATION', db.metadata,
 class Role(db.Model, UserMixin):
     __tablename__ = 'SYROLE'
     ID = db.Column(db.Integer, primary_key=True)
-    CREATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now)
-    UPDATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now)
+    CREATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now(timezone.utc))
+    UPDATEDATETIME = db.Column(db.DateTime, index=True, default=datetime.now(timezone.utc))
     NAME = db.Column(db.String(100))
     DESCRIPTION = db.Column(db.String(200))
     ICONCLS = db.Column(db.String(100))
