@@ -32,14 +32,14 @@ print("start")
 with app.app_context():
     scan_type = ScanType(ScanType.SCAN_BY_CT)
     scan_args = {
-        'SCAN_PROCESS_NAME': "oak 2024h1 40M-60M",
+        'SCAN_PROCESS_NAME': "oak 2024h1 60M-70M",
         'SCAN_TIMEOUT' : 2,
         'MAX_RETRY' : 10,
         'CT_LOG_ADDRESS' : log_address,
         'WINDOW_SIZE' : 20,
         'SAVE_CHUNK_SIZE' : 20000,
-        'ENTRY_START' : 40000000,
-        'ENTRY_END' : 60000000
+        'ENTRY_START' : 60000000,
+        'ENTRY_END' : 70000000
         #'ENTRY_END' : size
     }
 
