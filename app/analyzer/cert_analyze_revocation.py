@@ -48,6 +48,10 @@ class CertRevocationAnalyzer():
         ) -> None:
 
         self.scan_chunk_size = scan_chunk_size
+        self.proxies = {
+            "http": "http://127.0.0.1:33210",
+            "https": "http://127.0.0.1:33210",
+        }
 
         # Revocation result cache
         self.ocsp_result_list = []
@@ -57,6 +61,7 @@ class CertRevocationAnalyzer():
         self.crl_result_list_lock = Lock()
 
         # Cache for CRL file
+        self.stored_crl_key = []
         self.crl_cache : Dict[str, Tuple[datetime, CertificateRevocationList]] = {}
         self.crl_cache_lock = Lock()
 
@@ -69,7 +74,10 @@ class CertRevocationAnalyzer():
                 with self.crl_result_list_lock:
                     self.crl_result_list += crl_result
 
-                issuers = self.get_issuer(cert)
+                issuers = self.get_issuer(cert, use_proxy=False)
+                if len(issuers) == 0:
+                    issuers = self.get_issuer(cert, use_proxy=True)
+
                 for issuer in issuers:
                     ocsp_result = self.check_revocation_status_from_ocsp(cert, issuer)
                     with self.ocsp_result_list_lock:
@@ -110,13 +118,17 @@ class CertRevocationAnalyzer():
 
         for crl_distribution_point in crl_distribution_points:
             crl_url = crl_distribution_point.full_name[0].value
-            crl_response = self.request_crl_response(crl_url)
+            crl_response = self.request_crl_response(crl_url, use_proxy=False)
+            if not crl_response[1]:
+                crl_response = self.request_crl_response(crl_url, use_proxy=True)
 
             if crl_response[1]:
                 crl_entry = crl_response[1].get_revoked_certificate_by_serial_number(cert.serial_number)
                 if crl_entry:
+                    # revoked
                     result_list.append((get_cert_sha256_hex_from_object(cert), crl_response[0], crl_url, 0, crl_entry.revocation_date_utc, crl_entry.extensions.get_extension_for_class(CRLReason).value.reason))
                 else:
+                    # not revoked
                     result_list.append((get_cert_sha256_hex_from_object(cert), crl_response[0], crl_url, 1, None, None))
             else:
                 # No CRL response
@@ -127,7 +139,8 @@ class CertRevocationAnalyzer():
     def request_crl_response(
             self,
             crl_url : str,
-            retry_times : int = 2
+            retry_times : int = 2,
+            use_proxy : bool = False
         ) -> Tuple[datetime, CertificateRevocationList]:
 
         if retry_times <= 0:
@@ -144,7 +157,11 @@ class CertRevocationAnalyzer():
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
             }
             request_time = datetime.now(timezone.utc)
-            crl_response : requests.Response = requests.get(crl_url, headers=headers, timeout=3)
+            if use_proxy:
+                crl_response : requests.Response = requests.get(crl_url, headers=headers, timeout=3, proxies=self.proxies)
+            else:
+                crl_response : requests.Response = requests.get(crl_url, headers=headers, timeout=3)
+
             if not crl_response.status_code == 200:
                 my_logger.warn(f"Server {crl_url} rejected CRL reqeust")
                 return (request_time, None)
@@ -195,8 +212,12 @@ class CertRevocationAnalyzer():
             if access_description.access_method._name == "OCSP":
                 ocsp_server_url = access_description.access_location.value
 
-                ocsp_response = self.request_ocsp_response(cert, issuer_cert, ocsp_server_url)
+                ocsp_response = self.request_ocsp_response(cert, issuer_cert, ocsp_server_url, use_proxy=False)
                 if not ocsp_response[1]:
+                    ocsp_response = self.request_ocsp_response(cert, issuer_cert, ocsp_server_url, use_proxy=True)
+
+                if not ocsp_response[1]:
+                    # No response
                     # my_logger.warn(f"OCSP server for certificate {cert.serial_number} does not respond")
                     result_list.append((get_cert_sha256_hex_from_object(cert), ocsp_response[0], ocsp_server_url, get_cert_sha256_hex_from_object(issuer_cert), None, None, None, None))
                     continue
@@ -237,7 +258,8 @@ class CertRevocationAnalyzer():
             issuer : Certificate,
             server_url : str,
             hash : hashes = SHA256(),
-            retry_times : int = 2
+            retry_times : int = 2,
+            use_proxy : bool = False
         ) -> Tuple[datetime, OCSPResponse]:
 
         if retry_times <= 0:
@@ -266,12 +288,21 @@ class CertRevocationAnalyzer():
             try:
                 my_logger.debug(f"Requesting OCSP response from {server_url}...")
                 request_time = datetime.now(timezone.utc)
-                raw_response = requests.post(
-                    server_url,
-                    data=request.public_bytes(serialization.Encoding.DER),
-                    headers={"Content-Type": "application/ocsp-request"},
-                    timeout=2
-                )
+                if use_proxy:
+                    raw_response = requests.post(
+                        server_url,
+                        data=request.public_bytes(serialization.Encoding.DER),
+                        headers={"Content-Type": "application/ocsp-request"},
+                        timeout=2,
+                        proxies=self.proxies
+                    )
+                else:
+                    raw_response = requests.post(
+                        server_url,
+                        data=request.public_bytes(serialization.Encoding.DER),
+                        headers={"Content-Type": "application/ocsp-request"},
+                        timeout=2
+                    )
                 if not raw_response.status_code == 200:
                     my_logger.warn(f"Server {server_url} rejected OCSP reqeust")
                     return (request_time, None)
@@ -291,7 +322,7 @@ class CertRevocationAnalyzer():
             return (request_time, None)
 
 
-    def get_issuer(self, cert: Certificate) -> List[Certificate]:
+    def get_issuer(self, cert: Certificate, use_proxy = False) -> List[Certificate]:
         '''
             Three steps to get issuer:
             1. Try to get the issuer in AIA extension
@@ -312,7 +343,10 @@ class CertRevocationAnalyzer():
 
                 for i in range(2):  # 限制最大重试次数
                     try:
-                        raw_response : requests.Response = requests.get(issuer_url, timeout=2)
+                        if use_proxy:
+                            raw_response : requests.Response = requests.get(issuer_url, timeout=2, proxies=self.proxies)
+                        else:
+                            raw_response : requests.Response = requests.get(issuer_url, timeout=2)
                         raw_response.raise_for_status()
                         
                         # 检查是否成功获取了证书内容
@@ -370,18 +404,18 @@ class CertRevocationAnalyzer():
             }
 
             with self.crl_result_list_lock:
+                crl_data = []
+                my_logger.info(f"Converting crl {len(self.crl_result_list)} data...")
+                for res in self.crl_result_list:
+                    crl_data.append({
+                        'CERT_ID' :  res[0],
+                        'CHECK_TIME' : res[1],
+                        'CRL_POSITION' : res[2],
+                        'REVOCATION_STATUS' : res[3],
+                        'REVOCATION_TIME' : res[4],
+                        'REVOCATION_REASON' : REASONFLAG_MAPPING[res[5]]
+                    })
                 try:
-                    crl_data = []
-                    my_logger.info(f"Converting crl {len(self.crl_result_list)} data...")
-                    for res in self.crl_result_list:
-                        crl_data.append({
-                            'CERT_ID' :  res[0],
-                            'CHECK_TIME' : res[1],
-                            'CRL_POSITION' : res[2],
-                            'REVOCATION_STATUS' : res[3],
-                            'REVOCATION_TIME' : res[4],
-                            'REVOCATION_REASON' : REASONFLAG_MAPPING[res[5]]
-                        })
                     insert_crl_store_statement = insert(CertRevocationStatusCRL).values(crl_data).prefix_with('IGNORE')
                     db.session.execute(insert_crl_store_statement)
                     db.session.commit()
@@ -391,29 +425,29 @@ class CertRevocationAnalyzer():
                     self.crl_result_list = []
 
             with self.ocsp_result_list_lock:
-                try:
-                    ocsp_data = []
-                    my_logger.info(f"Converting ocsp {len(self.ocsp_result_list)} data...")
-                    for res in self.ocsp_result_list:
-                        if res[4]:
-                            if res[4] == OCSPResponseStatus.UNAUTHORIZED:
-                                status = 0
-                            elif res[4] == OCSPResponseStatus.SUCCESSFUL:
-                                status = OCSP_STATUS_MAPPING[res[5]]
-                            else:
-                                status = None
+                ocsp_data = []
+                my_logger.info(f"Converting ocsp {len(self.ocsp_result_list)} data...")
+                for res in self.ocsp_result_list:
+                    if res[4]:
+                        if res[4] == OCSPResponseStatus.UNAUTHORIZED:
+                            status = 0
+                        elif res[4] == OCSPResponseStatus.SUCCESSFUL:
+                            status = OCSP_STATUS_MAPPING[res[5]]
                         else:
                             status = None
+                    else:
+                        status = None
 
-                        ocsp_data.append({
-                            'CERT_ID' : res[0],
-                            'CHECK_TIME' : res[1],
-                            'AIA_LOCATION' : res[2],
-                            'ISSUER_ID' : res[3],
-                            'REVOCATION_STATUS' : status,
-                            'REVOCATION_TIME' : res[6],
-                            'REVOCATION_REASON' : REASONFLAG_MAPPING[res[7]]
-                        })
+                    ocsp_data.append({
+                        'CERT_ID' : res[0],
+                        'CHECK_TIME' : res[1],
+                        'AIA_LOCATION' : res[2],
+                        'ISSUER_ID' : res[3],
+                        'REVOCATION_STATUS' : status,
+                        'REVOCATION_TIME' : res[6],
+                        'REVOCATION_REASON' : REASONFLAG_MAPPING[res[7]]
+                    })
+                try:
                     insert_ocsp_store_statement = insert(CertRevocationStatusOCSP).values(ocsp_data).prefix_with('IGNORE')
                     db.session.execute(insert_ocsp_store_statement)
                     db.session.commit()
@@ -425,6 +459,9 @@ class CertRevocationAnalyzer():
             my_logger.info(f"Converting crl_cache data...")
             with self.crl_cache_lock:
                 for entry in self.crl_cache:
+                    if entry in self.stored_crl_key:
+                        continue
+
                     a : CertificateRevocationList = self.crl_cache[entry][1]
                     data = {
                         'CRL_POSITION' : entry,
@@ -432,6 +469,11 @@ class CertRevocationAnalyzer():
                         'FINGERPRINT' : a.fingerprint(SHA256()).hex(),
                         'CRL_DATA' : a.public_bytes(Encoding.PEM)
                     }
-                    insert_crl_archive_statement = insert(CRLArchive).values([data]).prefix_with('IGNORE')
-                    db.session.execute(insert_crl_archive_statement)
-                    db.session.commit()
+                    try:
+                        insert_crl_archive_statement = insert(CRLArchive).values([data]).prefix_with('IGNORE')
+                        db.session.execute(insert_crl_archive_statement)
+                        db.session.commit()
+                    except Exception as e:
+                        my_logger.error(f"Error insertion CRL entry: {e} \n {e.with_traceback()}")
+                    finally:
+                        self.stored_crl_key.append(entry)
