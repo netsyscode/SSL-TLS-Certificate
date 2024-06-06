@@ -1,5 +1,11 @@
+# Cache files/folders
 /.idea
 /*.pyc
 *.pyc
+
+# Server temp files
 .DS_Store
 uwsgi.pid
+
+# Large data files
+cert_pem_data.csv

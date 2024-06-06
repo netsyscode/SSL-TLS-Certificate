@@ -1,0 +1,42 @@
+{   "ip": "83.167.33.58",   "timestamp": "1713023692", "ports": [ {"port": 443, "proto": "tcp", "service": {"name": "ssl", "banner": "TLS/1.2 cipher:0xc030, hogar.emotic.info, hogar.emotic.info"} } ] }
+,
+{   "ip": "83.167.33.58",   "timestamp": "1713023692", "ports": [ {"port": 443, "proto": "tcp", "service": {"name": "X509", "banner": "MIIF8DCCBNigAwIBAgISA5Auh99pOfLN26XAoNMzSNHkMA0GCSqGSIb3DQEBCwUAMDIxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MQswCQYDVQQDEwJSMzAeFw0yNDAzMjUwMTM1MjZaFw0yNDA2MjMwMTM1MjVaMBwxGjAYBgNVBAMTEWhvZ2FyLmVtb3RpYy5pbmZvMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAqH2u025QU/leiZ1MBpJusaWG3hH9zKBqknUf2EKWe+Y+Uto/CEj2HbRvYSSCiASuL6QQ3zNFcvpcLVylrJt4lB1G0Qs5z5Jc+FzJFPIom/0VdFbswSBQ+dJCqhOjF4HNkEw+WkANv2DlKCeQhO+twMcDRg+Nnz7P7n4gE9pV0MH0VMd+QxrpJcT9HkkvQ6PAEgJXusLj+ZmBj7D466pCyGcC66mcQDnsKEmg2CljgkWp6r7bQblyYV/oZ9zgt8bfPJl+HNSuvY2jI876Mjk4SJ9k+EhxHFNl0g/ALs81oZx3nnT5YBee0ndMPKWOzOlJ5l+No5/k6cJcd28pkSPmzn43x+ymv3HE+viIxTOPaQpYL0rY7b6HjJ/CHe10PtKSpPeTMT0dZWfOUxL/S6tox8jzQK7oZBHjOK2bL0GrMATRNSTgTEDg09+Kyh4LShqBZaRhH9hYHAg2PSkRpnlXj7wH9Ycn18HmXVDFD4bWvy18b7/lWPxN5g8Yt3jzWihuy7M/XXDYo9IKo2QVnC3F35zvM6fOlWHvRgrfTwMB66zlfjaL51yBtMKQvtCYbyJ9JrdviCiB9HSeX5qKPwFP+eAY+SAz95UhWvKXeCknJi6uVO9d8G97ImuWZA9Mx8A310lQDvgYTh9kwlB4IYT/ZDmlqGOvqPPq0B8bhej/QmcCAwEAAaOCAhQwggIQMA4GA1UdDwEB/wQEAwIFoDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwDAYDVR0TAQH/BAIwADAdBgNVHQ4EFgQUp2GqmYkXUpnOza/6TFAm6yjF9jswHwYDVR0jBBgwFoAUFC6zF7dYVsuuUAlA5h+vnYsUwsYwVQYIKwYBBQUHAQEESTBHMCEGCCsGAQUFBzABhhVodHRwOi8vcjMuby5sZW5jci5vcmcwIgYIKwYBBQUHMAKGFmh0dHA6Ly9yMy5pLmxlbmNyLm9yZy8wHAYDVR0RBBUwE4IRaG9nYXIuZW1vdGljLmluZm8wEwYDVR0gBAwwCjAIBgZngQwBAgEwggEFBgorBgEEAdZ5AgQCBIH2BIHzAPEAdgA/F0tP1yJHWJQdZRyEvg0S7ZA3fx+FauvBvyiF7PhkbgAAAY5zdnR9AAAEAwBHMEUCIE+YKmpFDWwRTUMvxkI8vz6WvDILry0mRgrZ2r1kTbqjAiEA6itOXD3x4hoYOWPSEiVr79RC"} } ] }
+
+出什么结果？
+1. CA 的全球市场占比
+2. Zlint 的 CA 结果图
+3. CA 的证书签发 template
+4. 按照 merkle tree 里面的统计方式出图
+5. 两次扫描之间的差别？
+
+TODO:
+1. 解决数据库插入为什么这么慢的原因(cert_analyze.parse.py)
+OK 这是因为没有立即commit，导致看不见
+2. 解决多线程/进程的启动问题（为什么子进程/线程不能用线程/进程池启动）
+
+REvocation 问题：
+1. 吊销数据收集太慢（其实本质上还是没有把数据库读取/写入也转化成task，导致线程被blocking）
+2. 获取issuer cert （或者是其他cert） 的时候总是出现一些/好多parsing error，比如：
+
+2024-05-22 07:45:28,051 - projectLogger:376 - ERROR
+Error loading certificate: error parsing asn1 value: ParseError { kind: UnexpectedTag { actual: Tag { value: 13, constructed: false, class: Universal } } }
+
+还有许多的 crl 返回是 DER 类型的，这个不知道是对的还是有问题
+
+
+// Move old CA analysis to cert parse analysis
+// Add new CA analysis - tracking fp by issuing time, add CA cert/Key ananlsis
+// Add revocation CRL/OCSP status checking for certs  and store CA CRL
+
+Mofify many db models
+// 1. Change collate type of "subject" and "issuer" from gbk_chinese_ci to utf8mb4_unicode_ci to avoid weird characters
+// 5. Add cert_store_raw entry to scan_status
+// 2. Add fp and more info to cert_store_content
+// 3. Remove Old CAProfiling, add  new model  to track  ca fp by time
+// 4. delete ca crypto strore model as it duplicates ca_cert_store and ca_key_store
+
+Misc:
+// 1. Add db.session.commit() after every insertion statement to ensure instant update
+// 2. add several debug message
+// 4. Add exception handler inside every sync_update_info
+// 3. Change cert ext parsing results
