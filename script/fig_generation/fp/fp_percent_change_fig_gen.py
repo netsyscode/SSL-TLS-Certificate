@@ -1,4 +1,3 @@
-
 import sys
 sys.path.append(r"E:\global_ca_monitor")
 
@@ -30,14 +29,14 @@ with app.app_context():
     scan_input_table_name = "fp_sectigolimited"
     scan_input_table_name = "fp_wotruscalimited"
     scan_input_table_name = "fp_digicertinc"
-    scan_input_table_name = "fp_digicert,inc."
+    # scan_input_table_name = "fp_digicert,inc."
     scan_input_table_name = "fp_appleinc."
     scan_input_table_name = "fp_cloudflare,inc."
     scan_input_table_name = "fp_googletrustservicesllc"
     scan_input_table_name = "fp_internet2"
-    scan_input_table_name = "fp_swisssignag"
-    scan_input_table_name = "fp_microsoftcorporation"
-    scan_input_table_name = "fp_amazon"
+    # scan_input_table_name = "fp_swisssignag"
+    # scan_input_table_name = "fp_microsoftcorporation"
+    # scan_input_table_name = "fp_amazon"
     metadata = MetaData()
     metadata.reflect(bind=db.engine)
     reflected_tables = metadata.tables
@@ -83,33 +82,22 @@ with app.app_context():
     # 将缺失的百分比填充为0
     data['percentage'].fillna(0, inplace=True)
 
+    # 聚合小占比类别
+    threshold = 0.01  # 定义最小占比阈值
+    data['value'] = np.where(data['percentage'] < threshold, 'Other', data['value'])
 
+    # 使用 pivot_table 将数据转换为矩阵形式
+    pivot_data = data.pivot_table(index='timestamp', columns='value', values='percentage', fill_value=0)
 
-    cmap = plt.get_cmap('tab20')  # 使用 tab20 颜色映射，20 种不同颜色
-    markers = ['o', 's', 'd', '^', 'v', '<', '>', 'p', '*', 'h', 'H', '+', 'x', '|', '_', '.', ',', '1', '2', '3']
-
-    # 画图
-    x = ['202304', '202305', '202306', '202307', '202308', '202309', '202310', '202311', '202312', '202401', '202402', '202403', '202404', '202405']
-    y = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    plt.plot(x, y, color='k', linestyle='-')
-
-    for i, value in enumerate(data['value'].unique()):
-        color = cmap(i % 20)  # 循环使用颜色映射中的颜色
-        marker = markers[i % len(markers)]  # 循环使用标记
- 
-        # 过滤掉百分比为0的点
-        filtered_data = data[(data['value']==value) & (data['percentage'] > 0)]
-        
-        # 如果有数据才画图
-        if not filtered_data.empty:
-            plt.plot(filtered_data['timestamp'], filtered_data['percentage'],
-                    label=value, color=color, marker=marker, linestyle='-')
-
+    # 绘制累计面积图
+    fig, ax = plt.subplots(figsize=(10, 5))  # 放大图像尺寸
+    labels = [f'fp{i+1}' for i in range(len(pivot_data.columns))]
+    ax.stackplot(pivot_data.index, pivot_data.T, labels=labels, alpha=0.8)
+    ax.legend(loc='upper right')
     plt.xlabel('Timestamp')
     plt.ylabel('Percentage')
-    plt.xticks(rotation=45)  # 旋转横坐标标签
+    plt.ylim(0, 1)  # 确保纵轴范围是0到1
+    plt.xticks(rotation=45)
     plt.title(f'{scan_input_table_name} FP Percentage Change Over Time')
-    # 移动图例到图的外面
-    # plt.legend(bbox_to_anchor=(0., 1.2, 1., .102), loc='upper center', ncol=3, mode="expand", borderaxespad=0.)
     plt.tight_layout()  # 调整布局，使图例不会超出图的边界
     plt.show()
