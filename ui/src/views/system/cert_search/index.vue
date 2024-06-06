@@ -77,12 +77,12 @@
       <el-table-column prop="issuer_org" label="签发者" align="center" width="300"></el-table-column>
       <el-table-column prop="validation_period" label="有效期(天)" align="center" width="100"></el-table-column>
 
-      <el-table-column prop="not_valid_before" label="有效期开始时间" align="center" width="230">
+      <el-table-column prop="not_valid_before_utc" label="有效期开始时间" align="center" width="230">
         <!-- <template slot-scope="scope">
           <span>{{ parseTime(scope.row.startTime) }}</span>
         </template> -->
       </el-table-column>
-      <el-table-column prop="not_valid_after" label="有效期截止时间" align="center" width="230">
+      <el-table-column prop="not_valid_after_utc" label="有效期截止时间" align="center" width="230">
         <!-- <template slot-scope="scope">
           <span>{{ parseTime(scope.row.startTime) }}</span>
         </template> -->
