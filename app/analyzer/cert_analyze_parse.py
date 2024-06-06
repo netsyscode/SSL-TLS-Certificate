@@ -338,11 +338,11 @@ class CertParseAnalyzer():
                         'FINGERPRINT' : result[1]
                     }
                     cert_store_data_to_insert.append(cert_store_data)
-                    # insert_cert_store_statement = insert(CertStoreContent).values(cert_store_data)
-                    # update_values = {key: insert_cert_store_statement.inserted[key] for key in cert_store_data.keys()}
-                    # on_duplicate_key_statement = insert_cert_store_statement.on_duplicate_key_update(**update_values)
-                    # db.session.execute(on_duplicate_key_statement)
-                    # db.session.commit()
+                    insert_cert_store_statement = insert(CertStoreContent).values(cert_store_data)
+                    update_values = {key: insert_cert_store_statement.inserted[key] for key in cert_store_data.keys()}
+                    on_duplicate_key_statement = insert_cert_store_statement.on_duplicate_key_update(**update_values)
+                    db.session.execute(on_duplicate_key_statement)
+                    db.session.commit()
 
 
                     if parse_result.cert_type != CertType.LEAF:
@@ -421,9 +421,9 @@ class CertParseAnalyzer():
                     # update_values = {key: insert_cert_store_statement.inserted[key] for key in cert_store_data.keys()}
                     # on_duplicate_key_statement = insert_cert_store_statement.on_duplicate_key_update(**update_values)
                     # db.session.execute(on_duplicate_key_statement)
-                    insert_cert_store_statement = insert(CertStoreContent).values(cert_store_data_to_insert).prefix_with('IGNORE')
-                    db.session.execute(insert_cert_store_statement)
-                    db.session.commit()
+                    # insert_cert_store_statement = insert(CertStoreContent).values(cert_store_data_to_insert).prefix_with('IGNORE')
+                    # db.session.execute(insert_cert_store_statement)
+                    # db.session.commit()
 
                     insert_ca_cert_store_statement = insert(CaCertStore).values(ca_cert_store_data_to_insert).prefix_with('IGNORE')
                     db.session.execute(insert_ca_cert_store_statement)

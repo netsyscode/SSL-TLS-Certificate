@@ -30,15 +30,14 @@ with open(r"E:/global_ca_monitor/tool/domain_collector/data/seed_ca_org_name", "
     for line in file:
         ca_org_list.append(line.strip())
 print(ca_org_list)
-with app.app_context():
-    for ca_org in ca_org_list:
-        generate_ca_fp_table(ca_org)
 
 class CaSignedCertProfilingAnalyzer:
 
     def __init__(self) -> None:
         self.fp_dict_lock= Lock()
         self.fp_dict_by_ca_and_time : Dict[Tuple[str, str, str], List[int]]= {}
+        for ca_org in ca_org_list:
+            generate_ca_fp_table(ca_org)
 
     def analyze_ca_fp_track(self, rows):
         for row in rows:
