@@ -25,8 +25,8 @@ def get_domain(url : str):
 def parse_domain(rows):
     for row in rows:
         try:
-            single_cert_analyzer = X509CertParser(row[1])
-            cert_parse_result = single_cert_analyzer.parse_cert_base()
+            single_cert_parser = X509CertParser(row[1])
+            cert_parse_result = single_cert_parser.parse_cert_base()
 
             # Skip CA certs
             if cert_parse_result.cert_type != CertType.LEAF:
@@ -37,12 +37,12 @@ def parse_domain(rows):
                     if "." in cert_parse_result.subject_cn:
                         result[cert_parse_result.subject_org].add(get_domain(cert_parse_result.subject_cn))
 
-                for ext in cert_parse_result.extension_parsed_info:
-                    if type(ext) == SANResult:
-                        for domain_name in ext.name_list:
-                            result[cert_parse_result.subject_org].add(get_domain(domain_name))
-                        for ip in ext.ip_list:
-                            result[cert_parse_result.subject_org].add(ip)
+                san : SANResult = single_cert_parser.extension_parser.get_result_by_type(SANResult)
+                if san:
+                    for domain_name in san.name_list:
+                        result[cert_parse_result.subject_org].add(get_domain(domain_name))
+                    for ip in san.ip_list:
+                        result[cert_parse_result.subject_org].add(ip)
         except ParseError:
             pass
 

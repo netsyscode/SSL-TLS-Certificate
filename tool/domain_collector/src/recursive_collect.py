@@ -47,13 +47,13 @@ def retrieve_domain(org : str, domain_list : set):
             # TODO: 还是有问题，这样排除的逻辑不对，会多排除在SAN里面的域名获得的证书
             if not re.match(regex_pattern, base_domain): return
 
-            for ext in cert_parse_result.extension_parsed_info:
-                if type(ext) == SANResult:
-                    for domain_name in ext.name_list:
-                        print(domain_name)
-                        recursive_retrieve_domain(get_domain(domain_name), None, visited)
-                    for ip in ext.ip_list:
-                        recursive_retrieve_domain(None, ip, visited)
+            san : SANResult = single_cert_parser.extension_parser.get_result_by_type(SANResult)
+            if san:
+                for domain_name in san.name_list:
+                    print(domain_name)
+                    recursive_retrieve_domain(get_domain(domain_name), None, visited)
+                for ip in san.ip_list:
+                    recursive_retrieve_domain(None, ip, visited)
 
     with ThreadPoolExecutor(max_workers=10) as executor:
         for domain in domain_list:

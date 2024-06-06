@@ -1,0 +1,40 @@
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+
+# 假设你有一个PEM格式的EC公钥
+ec_pem_bytes = b'''
+-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEs6yrd3E4VT4O3tYjZgNmT2l+nkm
+HP9XnChdJY7b+2FvV2T1m5wZkMPGp37H/4NOMf7XgzXvCE8AWmIgtTY4Gw==
+-----END PUBLIC KEY-----
+'''
+
+# 从PEM格式加载EC公钥
+ec_public_key = serialization.load_pem_public_key(ec_pem_bytes, backend=default_backend())
+
+# 提取EC公钥的参数
+ec_key = ec_public_key.public_numbers()
+x = ec_key.x
+y = ec_key.y
+
+print("EC Public Key X Coordinate:", x)
+print("EC Public Key Y Coordinate:", y)
+
+
+# 假设你有一个PEM格式的ED25519公钥
+ed_pem_bytes = b'''
+-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAwJLFNcQSRddEBjX7YIjNiyA18O0FeZetH24w6jZcvCQ=
+-----END PUBLIC KEY-----
+'''
+
+# 从PEM格式加载ED25519公钥
+ed_public_key = serialization.load_pem_public_key(ed_pem_bytes, backend=default_backend())
+
+# 提取ED25519公钥的参数
+ed_key = ed_public_key.public_bytes(
+    encoding=serialization.Encoding.Raw,
+    format=serialization.PublicFormat.Raw
+)
+
+print("ED25519 Public Key:", ed_key.hex())
