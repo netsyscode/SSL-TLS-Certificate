@@ -17,7 +17,8 @@ from ..parser.cert_parser_extension import (
     CRLResult,
     AuthorityKeyIdentifierResult,
     SubjectKeyIdentifierResult,
-    PrecertificateSignedCertificateTimestampsResult
+    PrecertificateSignedCertificateTimestampsResult,
+    SANResult
 )
 from ..utils.type import CertType
 from ..utils.exception import ParseError, UnknownTableError
@@ -61,8 +62,7 @@ class CaStatResult:
         'digital_sig': 0,
         'key_encipherment': 0,
         'data_encipherment': 0,
-        'key_agreement': 0,
-        'others': 0
+        'key_agreement': 0
     })
     eku_count: Dict[str, int] = field(default_factory=dict)
     issued_policy_count: Dict[str, int] = field(default_factory=dict)
@@ -169,68 +169,115 @@ class CertParseAnalyzer():
             The idea is similar to Ma's
             But I trim some unimportant features
         '''
+        NUL = -1
         fp = []
 
         # Basic stuff
         fp.append(cert_parse_result.version.value)
         fp.append(int((cert_parse_result.serial_number.bit_length() + 7) // 8))  # byte length
         fp.append(int(encode_label(cert_parse_result.cert_signature_hash_algorithm)))
-        fp.append(cert_parse_result.validation_period)
         fp.append(int(encode_label(cert_parse_result.subject_pub_key_algo.__str__())))
         fp.append(cert_parse_result.subject_pub_key_size)
+        fp.append(cert_parse_result.validation_period / 10)
+
+        # Issuer & Subject
+        fp.append(int(encode_label(cert_parse_result.issuer_cn)))
+        fp.append(int(encode_label(cert_parse_result.issuer_org)))
+        fp.append(int(encode_label(cert_parse_result.issuer_country)))
+        fp.append(int(encode_label(cert_parse_result.subject_country)))
+
+        # Basic constraints
+        ext_result : BasicConstraintsResult = cert_parse_result.extension_parsed_info.get_result_by_type(BasicConstraintsResult)
+        if ext_result:
+            fp.append(int(ext_result.ca_bit))
+            if ext_result.path_len_constraint:
+                fp.append(ext_result.path_len_constraint)
+            else:
+                fp.append(NUL)
+        else:
+            fp += [NUL, NUL]
+
+        # Key usage
+        ext_result : KeyUsageResult = cert_parse_result.extension_parsed_info.get_result_by_type(KeyUsageResult)
+        if ext_result:
+            fp.append(int(ext_result.digital_sig))
+            fp.append(int(ext_result.non_reputation))
+            fp.append(int(ext_result.key_encipherment))
+            fp.append(int(ext_result.data_encipherment))
+            fp.append(int(ext_result.key_agreement))
+            fp.append(int(ext_result.key_cert_sign))
+            fp.append(int(ext_result.crl_sign))
+            # fp.append(int(ext_result.encipher_only))
+            # fp.append(int(ext_result.decipher_only))
+        else:
+            fp += [NUL] * 7
+
+        # Extended key usage
+        ext_result : ExtendedKeyUsageResult = cert_parse_result.extension_parsed_info.get_result_by_type(ExtendedKeyUsageResult)
+        if ext_result:
+            fp.append(len(ext_result.ext_usage_list))
+            fp.append(int(ext_result.server_auth))
+            fp.append(int(ext_result.client_auth))
+            fp.append(int(ext_result.code_sign))
+            fp.append(int(ext_result.email_prot))
+            fp.append(int(ext_result.time_stamp))
+            fp.append(int(ext_result.ocsp_sign))
+            fp.append(int(ext_result.others))
+        else:
+            fp += [NUL] * 8
+
+        # Authority Key ID
+        ext_result : AuthorityKeyIdentifierResult = cert_parse_result.extension_parsed_info.get_result_by_type(AuthorityKeyIdentifierResult)
+        if ext_result:
+            fp.append(len(ext_result.key_identifier))
+        else:
+            fp.append(NUL)
+
+        # Subject Key ID
+        ext_result : SubjectKeyIdentifierResult = cert_parse_result.extension_parsed_info.get_result_by_type(SubjectKeyIdentifierResult)
+        if ext_result:
+            fp.append(len(ext_result.key_identifier))
+        else:
+            fp.append(NUL)
+
+        # SAN
+        ext_result : SANResult = cert_parse_result.extension_parsed_info.get_result_by_type(SANResult)
+        if ext_result:
+            fp.append(len(ext_result.name_list) + len(ext_result.ip_list))
+        else:
+            fp.append(NUL)
+
+        # Authority info access (AIA)
+        ext_result : AIAResult = cert_parse_result.extension_parsed_info.get_result_by_type(AIAResult)
+        if ext_result:
+            fp.append(len(ext_result.issuer_url_list))
+            fp.append(len(ext_result.ocsp_url_list))
+        else:
+            fp += [NUL] * 2
+
+        # CRL distribution points
+        ext_result : CRLResult = cert_parse_result.extension_parsed_info.get_result_by_type(CRLResult)
+        if ext_result:
+            fp.append(len(ext_result.crl_url_list))
+        else:
+            fp.append(NUL)
+            
+        # Policy identifiers
+        ext_result : CertPoliciesResult = cert_parse_result.extension_parsed_info.get_result_by_type(CertPoliciesResult)
+        if ext_result:
+            fp.append(int(encode_label(ext_result.issuer_policy)))
+        else:
+            fp.append(NUL)
+        
+        # SCTs
+        ext_result : PrecertificateSignedCertificateTimestampsResult = cert_parse_result.extension_parsed_info.get_result_by_type(PrecertificateSignedCertificateTimestampsResult)
+        if ext_result:
+            fp.append(ext_result.sct_length)
+        else:
+            fp.append(NUL)
 
         # Set of X.509 extensions
-        fp.append(len(cert_parse_result.extension_parsed_info))
-        for ext_result in cert_parse_result.extension_parsed_info:
-            # Authority Key ID
-            if type(ext_result) == AuthorityKeyIdentifierResult:
-                fp.append(len(ext_result.key_identifier))
-            
-            # Subject Key ID
-            if type(ext_result) == SubjectKeyIdentifierResult:
-                fp.append(len(ext_result.key_identifier))
-
-            # Key usage
-            if type(ext_result) == KeyUsageResult:
-                fp.append(int(ext_result.digital_sig))
-                fp.append(int(ext_result.key_encipherment))
-                fp.append(int(ext_result.data_encipherment))
-                fp.append(int(ext_result.key_agreement))
-                fp.append(int(ext_result.others))
-            
-            # Basic constraints
-            if type(ext_result) == BasicConstraintsResult:
-                fp.append(int(ext_result.ca_bit))
-
-            # Extended key usage
-            if type(ext_result) == ExtendedKeyUsageResult:
-                fp.append(len(ext_result.ext_usage_list))
-                # for usage in ext_result.ext_usage_list:
-                    # med += usage.__str__()
-
-            # Policy identifiers
-            if type(ext_result) == CertPoliciesResult:
-                fp.append(int(encode_label(ext_result.issuer_policy)))
-
-            # Authority info access (AIA)
-            if type(ext_result) == AIAResult:
-                fp.append(len(ext_result.issuer_url_list))
-                fp.append(len(ext_result.ocsp_url_list))
-                # for issuer_url in ext_result.issuer_url_list:
-                #     fp.append(len(issuer_url))
-                # for ocsp_url in ext_result.ocsp_url_list:
-                #     fp.append(len(ocsp_url))
-
-            # CRL distribution points
-            if type(ext_result) == CRLResult:
-                fp.append(len(ext_result.crl_url_list))
-                # for crl_url in ext_result.crl_url_list:
-                #     med += len(crl_url) / 10
-
-            # SCTs
-            if type(ext_result) == PrecertificateSignedCertificateTimestampsResult:
-                fp.append(ext_result.sct_length)
-
+        fp.append(len(cert_parse_result.extension_parsed_info.ext_result_list))
         return fp
 
 
@@ -259,7 +306,7 @@ class CertParseAnalyzer():
             update_dict(stat_result.key_type_count, cert_parse_result.subject_pub_key_algo.__class__.__name__)
             update_dict(stat_result.sig_type_count, cert_parse_result.cert_signature_hash_algorithm)
 
-            for ext_result in cert_parse_result.extension_parsed_info:
+            for ext_result in cert_parse_result.extension_parsed_info.ext_result_list:
                 if type(ext_result) == AIAResult:
                     for issuer_url in ext_result.issuer_url_list:
                         stat_result.ca_cert_server.add(issuer_url)
@@ -275,7 +322,6 @@ class CertParseAnalyzer():
                     stat_result.crypto_use_count['key_encipherment'] += ext_result.key_encipherment
                     stat_result.crypto_use_count['data_encipherment'] += ext_result.data_encipherment
                     stat_result.crypto_use_count['key_agreement'] += ext_result.key_agreement
-                    stat_result.crypto_use_count['others'] += ext_result.others
                 if type(ext_result) == ExtendedKeyUsageResult:
                     for usage in ext_result.ext_usage_list:
                         update_dict(stat_result.eku_count, usage.__str__())
@@ -339,11 +385,11 @@ class CertParseAnalyzer():
                     }
                     cert_store_data_to_insert.append(cert_store_data)
                     insert_cert_store_statement = insert(CertStoreContent).values(cert_store_data)
-                    update_values = {key: insert_cert_store_statement.inserted[key] for key in cert_store_data.keys()}
+                    # update_values = {key: insert_cert_store_statement.inserted[key] for key in cert_store_data.keys()}
+                    update_values = {'FINGERPRINT': insert_cert_store_statement.inserted['FINGERPRINT']}
                     on_duplicate_key_statement = insert_cert_store_statement.on_duplicate_key_update(**update_values)
                     db.session.execute(on_duplicate_key_statement)
                     db.session.commit()
-
 
                     if parse_result.cert_type != CertType.LEAF:
                         ca_cert_data = {
@@ -359,7 +405,7 @@ class CertParseAnalyzer():
                         # db.session.execute(insert_ca_cert_store_statement)
 
                         kid = get_cert_sha256_hex_from_str(parse_result.pub_key_raw)
-                        for ext_result in parse_result.extension_parsed_info:
+                        for ext_result in parse_result.extension_parsed_info.ext_result_list:
                             if type(ext_result) == SubjectKeyIdentifierResult:
                                 kid = ext_result.key_identifier
 

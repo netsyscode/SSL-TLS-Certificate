@@ -71,15 +71,26 @@ class BasicConstraintsResult(ExtensionResult):
 @dataclass
 class ExtendedKeyUsageResult(ExtensionResult):
     ext_usage_list : List[ExtendedKeyUsageOID]
+    server_auth : bool
+    client_auth : bool
+    code_sign : bool
+    email_prot : bool
+    time_stamp : bool
+    ocsp_sign : bool
+    others : bool
 
 @dataclass
 class KeyUsageResult(ExtensionResult):
     # key_type : types.CERTIFICATE_PUBLIC_KEY_TYPES
     digital_sig : bool
+    non_reputation : bool
     key_encipherment : bool
     data_encipherment : bool
     key_agreement : bool
-    others : bool
+    key_cert_sign : bool
+    crl_sign : bool
+    # encipher_only : bool
+    # decipher_only : bool
 
 @dataclass
 class CRLResult(ExtensionResult):
@@ -120,22 +131,19 @@ class ExtensionResultWarpper():
                 return result
         return None
 
-# TODO: Apply this new result class to the system
-
 class X509CertExtensionParser():
 
     def __init__(self, input_extensions : Extensions) -> None:
         self.extensions = input_extensions
 
-    def analyzeExtensions(self) -> List[ExtensionResult]:
+    def analyzeExtensions(self) -> ExtensionResultWarpper:
         self.ext_result_list = []
         for extension in self.extensions:
             # do not want static method here right now...
             if extension.value.__class__ in EXTENSIONTOEXTENSIONPARSER.keys():
                 result = EXTENSIONTOEXTENSIONPARSER[extension.value.__class__]().analyze(extension)
                 self.ext_result_list.append(result)
-        # TODO: Change the return result to ExtensionResultWarpper
-        return self.ext_result_list
+        return ExtensionResultWarpper(self.ext_result_list)
 
     def get_result_by_type(self, result_type):
         for result in self.ext_result_list:
@@ -189,28 +197,61 @@ class ExtendedKeyUsageParser(SingleExtensionParser):
 
     def analyze(self, extension : Extension) -> ExtendedKeyUsageResult:
         value = extension.value
+        server_auth = False
+        client_auth = False
+        code_sign = False
+        email_prot = False
+        time_stamp = False
+        ocsp_sign = False
+        others = False
+
         if isinstance(value, ExtendedKeyUsage):
-            return ExtendedKeyUsageResult(extension.critical, value._usages)
+            for usage in value._usages:
+                if usage.dotted_string == "1.3.6.1.5.5.7.3.1":
+                    server_auth = True
+                elif usage.dotted_string == "1.3.6.1.5.5.7.3.2":
+                    client_auth = True
+                elif usage.dotted_string == "1.3.6.1.5.5.7.3.3":
+                    code_sign = True
+                elif usage.dotted_string == "1.3.6.1.5.5.7.3.4":
+                    email_prot = True
+                elif usage.dotted_string == "1.3.6.1.5.5.7.3.8":
+                    time_stamp = True
+                elif usage.dotted_string == "1.3.6.1.5.5.7.3.9":
+                    ocsp_sign = True
+                else:
+                    others = True
+
+            return ExtendedKeyUsageResult(
+                extension.critical,
+                value._usages,
+                server_auth,
+                client_auth,
+                code_sign,
+                email_prot,
+                time_stamp,
+                ocsp_sign,
+                others
+            )
         return None
     
 
 class KeyUsageParser(SingleExtensionParser):
 
     def analyze(self, extension : Extension) -> KeyUsageResult:
-        others = False
         value = extension.value
         if isinstance(value, KeyUsage):
-            if value.content_commitment or value.crl_sign or value.key_cert_sign:
-                others = True
-            if value.key_agreement and (value.decipher_only or value.encipher_only):
-                others = True
             return KeyUsageResult(
                 extension.critical,
                 value.digital_signature,
+                value.content_commitment,
                 value.key_encipherment,
                 value.data_encipherment,
                 value.key_agreement,
-                others
+                value.key_cert_sign,
+                value.crl_sign,
+                # value.encipher_only,
+                # value.decipher_only,
             )
         return None
     

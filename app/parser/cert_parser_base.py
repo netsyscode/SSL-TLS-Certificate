@@ -43,7 +43,7 @@ from dataclasses import dataclass, asdict
 from typing import Optional, Dict, List, Union, Tuple
 from ..utils.type import CertType, LeafCertType
 from ..utils.exception import ParseError
-from .cert_parser_extension import X509CertExtensionParser, ExtensionResult
+from .cert_parser_extension import X509CertExtensionParser, ExtensionResult, ExtensionResultWarpper
 
 
 @dataclass
@@ -72,7 +72,7 @@ class X509ParsedInfo():
     cert_type : CertType
     sha_256 : str
 
-    extension_parsed_info : List[ExtensionResult]
+    extension_parsed_info : ExtensionResultWarpper
     cert_raw : str
     pub_key_raw : str
 
